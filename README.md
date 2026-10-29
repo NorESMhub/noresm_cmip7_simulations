@@ -2,7 +2,7 @@
 
 Each file in this branch should contain the run script for a NorESM3 CMIP7 experiment.
 
-The filename should be of the form, `compset.Resolution.noresmversionBetaversion.Issue.Date.sh` and should be a bash script (that begins with #! /bin/bash) that contains all the commands used to create the experiment:
+The filename should be of the form, `run_<compset>.<Resolution>.<noresmversion><Betaversion>.<Issue>.<Date>.sh` and should be a bash script (that begins with #! /bin/bash) that contains all the commands used to create the experiment:
 - Clone and setup of the source code used:
     - The `git clone` command. This can include `-b <tag name>`.
     - `cd` into the the clone directory
