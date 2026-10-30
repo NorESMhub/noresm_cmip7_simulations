@@ -142,7 +142,7 @@ cd "${casepath}"
 ./xmlchange REST_N=5
 ./xmlchange REST_OPTION=nyears
 ./xmlchange RESUBMIT=5 # if you want to run 20 days in 10 days chunks this should be 1.
-./xmlchange --subgroup case.run JOB_WALLCLOCK_TIME=16:40:00
+./xmlchange --subgroup case.run JOB_WALLCLOCK_TIME=24:00:00
 # For a long run set this to 01:20:00
 ./xmlchange --subgroup case.st_archive JOB_WALLCLOCK_TIME=01:30:00
 # For a long run set this to 06:20:00
