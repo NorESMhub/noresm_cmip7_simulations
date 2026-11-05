@@ -12,12 +12,19 @@ The runs and their cases come from noresm3_cases.csv (run, case, first_year,
 read across both; its start year is its first case's first_year.
 
 --dir gives each case's directory, with {case} standing for the case name.
---nird-dir does the same for the copy on NIRD; the tracker ticks the NIRD step
-once that copy has reached the end of the run. --completed names a finished run.
+--completed names a finished run.
+
+--cmor-dir gives each case's cmip7-prep output directory, also with {case}.
+cmip7-prep writes completed_steps_<first>-<last>.json there for each set of
+years it has run over, listing the steps that finished (cmor-atm-mon, ...).
+A set of years counts as CMORized when it has every cmor- step that any of the
+run's sets has, so a set where one realm failed does not count. The run is
+CMORized up to the last year reached without a gap from its start year.
 
   python3 -I workflow/nird_progress.py workflow/noresm3_cases.csv \\
       /nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json \\
-      --dir "/path/to/archive/{case}/atm/hist"
+      --dir "/nird/datalake/NS9560K/noresm3/cases/{case}/atm/hist" \\
+      --cmor-dir "/nird/datalake/NS9560K/noresm3/cases/{case}.cmor"
 
 --pattern sets which files count (default *.cam.i.*.nc).
 """
@@ -26,12 +33,15 @@ import argparse
 import csv
 import datetime
 import fnmatch
+import glob
 import json
 import os
 import re
 
 # YYYY-MM, YYYY-MM-DD or YYYY-MM-DD-SSSSS just before .nc
 DATE = re.compile(r"\.(\d{4})-(\d{2})(?:-(\d{2})(?:-\d{5})?)?\.nc$")
+# cmip7-prep's record of the steps that finished for one set of years.
+COMPLETED = re.compile(r"completed_steps_(\d+)-(\d+)\.json$")
 
 
 def model_dates(directory, pattern):
@@ -71,15 +81,42 @@ def latest(cases, template, pattern):
     return (max(dates) if dates else None), missing
 
 
+def cmorized_to(cases, template, start):
+    """Last model year CMORized without a gap from start, or None if nothing is."""
+    periods = []
+    for case in cases:
+        for path in glob.glob(os.path.join(glob.escape(template.format(case=case)), "completed_steps_*.json")):
+            m = COMPLETED.search(os.path.basename(path))
+            if not m:
+                continue
+            try:
+                with open(path, encoding="utf-8") as f:
+                    keys = {k for k in json.load(f) if isinstance(k, str) and k.startswith("cmor-")}
+            except (OSError, ValueError):
+                continue
+            periods.append((int(m.group(1)), int(m.group(2)), keys))
+    expected = set().union(*(keys for _, _, keys in periods)) if periods else set()
+    if not expected:
+        return None
+    years = set()
+    for first, last, keys in periods:
+        if keys >= expected:
+            years.update(range(first, last + 1))
+    year = start
+    while year in years:
+        year += 1
+    return year - 1 if year > start else None
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("cases", help="noresm3_cases.csv")
     p.add_argument("out", help="where to write progress.json")
     p.add_argument("--dir", required=True, help='each case\'s directory, e.g. "/archive/{case}/atm/hist"')
-    p.add_argument("--nird-dir", help="each case's directory on NIRD, with {case}")
     p.add_argument("--pattern", default="*.cam.i.*.nc", help="dated files that count, as a shell pattern")
     p.add_argument("--completed", action="append", default=[], metavar="RUN",
                    help='a run that has finished, e.g. "piControl ne16"; repeatable')
+    p.add_argument("--cmor-dir", help='each case\'s cmip7-prep output directory, e.g. "/cases/{case}.cmor"')
     a = p.parse_args()
 
     runs = {}
@@ -102,11 +139,13 @@ def main():
             report = "no dated files found"
         if missing:
             report += f"; no directory for {', '.join(missing)}"
-        if a.nird_dir:
-            nird, _ = latest(r["cases"], a.nird_dir, a.pattern)
-            if nird:
-                entry["nirdYears"] = round(max(0.0, as_years(nird) - r["start"]), 2)
-                report += f", {entry['nirdYears']} on NIRD"
+        if a.cmor_dir:
+            to = cmorized_to(r["cases"], a.cmor_dir, r["start"])
+            if to is not None:
+                entry["cmorYears"] = to - r["start"] + 1
+                entry["cmorFrom"] = r["start"]
+                entry["cmorTo"] = to
+                report += f"; CMORized years {r['start']}-{to}"
         if name in a.completed:
             entry["completed"] = True
         out[name] = entry
