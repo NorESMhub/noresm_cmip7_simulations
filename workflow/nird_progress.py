@@ -1,54 +1,73 @@
-"""Write progress.json for the tracker from the dates in the runs' file names.
+"""Write progress.json for the tracker from the GitHub issues and the files on NIRD.
 
-A run's files carry the model date they were written at, as in
-  nHistEsmGHGGaxg.LM.nor30b28.008.20261029.cam.i.1930-01-01-00000.nc
-so the latest date in its directories says how far the run has got. Years done
-are that date minus the run's start year: a historical run starting in 1850
-with a 1930-01-01 file has done 80 years. A monthly file such as
-<case>.cam.h0a.1929-12.nc counts as reaching the end of its month.
+Every case has an issue in NorESMhub/noresm_cmip7_simulations whose title is the
+case name, such as
+  nHistEsmGHGGaxg.LM.nor30b28.008.20261029
+and whose labels include the CMIP7 experiment (esm-hist). The script lists the
+issues, reads each case's directories on NIRD, and writes one entry per case;
+the page groups the cases into its runs by experiment label and resolution.
+An issue labelled "test" is left out, and "completed" marks a finished run.
 
-The runs and their cases come from noresm3_cases.csv (run, case, first_year,
-...), the file the page is built from. A run continued in a second case is
-read across both; its start year is its first case's first_year.
+For each case it records:
+  - the latest model date in its file names, such as
+    <case>.cam.i.1930-01-01-00000.nc; a monthly file such as
+    <case>.cam.h0a.1929-12.nc counts as reaching the end of its month;
+  - the sets of years cmip7-prep has run over. cmip7-prep writes
+    completed_steps_<first>-<last>.json in its output directory for each set,
+    listing the steps that finished (cmor-atm-mon, ...).
 
---dir gives each case's directory, with {case} standing for the case name.
---completed names a finished run.
+--dir gives each case's directory and --cmor-dir its cmip7-prep output
+directory, with {case} standing for the case name:
 
---cmor-dir gives each case's cmip7-prep output directory, also with {case}.
-cmip7-prep writes completed_steps_<first>-<last>.json there for each set of
-years it has run over, listing the steps that finished (cmor-atm-mon, ...).
-A set of years counts as CMORized when it has every cmor- step that any of the
-run's sets has, so a set where one realm failed does not count. The run is
-CMORized up to the last year reached without a gap from its start year.
-
-  python3 -I workflow/nird_progress.py workflow/noresm3_cases.csv \\
+  python3 -I workflow/nird_progress.py \\
       /nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json \\
       --dir "/nird/datalake/NS9560K/noresm3/cases/{case}/atm/hist" \\
       --cmor-dir "/nird/datalake/NS9560K/noresm3/cases/{case}.cmor"
 
---pattern sets which files count (default *.cam.i.*.nc).
+--pattern sets which files count (default *.cam.i.*.nc). --issues reads the
+issues from a file saved from the GitHub API instead of fetching them.
 """
 
 import argparse
-import csv
 import datetime
 import fnmatch
 import glob
 import json
 import os
 import re
+import urllib.request
 
+REPO = "NorESMhub/noresm_cmip7_simulations"
+# compset.resolution.version...: n1850GHGGaxg.LM.nor30b28.011.20261102
+TITLE = re.compile(r"^[A-Za-z0-9-]+\.(LM|MM)\.nor30(b\d+)\.")
+RESOLUTION = {"LM": "ne16", "MM": "ne30"}
 # YYYY-MM, YYYY-MM-DD or YYYY-MM-DD-SSSSS just before .nc
 DATE = re.compile(r"\.(\d{4})-(\d{2})(?:-(\d{2})(?:-\d{5})?)?\.nc$")
 # cmip7-prep's record of the steps that finished for one set of years.
 COMPLETED = re.compile(r"completed_steps_(\d+)-(\d+)\.json$")
 
 
-def model_dates(directory, pattern):
-    """(year, month, day) of every matching file; None if the directory doesn't exist.
-    A monthly file (no day) is dated at the start of the next month."""
+def fetch_issues(repo):
+    """Every issue in the repository, open and closed, without pull requests."""
+    issues, page = [], 1
+    while True:
+        url = f"https://api.github.com/repos/{repo}/issues?state=all&per_page=100&page={page}"
+        req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json",
+                                                   "User-Agent": "nird_progress"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            batch = json.load(r)
+        if not batch:
+            return issues
+        issues.extend(i for i in batch if "pull_request" not in i)
+        page += 1
+
+
+def latest_date(directory, pattern):
+    """Latest (year, month, day) among the matching files; None if there are none,
+    False if the directory doesn't exist. A monthly file (no day) is dated at the
+    start of the next month."""
     if not os.path.isdir(directory):
-        return None
+        return False
     dates = []
     for name in os.listdir(directory):
         if not fnmatch.fnmatchcase(name, pattern):
@@ -61,102 +80,77 @@ def model_dates(directory, pattern):
             y, mo = (y + 1, 1) if mo == 12 else (y, mo + 1)
             d = 1
         dates.append((y, mo, int(d)))
-    return dates
+    return max(dates) if dates else None
 
 
-def as_years(date):
-    y, mo, d = date
-    return y + (mo - 1) / 12 + (d - 1) / 365
-
-
-def latest(cases, template, pattern):
-    """Latest date across a run's cases, and the case directories that are missing."""
-    dates, missing = [], []
-    for case in cases:
-        found = model_dates(template.format(case=case), pattern)
-        if found is None:
-            missing.append(case)
-        else:
-            dates.extend(found)
-    return (max(dates) if dates else None), missing
-
-
-def cmorized_to(cases, template, start):
-    """Last model year CMORized without a gap from start, or None if nothing is."""
-    periods = []
-    for case in cases:
-        for path in glob.glob(os.path.join(glob.escape(template.format(case=case)), "completed_steps_*.json")):
-            m = COMPLETED.search(os.path.basename(path))
-            if not m:
-                continue
-            try:
-                with open(path, encoding="utf-8") as f:
-                    keys = {k for k in json.load(f) if isinstance(k, str) and k.startswith("cmor-")}
-            except (OSError, ValueError):
-                continue
-            periods.append((int(m.group(1)), int(m.group(2)), keys))
-    expected = set().union(*(keys for _, _, keys in periods)) if periods else set()
-    if not expected:
-        return None
-    years = set()
-    for first, last, keys in periods:
-        if keys >= expected:
-            years.update(range(first, last + 1))
-    year = start
-    while year in years:
-        year += 1
-    return year - 1 if year > start else None
+def cmor_sets(directory):
+    """[{first, last, steps}] for each completed_steps_<first>-<last>.json, with its cmor- steps."""
+    sets = []
+    for path in glob.glob(os.path.join(glob.escape(directory), "completed_steps_*.json")):
+        m = COMPLETED.search(os.path.basename(path))
+        if not m:
+            continue
+        try:
+            with open(path, encoding="utf-8") as f:
+                steps = sorted(k for k in json.load(f) if isinstance(k, str) and k.startswith("cmor-"))
+        except (OSError, ValueError):
+            continue
+        sets.append({"first": int(m.group(1)), "last": int(m.group(2)), "steps": steps})
+    return sorted(sets, key=lambda s: s["first"])
 
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("cases", help="noresm3_cases.csv")
     p.add_argument("out", help="where to write progress.json")
     p.add_argument("--dir", required=True, help='each case\'s directory, e.g. "/archive/{case}/atm/hist"')
-    p.add_argument("--pattern", default="*.cam.i.*.nc", help="dated files that count, as a shell pattern")
-    p.add_argument("--completed", action="append", default=[], metavar="RUN",
-                   help='a run that has finished, e.g. "piControl ne16"; repeatable')
     p.add_argument("--cmor-dir", help='each case\'s cmip7-prep output directory, e.g. "/cases/{case}.cmor"')
+    p.add_argument("--pattern", default="*.cam.i.*.nc", help="dated files that count, as a shell pattern")
+    p.add_argument("--repo", default=REPO, help="the repository with the case issues")
+    p.add_argument("--issues", help="read the issues from this JSON file instead of GitHub")
     a = p.parse_args()
 
-    runs = {}
-    with open(a.cases, newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            r = runs.setdefault(row["run"].strip(), {"cases": [], "start": None})
-            r["cases"].append(row["case"].strip())
-            first = int(row["first_year"])
-            r["start"] = first if r["start"] is None else min(r["start"], first)
+    if a.issues:
+        with open(a.issues, encoding="utf-8") as f:
+            issues = [i for i in json.load(f) if "pull_request" not in i]
+    else:
+        issues = fetch_issues(a.repo)
 
-    out = {}
-    for name, r in runs.items():
-        entry = {}
-        last, missing = latest(r["cases"], a.dir, a.pattern)
+    cases, skipped = [], []
+    for issue in sorted(issues, key=lambda i: i["number"]):
+        num, title = issue["number"], issue["title"].strip()
+        labels = [l["name"] for l in issue.get("labels", [])]
+        if "test" in labels:
+            continue
+        m = TITLE.match(title)
+        if not m:
+            skipped.append({"issue": num, "title": title, "reason": "the title is not a case name"})
+            print(f"#{num} {title}: skipped, the title is not a case name")
+            continue
+        people = [u["login"] for u in issue.get("assignees") or []] or [issue["user"]["login"]]
+        case = {"issue": num, "case": title, "resolution": RESOLUTION[m.group(1)],
+                "version": m.group(2), "owner": ", ".join(people), "labels": labels,
+                "completed": "completed" in labels}
+        last = latest_date(a.dir.format(case=title), a.pattern)
         if last:
-            entry["yearsCompleted"] = round(max(0.0, as_years(last) - r["start"]), 2)
-            entry["modelDate"] = "%04d-%02d-%02d" % last
-            report = f"{entry['yearsCompleted']} years (at {entry['modelDate']})"
+            case["modelDate"] = "%04d-%02d-%02d" % last
+            report = f"at {case['modelDate']}"
         else:
-            report = "no dated files found"
-        if missing:
-            report += f"; no directory for {', '.join(missing)}"
+            report = "no directory" if last is False else "no dated files"
         if a.cmor_dir:
-            to = cmorized_to(r["cases"], a.cmor_dir, r["start"])
-            if to is not None:
-                entry["cmorYears"] = to - r["start"] + 1
-                entry["cmorFrom"] = r["start"]
-                entry["cmorTo"] = to
-                report += f"; CMORized years {r['start']}-{to}"
-        if name in a.completed:
-            entry["completed"] = True
-        out[name] = entry
-        print(f"{name}: {report}")
+            sets = cmor_sets(a.cmor_dir.format(case=title))
+            if sets:
+                case["cmor"] = sets
+                report += "; CMORized " + ", ".join(f"{s['first']}-{s['last']}" for s in sets)
+        cases.append(case)
+        print(f"#{num} {title} [{', '.join(labels) or 'no labels'}]: {report}")
 
-    data = {"updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), "runs": out}
+    data = {"updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "cases": cases, "skipped": skipped}
     tmp = a.out + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=1)
     os.replace(tmp, a.out)
-    print(f"{a.out}: {len(out)} runs")
+    print(f"{a.out}: {len(cases)} cases")
 
 
 if __name__ == "__main__":
