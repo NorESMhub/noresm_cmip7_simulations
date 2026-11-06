@@ -14,7 +14,10 @@ For each case it records:
     <case>.cam.h0a.1929-12.nc counts as reaching the end of its month;
   - the sets of years cmip7-prep has run over. cmip7-prep writes
     completed_steps_<first>-<last>.json in its output directory for each set,
-    listing the steps that finished (cmor-atm-mon, ...).
+    listing the steps that finished (cmor-atm-mon, ...);
+  - its run script in the repository's scripts/ directory, named
+    <issue>.<compset>.<resolution>.<beta>.<date>.sh and found by the issue
+    number it starts with, and whether the issue's description names it.
 
 --dir gives each case's directory and --cmor-dir its cmip7-prep output
 directory, with {case} standing for the case name:
@@ -24,8 +27,9 @@ directory, with {case} standing for the case name:
       --dir "/nird/datalake/NS9560K/noresm3/cases/{case}/atm/hist" \\
       --cmor-dir "/nird/datalake/NS9560K/noresm3/cases/{case}.cmor"
 
---pattern sets which files count (default *.cam.i.*.nc). --issues reads the
-issues from a file saved from the GitHub API instead of fetching them.
+--pattern sets which files count (default *.cam.i.*.nc). --issues and --scripts
+read the issues and the listing of scripts/ from files saved from the GitHub API
+instead of fetching them.
 """
 
 import argparse
@@ -35,6 +39,7 @@ import glob
 import json
 import os
 import re
+import urllib.error
 import urllib.request
 
 REPO = "NorESMhub/noresm_cmip7_simulations"
@@ -45,21 +50,55 @@ RESOLUTION = {"LM": "ne16", "MM": "ne30"}
 DATE = re.compile(r"\.(\d{4})-(\d{2})(?:-(\d{2})(?:-\d{5})?)?\.nc$")
 # cmip7-prep's record of the steps that finished for one set of years.
 COMPLETED = re.compile(r"completed_steps_(\d+)-(\d+)\.json$")
+# A run script: <issue>.<compset>.<resolution>.<beta>.<date>.sh, e.g. 009.n1850GhgGaxg.LM.b28.20261029.sh
+SCRIPT = re.compile(r"^(\d+)\..+\.sh$")
+
+
+def get_json(url):
+    """The GitHub API's answer for url, read anonymously."""
+    req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json",
+                                               "User-Agent": "nird_progress"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.load(r)
 
 
 def fetch_issues(repo):
     """Every issue in the repository, open and closed, without pull requests."""
     issues, page = [], 1
     while True:
-        url = f"https://api.github.com/repos/{repo}/issues?state=all&per_page=100&page={page}"
-        req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json",
-                                                   "User-Agent": "nird_progress"})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            batch = json.load(r)
+        batch = get_json(f"https://api.github.com/repos/{repo}/issues?state=all&per_page=100&page={page}")
         if not batch:
             return issues
         issues.extend(i for i in batch if "pull_request" not in i)
         page += 1
+
+
+def fetch_scripts(repo):
+    """The files in scripts/ on the repository's default branch; none if it has no scripts/."""
+    try:
+        return get_json(f"https://api.github.com/repos/{repo}/contents/scripts")
+    except urllib.error.HTTPError as err:
+        if err.code == 404:
+            return []
+        raise
+
+
+def scripts_by_issue(listing):
+    """{issue number: [script names]} for the run scripts in a listing of scripts/."""
+    found = {}
+    for entry in listing:
+        name = entry["name"] if isinstance(entry, dict) else entry
+        m = SCRIPT.match(name)
+        if m:
+            found.setdefault(int(m.group(1)), []).append(name)
+    return found
+
+
+def expected_script(num, title):
+    """The run script name the convention gives a case: n1850GHGGaxg.LM.nor30b28.011.20261102
+    becomes 011.n1850GHGGaxg.LM.b28.20261102.sh."""
+    parts = title.split(".")
+    return f"{num:03d}.{parts[0]}.{parts[1]}.{parts[2].replace('nor30', '')}.{parts[-1]}.sh"
 
 
 def latest_date(directory, pattern):
@@ -107,6 +146,7 @@ def main():
     p.add_argument("--pattern", default="*.cam.i.*.nc", help="dated files that count, as a shell pattern")
     p.add_argument("--repo", default=REPO, help="the repository with the case issues")
     p.add_argument("--issues", help="read the issues from this JSON file instead of GitHub")
+    p.add_argument("--scripts", help="read the listing of scripts/ from this JSON file instead of GitHub")
     a = p.parse_args()
 
     if a.issues:
@@ -114,6 +154,11 @@ def main():
             issues = [i for i in json.load(f) if "pull_request" not in i]
     else:
         issues = fetch_issues(a.repo)
+    if a.scripts:
+        with open(a.scripts, encoding="utf-8") as f:
+            scripts = scripts_by_issue(json.load(f))
+    else:
+        scripts = scripts_by_issue(fetch_scripts(a.repo))
 
     cases, skipped = [], []
     for issue in sorted(issues, key=lambda i: i["number"]):
@@ -141,6 +186,19 @@ def main():
             if sets:
                 case["cmor"] = sets
                 report += "; CMORized " + ", ".join(f"{s['first']}-{s['last']}" for s in sets)
+        names = scripts.get(num, [])
+        case["script"] = names[0] if names else None
+        case["scriptLinked"] = bool(names) and names[0] in (issue.get("body") or "")
+        if not names:
+            report += "; no run script in scripts/"
+        else:
+            report += f"; script {names[0]}"
+            if len(names) > 1:
+                report += f" (and {', '.join(names[1:])})"
+            if names[0] != expected_script(num, title):
+                report += f", expected {expected_script(num, title)}"
+            if not case["scriptLinked"]:
+                report += ", not linked from the issue"
         cases.append(case)
         print(f"#{num} {title} [{', '.join(labels) or 'no labels'}]: {report}")
 
