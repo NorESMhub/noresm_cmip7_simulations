@@ -2,7 +2,19 @@
 
 Each file in this branch should contain the run script for a NorESM3 CMIP7 experiment.
 
-The filename should be of the form, `run_<compset>.<Resolution>.<noresmversion><Betaversion>.<Issue>.<Date>.sh` and should be a bash script (that begins with `#!/bin/bash`) that contains all the commands used to create the experiment:
+Directory list is organized by CMIP7 `experiment_id`.
+
+The run script name should include a corresponding issue tracking number, that describes the experiment and links to CMORized output and diagnostics.
+
+## Structure of the run script
+
+The filename should be of the form,
+
+```
+<Issue>.<compset>.<Resolution>.<Betaversion>.<Date>.sh
+e.g. 009.n1850GhgGaxg.LM.b28.YYYYMMDD.sh
+```
+and should be a bash script (that begins with `#!/bin/bash`) that contains all the commands used to create the experiment:
 - Clone and setup of the source code used:
     - The `git clone` command. This can include `-b <tag name>`.
     - `cd` into the the clone directory
@@ -19,3 +31,10 @@ The filename should be of the form, `run_<compset>.<Resolution>.<noresmversion><
 - `./case.build`
 - `./case.submit`
 
+## Elements of the issue tracker for experiments
+
+- Set Relationship: Parent experiment from which the experiment branches off.
+- Start year, end year, branch year
+- Important for CMORization
+  - Set label label for `experiment_id`
+  - Set label for experiment variant (e.g. `r1i1p1f1`)
