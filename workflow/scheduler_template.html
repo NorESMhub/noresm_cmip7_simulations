@@ -474,6 +474,7 @@
   .wf-more > summary{ cursor: pointer; padding: 5px 0; font-weight: 600; color: var(--accent); }
   .wf-more[open] > summary{ border-bottom: 1px solid var(--border); }
   .wf-decide{ margin-top: 5px; font-size: 13px; color: var(--text-secondary); }
+  .wf-note{ margin: 6px 0 0; font-size: 13px; color: var(--text-secondary); }
   .wf-decide ul{ margin: 3px 0 0; padding-left: 18px; }
   .wf-parts{ margin: 3px 0 0; padding-left: 18px; font-size: 13px; color: var(--text-secondary); }
   .wf-parts code{ overflow-wrap: anywhere; }
@@ -609,7 +610,7 @@
     </div>
     <details class="wf-details" id="workflow" open>
       <summary class="wf-head">Workflow: what every run goes through</summary>
-      <p class="wf-intro">The tracker has a column for each step below, under the same headings, as well as the run's Status and Progress. Status, Progress and Atm/Lnd are <span class="wf-tag wf-auto">determined automatically on NIRD</span>: nobody fills them in, because the progress script reads how far the run and cmip7-prep have got. The others are <span class="wf-tag wf-manual">check box</span> steps ticked by hand. Under each step, <b>To decide</b> lists what the group still has to agree on.</p>
+      <p class="wf-intro">The tracker has a column for each step below, under the same headings, as well as the run's Status and Progress. Status, Progress and cmip7prep are <span class="wf-tag wf-auto">determined automatically on NIRD</span>: nobody fills them in, because the progress script reads how far the run and cmip7-prep have got. The others are <span class="wf-tag wf-manual">check box</span> steps ticked by hand. Under each step, <b>To decide</b> lists what the group still has to agree on.</p>
 
       <div class="wf-phase">
         <h3>Prepare</h3>
@@ -713,13 +714,16 @@
         <summary>The CMORization steps</summary>
         <ul class="wf-steps">
           <li id="wf-cmorissue"><div class="wf-title">Make the CMORization issue <span class="wf-tag wf-manual">check box</span></div>
-            <div class="wf-decide"><b>To decide:</b> whether it goes in cmor4noresm; what information it needs; how urgency is shown.</div></li>
+            <p>Once the simulation has finished, open an issue in <a href="https://github.com/NorESMhub/CMIP7_CMOR-Publish/issues" target="_blank" rel="noopener">NorESMhub/CMIP7_CMOR-Publish</a> from its template, which is like the CMIP6 one, and label it <code>cmorization</code>. The repository's other labels are <code>publication</code>, <code>archive</code>, <code>cmor_bug</code>, <code>publication_bug</code> and <code>retract</code>.</p>
+            <div class="wf-decide"><b>To decide:</b> how urgency is shown.</div></li>
           <li id="wf-cmoratm"><div class="wf-title">CMORize the atmosphere, land, sea ice and land ice using cmip7-prep <span class="wf-tag wf-auto">determined automatically on NIRD</span></div>
-            <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code>. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>.</p></li>
+            <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K/CMIP7</code> with the cmor4cmip7 output. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>.</p></li>
           <li id="wf-qaatm"><div class="wf-title">Validate the cmip7-prep output <span class="wf-tag wf-manual">check box</span></div></li>
-          <li id="wf-cmorocn"><div class="wf-title">CMORize the ocean and ocean biogeochemistry using cmor4cmip7 <span class="wf-tag wf-manual">check box</span></div></li>
+          <li id="wf-cmorocn"><div class="wf-title">CMORize the ocean and ocean biogeochemistry using cmor4cmip7 <span class="wf-tag wf-manual">check box</span></div>
+            <p>The CMORized output goes in <code>/nird/datapeak/NS9034K/CMIP7</code>. The first 100 years of piControl's ocean are being CMORized there now.</p></li>
           <li id="wf-qaocn"><div class="wf-title">QA the cmor4cmip7 output <span class="wf-tag wf-manual">check box</span></div></li>
         </ul>
+        <p class="wf-note">cmip7-prep and cmor4cmip7 lay out their output differently. That doesn't matter for publication: esg-prep links both into the structure ESGF needs. The CMORization and publication workflow, and the esg-prep command, will be added here as they are settled.</p>
         </details>
       </div>
 
@@ -943,9 +947,9 @@
     { key: "runqa",     short: "Done",       name: "QA checklist done", phase: "QA" },
     { key: "run",       short: "Run",        name: "Run: Status and Progress", phase: "Run", derived: true, cols: 2 },
     { key: "cmorissue", short: "Issue",      name: "CMORization issue made", phase: "CMORize" },
-    { key: "cmoratm",   short: "Atm/Lnd",    name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", auto: true, range: true },
+    { key: "cmoratm",   short: "cmip7prep",  name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", auto: true, range: true },
     { key: "qaatm",     short: "QA",         name: "cmip7-prep output validated" },
-    { key: "cmorocn",   short: "Ocn/Ice",    name: "Ocean and ocean biogeochemistry CMORized with cmor4cmip7" },
+    { key: "cmorocn",   short: "cmor4cmip7", name: "Ocean and ocean biogeochemistry CMORized with cmor4cmip7" },
     { key: "qaocn",     short: "QA",         name: "cmor4cmip7 output QA done" },
     { key: "esgf",      short: "ESGF",       name: "Published on ESGF", phase: "Publish" },
   ];
@@ -1571,7 +1575,7 @@
       { label: "Issue opened", value: count(issueOpened), sub: "no files on NIRD yet" },
       { label: "In progress", value: count(r => r.status === "in-progress"), sub: "running now", hero: true },
       { label: "Completed", value: count(r => r.status === "completed"), sub: "run finished" },
-      { label: "CMORized", value: count(r => stepDone(r, "cmoratm") && stepDone(r, "cmorocn")), sub: "Atm/Lnd and Ocn/Ice both done" },
+      { label: "CMORized", value: count(r => stepDone(r, "cmoratm") && stepDone(r, "cmorocn")), sub: "cmip7prep and cmor4cmip7 both done" },
       { label: "On ESGF", value: count(r => stepDone(r, "esgf")), sub: "published" },
     ];
     box.innerHTML = "";
