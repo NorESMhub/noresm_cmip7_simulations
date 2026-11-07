@@ -14,15 +14,21 @@ For each case it records:
     <case>.cam.h0a.1929-12.nc counts as reaching the end of its month;
   - the sets of years cmip7-prep has run over. cmip7-prep writes
     completed_steps_<first>-<last>.json in its output directory for each set,
-    listing the steps that finished (cmor-atm-mon, ...).
+    listing the steps that finished (cmor-atm-mon, ...);
+  - its cost (pe-hours per simulated year) and throughput (simulated years per
+    day) on each machine it ran on, from the Machine, Model Cost and Model
+    Throughput lines of its timing files, noresm_timing.<case>.<job id>.<date>,
+    one per job; the mean over a machine's jobs weights each job by the years it
+    simulated. The machine of its latest job is the one it runs on.
 
---dir gives each case's directory and --cmor-dir its cmip7-prep output
-directory, with {case} standing for the case name:
+--dir gives each case's directory, --cmor-dir its cmip7-prep output directory
+and --timing-dir its timing directory, with {case} standing for the case name:
 
   python3 -I workflow/nird_progress.py \\
       /nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json \\
       --dir "/nird/datalake/NS9560K/noresm3/cases/{case}/atm/hist" \\
-      --cmor-dir "/nird/datalake/NS9560K/noresm3/cases/{case}.cmor"
+      --cmor-dir "/nird/datalake/NS9560K/noresm3/cases/{case}.cmor" \\
+      --timing-dir "/nird/datalake/NS9560K/noresm3/cases/{case}/timing"
 
 --pattern sets which files count (default *.cam.i.*.nc). --issues reads the
 issues from a file saved from the GitHub API instead of fetching them.
@@ -32,6 +38,7 @@ import argparse
 import datetime
 import fnmatch
 import glob
+import gzip
 import json
 import os
 import re
@@ -45,6 +52,14 @@ RESOLUTION = {"LM": "ne16", "MM": "ne30"}
 DATE = re.compile(r"\.(\d{4})-(\d{2})(?:-(\d{2})(?:-\d{5})?)?\.nc$")
 # cmip7-prep's record of the steps that finished for one set of years.
 COMPLETED = re.compile(r"completed_steps_(\d+)-(\d+)\.json$")
+# Lines of a timing file, one per job: noresm_timing.<case>.<job id>.<date>.
+TIMING_LINES = {
+    "cost": re.compile(r"^\s*Model Cost:\s*([\d.]+)\s+pe-hrs/simulated_year", re.M),
+    "sypd": re.compile(r"^\s*Model Throughput:\s*([\d.]+)\s+simulated_years/day", re.M),
+    "days": re.compile(r"^\s*run length\s*:\s*([\d.]+)\s+days", re.M),
+    "pes": re.compile(r"^\s*pe count for cost estimate\s*:\s*(\d+)", re.M),
+    "machine": re.compile(r"^\s*Machine\s*:\s*(\S+)", re.M),
+}
 
 
 def fetch_issues(repo):
@@ -99,11 +114,57 @@ def cmor_sets(directory):
     return sorted(sets, key=lambda s: s["first"])
 
 
+def read_timing_file(path):
+    """{cost, sypd, days, pes, machine} from one timing file; None if it lacks cost or throughput."""
+    opener = gzip.open if path.endswith(".gz") else open
+    try:
+        with opener(path, "rt", encoding="utf-8", errors="replace") as f:
+            text = f.read()
+    except OSError:
+        return None
+    found = {k: m.group(1) for k, r in TIMING_LINES.items() if (m := r.search(text))}
+    if "cost" not in found or "sypd" not in found or float(found["sypd"]) <= 0:
+        return None
+    t = {k: float(found[k]) for k in ("cost", "sypd", "days") if k in found}
+    if "pes" in found:
+        t["pes"] = int(found["pes"])
+    if "machine" in found:
+        t["machine"] = found["machine"]
+    return t
+
+
+def case_timing(directory):
+    """The case's cost and throughput on each machine it ran on, averaged over all its
+    timing files there with each job weighted by the years it simulated: cost in pe-hours
+    per simulated year, throughput in simulated years per day. Returns ([{machine, jobs,
+    years, cost, sypd, pes}], the machine of its latest job), or (None, None) if there are
+    no readable timing files."""
+    paths = glob.glob(os.path.join(glob.escape(directory), "noresm_timing.*"))
+    jobs = [t for path in sorted(paths, key=os.path.getmtime) if (t := read_timing_file(path))]
+    if not jobs:
+        return None, None
+    by_machine = {}
+    for t in jobs:
+        by_machine.setdefault(t.get("machine", "unknown").lower(), []).append(t)
+    timing = []
+    for machine, mjobs in sorted(by_machine.items()):
+        years = [t.get("days", 365) / 365 for t in mjobs]
+        total = sum(years)
+        entry = {"machine": machine, "jobs": len(mjobs), "years": round(total, 2),
+                 "cost": round(sum(t["cost"] * y for t, y in zip(mjobs, years)) / total, 2),
+                 "sypd": round(total / sum(y / t["sypd"] for t, y in zip(mjobs, years)), 2)}
+        if "pes" in mjobs[-1]:
+            entry["pes"] = mjobs[-1]["pes"]
+        timing.append(entry)
+    return timing, jobs[-1].get("machine", "unknown").lower()
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("out", help="where to write progress.json")
     p.add_argument("--dir", required=True, help='each case\'s directory, e.g. "/archive/{case}/atm/hist"')
     p.add_argument("--cmor-dir", help='each case\'s cmip7-prep output directory, e.g. "/cases/{case}.cmor"')
+    p.add_argument("--timing-dir", help='each case\'s timing directory, e.g. "/cases/{case}/timing"')
     p.add_argument("--pattern", default="*.cam.i.*.nc", help="dated files that count, as a shell pattern")
     p.add_argument("--repo", default=REPO, help="the repository with the case issues")
     p.add_argument("--issues", help="read the issues from this JSON file instead of GitHub")
@@ -141,6 +202,12 @@ def main():
             if sets:
                 case["cmor"] = sets
                 report += "; CMORized " + ", ".join(f"{s['first']}-{s['last']}" for s in sets)
+        if a.timing_dir:
+            timing, machine = case_timing(a.timing_dir.format(case=title))
+            if timing:
+                case["timing"], case["machine"] = timing, machine
+                report += "".join(f"; {t['machine']} {t['cost']} pe-hrs/yr, {t['sypd']} SYPD over {t['jobs']} jobs"
+                                  for t in timing)
         cases.append(case)
         print(f"#{num} {title} [{', '.join(labels) or 'no labels'}]: {report}")
 

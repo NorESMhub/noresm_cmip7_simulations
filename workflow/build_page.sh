@@ -17,7 +17,6 @@ out=${1:-noresm3_cmip7_scheduler.html}
 
 python3 -I "$here/build_scheduler.py" \
     --experiments "$here/noresm3_experiments_decoded.csv" \
-    --costs "$here/noresm3_model_cost.csv" \
     --template "$here/scheduler_template.html" \
     --plan "ne16:DECK,Fast Track" --plan "ne30:DECK,ScenarioMIP" \
     --ensemble 3 \

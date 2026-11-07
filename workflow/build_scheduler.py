@@ -1,12 +1,12 @@
 """Build the NorESM3 CMIP7 scheduler page from the experiment sheet.
 
 Reads the experiment table (noresm3_experiments_decoded.csv, decoded from the
-DECK/FASTTRACK tab of the experiment sheet), the configuration costs in
-noresm3_model_cost.csv and the scheduler template, and writes a page whose
-default plan is the selected experiments at each resolution.
+DECK/FASTTRACK tab of the experiment sheet) and the scheduler template, and
+writes a page whose default plan is the selected experiments at each
+resolution. The configurations' costs are in COSTS below.
 
-Each experiment is assigned a configuration. A configuration whose Compsets
-column (in noresm3_model_cost.csv) lists the experiment's compset at that
+Each experiment is assigned a configuration. A configuration whose compsets
+(in COSTS) include the experiment's compset at that
 resolution wins; shell-style wildcards are allowed (N7*EsmGhgGaxg). Otherwise
 the required model components and compset decide:
   LAND                          -> land-only
@@ -17,7 +17,7 @@ the required model components and compset decide:
 
 Usage (build_page.sh runs it with the published plan):
   python3 -I workflow/build_scheduler.py --experiments workflow/noresm3_experiments_decoded.csv \\
-      --costs workflow/noresm3_model_cost.csv --template workflow/scheduler_template.html \\
+      --template workflow/scheduler_template.html \\
       --out noresm3_cmip7_scheduler.html \\
       --plan "ne16:DECK,Fast Track" --plan "ne30:DECK,ScenarioMIP"
 
@@ -60,9 +60,35 @@ def read_experiments(path):
     sys.exit(f"{path}: no header row with {HEADER_KEY}")
 
 
-def read_costs(path):
-    with open(path, newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
+# The configurations: cost in core-hours per simulated year and throughput in
+# simulated years per day, from the timing files of runs on Olivia (None where
+# there is no timing yet), and the compsets that belong to each. A configuration
+# can also carry betzyCostPerYear and betzyThroughput. The page replaces these
+# with the values measured from the cases' timing files on NIRD, machine by machine.
+COSTS = [
+    # N1850GhgGaxg piControl ne16 timing file (2048 PEs, 2036 active; 256 tasks per node)
+    {"name": "NorESM3 ne16", "resolution": "ne16", "costPerYear": 2564.96, "throughput": 19.16,
+     "compsets": "N1850GhgGaxg NHistGhgGaxg N2xCO2GhgGaxg N0p5xCO2GhgGaxg N1PctCO2BgcGhgGaxg N1PctCO2RadGhgGaxg"},
+    # N1PctCO2GhgGaxg 1pctCO2 ne16 timing file
+    {"name": "NorESM3 1pctCO2 ne16", "resolution": "ne16", "costPerYear": 2606.78, "throughput": 18.86,
+     "compsets": "N1PctCO2GhgGaxg"},
+    # N4xCO2GhgGaxg abrupt-4xCO2 ne16 timing file
+    {"name": "NorESM3 4xCO2 ne16", "resolution": "ne16", "costPerYear": 2429.92, "throughput": 20.23,
+     "compsets": "N4xCO2GhgGaxg"},
+    # piControl ne30 timing file (older code)
+    {"name": "NorESM3 ne30", "resolution": "ne30", "costPerYear": 5246.17, "throughput": 10.54,
+     "compsets": ""},
+    # esm-piControl ne16 timing file (13.295 s per model day)
+    {"name": "NorESM3 ESM ne16", "resolution": "ne16", "costPerYear": 2760.72, "throughput": 17.80,
+     "compsets": "N1850EsmGhgGaxg NHistEsmGhgGaxg N7*EsmGhgGaxg N10EsmGhgGaxg N10CdrEsmGhgGaxg N10ZecEsmGhgGaxg"},
+    {"name": "NorESM3 ESM ne30", "resolution": "ne30", "costPerYear": None, "throughput": None,
+     "compsets": ""},
+    # amip ne16 timing file
+    {"name": "NorESM3 AMIP ne16", "resolution": "ne16", "costPerYear": 1360.06, "throughput": 27.10,
+     "compsets": "NF1850GhgAnthro NF4xCO2Ghg NFAMIPp4k NFAMIPpiF"},
+    {"name": "NorESM3 AMIP ne30", "resolution": "ne30", "costPerYear": None, "throughput": None,
+     "compsets": ""},
+]
 
 
 def number(v):
@@ -74,12 +100,7 @@ def number(v):
 
 def compset_rules(costs):
     """(resolution, pattern, configuration) for every compset listed in the cost table."""
-    rules = []
-    for c in costs:
-        res = (c.get("Resolution") or "").strip()
-        for pattern in (c.get("Compsets") or "").split():
-            rules.append((res, pattern, c["Configuration"]))
-    return rules
+    return [(c["resolution"], pattern, c["name"]) for c in costs for pattern in c["compsets"].split()]
 
 
 def config_name(exp, resolution, rules=()):
@@ -117,14 +138,9 @@ def build(experiments, costs, plans, ensemble=None, members=None, years_override
     they stay in the plan but are not scheduled or costed."""
     members = members or {}
     years_override = years_override or {}
-    configs = []
-    for i, c in enumerate(costs, 1):
-        configs.append({
-            "id": f"c{i}",
-            "name": c["Configuration"],
-            "costPerYear": number(c.get("Cost / sim-yr (core-hr)")),
-            "throughput": number(c.get("Throughput (SYPD)")),
-        })
+    configs = [{"id": f"c{i}", "name": c["name"], "costPerYear": c["costPerYear"],
+                "throughput": c["throughput"], "betzyCostPerYear": c.get("betzyCostPerYear"),
+                "betzyThroughput": c.get("betzyThroughput")} for i, c in enumerate(costs, 1)]
     cfg_id = {c["name"]: c["id"] for c in configs}
     rules = compset_rules(costs)
     label = len(plans) > 1
@@ -193,7 +209,6 @@ def literal(items):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--experiments", required=True)
-    p.add_argument("--costs", required=True)
     p.add_argument("--template", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--plan", action="append", required=True, metavar="RES:SELECTOR",
@@ -224,7 +239,7 @@ def main():
     for spec in a.plan:
         res, _, sel = spec.partition(":")
         plans.append((res.strip(), [s.strip() for s in sel.split(",") if s.strip()]))
-    configs, sims, warnings = build(read_experiments(a.experiments), read_costs(a.costs), plans, a.ensemble, members, years, a.defer)
+    configs, sims, warnings = build(read_experiments(a.experiments), COSTS, plans, a.ensemble, members, years, a.defer)
     by_name = {s["name"]: s for s in sims}
     for spec in a.running:
         name, _, n = spec.partition("=")

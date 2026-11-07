@@ -1,9 +1,0 @@
-Configuration,Resolution,Compsets,Cost / sim-yr (core-hr),Throughput (SYPD),PEs,Machine,Source
-NorESM3 ne16,ne16,N1850GhgGaxg NHistGhgGaxg N2xCO2GhgGaxg N0p5xCO2GhgGaxg N1PctCO2BgcGhgGaxg N1PctCO2RadGhgGaxg,2564.96,19.16,2048,Olivia,N1850GhgGaxg piControl ne16 timing file (2036 active PEs; 256 tasks per node)
-NorESM3 1pctCO2 ne16,ne16,N1PctCO2GhgGaxg,2606.78,18.86,,Olivia,N1PctCO2GhgGaxg 1pctCO2 ne16 timing file
-NorESM3 4xCO2 ne16,ne16,N4xCO2GhgGaxg,2429.92,20.23,,Olivia,N4xCO2GhgGaxg abrupt-4xCO2 ne16 timing file
-NorESM3 ne30,ne30,,5246.17,10.54,,Olivia,piControl ne30 timing file (older code)
-NorESM3 ESM ne16,ne16,N1850EsmGhgGaxg NHistEsmGhgGaxg N7*EsmGhgGaxg N10EsmGhgGaxg N10CdrEsmGhgGaxg N10ZecEsmGhgGaxg,2760.72,17.80,,Olivia,esm-piControl ne16 timing file (run time 13.295 s per model day)
-NorESM3 ESM ne30,ne30,,,,,,
-NorESM3 AMIP ne16,ne16,NF1850GhgAnthro NF4xCO2Ghg NFAMIPp4k NFAMIPpiF,1360.06,27.10,,Olivia,amip ne16 timing file
-NorESM3 AMIP ne30,ne30,,,,,,

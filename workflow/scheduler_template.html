@@ -329,12 +329,17 @@
   table.data-table.cost-table input.num{ width: 64px; min-width: 52px; }
   table.data-table.cost-table select{ width: auto; min-width: 190px; }
   table.data-table#configTable input.num{ width: 110px; }
+  #configTable tr.cfg-machines th{ text-align: center; border-bottom: 1px solid var(--border); }
+  #configTable .cfg-machine-start{ border-left: 1px solid color-mix(in srgb, var(--text-primary) 30%, transparent); padding-left: 12px; }
+  #configTable .cfg-num{ text-align: center; }
   .cost-table tr.ct-off input:disabled, .cost-table tr.ct-off select:disabled{ opacity: .55; }
   .cost-table tr.ct-offhead th{ background: var(--surface-2, var(--accent-wash)); text-align: left; font-weight: 600; }
   .cost-table tr.ct-offhead th span{ font-weight: 400; color: var(--text-muted); margin-left: 10px; font-size: 12px; }
   .cost-table .ct-offtoggle{ all: unset; cursor: pointer; color: var(--text-primary); font-weight: 600; }
   .cost-table .ct-offtoggle:focus-visible{ outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 3px; }
   input.num.needs-timing{ border-color: var(--accent); }
+  .measured-key{ color: var(--accent); font-weight: 600; }
+  table.data-table input.num.measured{ background: transparent; border-color: transparent; color: var(--accent); font-weight: 600; cursor: help; }
 
   /* ---------- editor tables ---------- */
   .editor-head{ display:flex; flex-direction: column; gap: 2px; }
@@ -439,6 +444,7 @@
   .wf-decide{ margin-top: 5px; font-size: 13px; color: var(--text-secondary); }
   .wf-decide ul{ margin: 3px 0 0; padding-left: 18px; }
   .wf-parts{ margin: 3px 0 0; padding-left: 18px; font-size: 13px; color: var(--text-secondary); }
+  .wf-parts code{ overflow-wrap: anywhere; }
   .wf-tag{ display:inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 9px; margin-left: 6px; vertical-align: 1px; }
   .wf-auto{ background: color-mix(in srgb, var(--series-1) 18%, transparent); color: var(--series-1); }
   .wf-manual{ background: color-mix(in srgb, var(--text-muted) 18%, transparent); color: var(--text-secondary); }
@@ -533,7 +539,7 @@
   <header class="page-header">
     <div class="eyebrow">NorESM3 · CMIP7</div>
     <h1>CMIP7 Cost Plan and Schedule Tracker</h1>
-    <p class="subtitle">Where each NorESM3 CMIP7 run stands, the steps every run goes through from GitHub issue to ESGF, and what the plan costs on Olivia.</p>
+    <p class="subtitle">Where each NorESM3 CMIP7 run stands, the steps every run goes through from GitHub issue to ESGF, and what the plan costs on Olivia and Betzy.</p>
   </header>
 
   <nav class="tab-nav" aria-label="Contents">
@@ -554,9 +560,6 @@
     <span id="fileStatus" class="download-status" aria-live="polite"></span>
     <input type="file" id="csvFileInput" accept=".csv,.txt,text/csv,text/plain" hidden="">
     <button id="uploadBtn" class="btn btn-ghost" type="button" hidden="">Upload CSV</button>
-    <button id="downloadBtn" class="btn btn-ghost" type="button">Download spreadsheet</button>
-    <button id="setDefaultBtn" class="btn btn-ghost" type="button" title="Downloads an updated copy of this tool with the current plan baked in as its default — replace your saved HTML file with it to make the change permanent.">Set as default plan</button>
-    <button id="resetBtn" class="btn btn-ghost" type="button">Reset to default plan</button>
   </section>
 
   <div class="tab-panel" id="tab-tracker">
@@ -568,7 +571,7 @@
       <ul class="editor-caption caption-list">
         <li><b>Status and Progress:</b> read automatically. A run is In progress once its files reach NIRD, and Completed once its issue has the <code>completed</code> label.</li>
         <li><b>Issues:</b> the runs' GitHub issues in <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/issues" target="_blank" rel="noopener">NorESMhub/noresm_cmip7_simulations</a>, one per case; hover an issue for its case name, click it to open it. An issue shows up here once its title is the case name and its labels name the experiment and the variant (see <a href="#wf-issue">Prepare</a>).</li>
-        <li><b>Check boxes:</b> the columns follow the headings under <a href="#workflow">Workflow</a> below. A box you tick is saved only in your own browser; other people don't see it.</li>
+        <li><b>Check boxes:</b> the columns follow the headings under <a href="#workflow">Workflow</a> below. A box ticked here is not saved: it is gone when the page is reloaded, and other people don't see it.</li>
         <li class="auto-note" id="autoNote"></li>
       </ul>
     </div>
@@ -618,12 +621,13 @@
             <p id="wf-script"><b>3. Add the run script.</b></p>
             <details class="wf-more">
               <summary>How the run script is added</summary>
-              <p>Push the case's run script straight to <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/tree/CMIP7_Runscripts/scripts" target="_blank" rel="noopener"><code>scripts/</code></a> on the <code>CMIP7_Runscripts</code> branch; this needs write access to the repository.</p>
+              <p>Push the case's run script straight to its experiment's directory under <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/tree/CMIP7_Runscripts/scripts" target="_blank" rel="noopener"><code>scripts/</code></a> on the <code>CMIP7_Runscripts</code> branch; this needs write access to the repository.</p>
               <ul class="wf-parts">
+                <li><b>directory:</b> <code>scripts/&lt;experiment&gt;/</code>, named after the issue's experiment label, e.g. <code>scripts/piControl/</code>. Every experiment label has one; a new label needs its own directory, with an empty <code>.gitkeep</code> file so that git keeps it while it is empty;</li>
                 <li><b>name:</b> <code>issue.compset.resolution.beta.date.sh</code>, each part copied from the case name, e.g. <code>011.n1850GHGGaxg.LM.b28.20261102.sh</code> for <code>n1850GHGGaxg.LM.nor30b28.011.20261102</code>;</li>
-                <li><b>push:</b> in a clone of the repository, <code>git switch CMIP7_Runscripts</code> and <code>git pull</code>, copy the script into <code>scripts/</code> under its name, then <code>git add</code>, <code>git commit</code> and <code>git push</code>. Without a clone, use <b>Add file → Upload files</b> in <code>scripts/</code> on GitHub and choose <b>Commit directly to the CMIP7_Runscripts branch</b>;</li>
+                <li><b>push:</b> in a clone of the repository, <code>git switch CMIP7_Runscripts</code> and <code>git pull</code>, copy the script into its experiment's directory under its name, then <code>git add</code>, <code>git commit</code> and <code>git push</code>. Without a clone, open the experiment's directory under <code>scripts/</code> on GitHub, use <b>Add file → Upload files</b> and choose <b>Commit directly to the CMIP7_Runscripts branch</b>;</li>
                 <li><b>commit message:</b> <code>Run script for #11</code>, with the case's issue number. GitHub then shows the commit on the issue. Don't write <code>Closes #11</code> or <code>Fixes #11</code>: either closes the issue;</li>
-                <li><b>issue:</b> add a line with the script's link to the issue's description, e.g. <code>Run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/011.n1850GHGGaxg.LM.b28.20261102.sh</code>.</li>
+                <li><b>issue:</b> add a line with the script's link to the issue's description, e.g. <code>Run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh</code>.</li>
               </ul>
             </details></li>
         </ul>
@@ -708,15 +712,20 @@
   <section class="card editor-card">
     <div class="editor-head">
       <h2>Model configurations</h2>
-      <p class="editor-caption">Enter each configuration's cost and throughput from its timing file; the total, the cost table and Cost by MIP below fill in from these straight away. All timings are from Olivia. Throughput is in simulated years per day (SYPD); cost per simulated year is in the unit set above. Edits are kept in this browser.</p>
+      <p class="editor-caption">Each configuration has a cost and throughput on Olivia and on Betzy, <span class="measured-key">measured</span> from the timing files of its runs on each machine: the mean over all their jobs, each weighted by the years it simulated. Hover a measured value for its jobs and cases. Where nothing has run on a machine yet, the value is from earlier timing runs; it can be changed here to try another, but changes are not saved. A run is costed on the machine its timing files name, and on Olivia until it has any. Throughput is in simulated years per day (SYPD); cost per simulated year is in the unit set above (timing files give pe-hours, i.e. core-hours).</p>
     </div>
     <div class="table-scroll">
       <table class="data-table" id="configTable">
-        <thead><tr>
-          <th>Configuration</th>
-          <th id="costHeader">Cost / sim-yr</th>
-          <th>Throughput (SYPD)</th>
-          <th class="col-narrow"></th>
+        <thead><tr class="cfg-machines">
+          <th rowspan="2">Configuration</th>
+          <th colspan="2" class="cfg-machine-start">Olivia</th>
+          <th colspan="2" class="cfg-machine-start">Betzy</th>
+          <th rowspan="2" class="col-narrow"></th>
+        </tr><tr>
+          <th class="cfg-num cfg-machine-start">Cost / sim-yr</th>
+          <th class="cfg-num">SYPD</th>
+          <th class="cfg-num cfg-machine-start">Cost / sim-yr</th>
+          <th class="cfg-num">SYPD</th>
         </tr></thead>
         <tbody id="configTbody"></tbody>
       </table>
@@ -733,7 +742,7 @@
   <section class="card" id="costTableCard">
     <div class="editor-head">
       <h2>Cost table</h2>
-      <p class="editor-caption"><b>All timings are from Olivia</b>, so core-hours are Olivia core-hours and SYPD is Olivia throughput. Click a MIP to open or close its runs. Edit Members, Years each and Configuration here, or untick a run to take it out of the plan; costs come from the Model configurations above and update straight away. Unticked runs are listed at the bottom. It shows the full planned cost; progress is tracked on the Tracker page. Core-hours are members × years × cost per simulated year. Days per member is how long one member takes on its own.</p>
+      <p class="editor-caption">Each run's core-hours and SYPD are on the machine it runs on: Betzy for a run whose timing files say so, Olivia otherwise. Click a MIP to open or close its runs. Edit Members, Years each and Configuration here, or untick a run to take it out of the plan, to see what it would cost; costs come from the Model configurations above and update straight away. Changes are not saved; the plan itself is set when the page is built. Unticked runs are listed at the bottom. It shows the full planned cost; progress is tracked on the Tracker page. Core-hours are members × years × cost per simulated year. Days per member is how long one member takes on its own.</p>
     </div>
     <div class="ct-toolbar">
       <button type="button" class="btn btn-ghost btn-sm" data-action="expand-all">Expand all</button>
@@ -783,11 +792,6 @@
 <script>
 (function(){
   "use strict";
-
-  // Snapshot of this document's own pristine markup, captured before any render() call
-  // mutates the DOM — "Set as default plan" splices a fresh default-data block into a
-  // copy of this text and offers it back as a downloadable, self-contained HTML file.
-  const PAGE_SOURCE_TEMPLATE = "<!doctype html>\n" + document.documentElement.outerHTML;
 
   // ---------------- default data (the tool's own default plan) ----------------
   let DEFAULT_CONFIGS = [
@@ -889,12 +893,10 @@
   let sims = clone(DEFAULT_SIMS);
   let slots = DEFAULT_SLOTS;
   let costUnit = DEFAULT_COST_UNIT;
-  // Edits are kept in this browser as changes to the built-in plan, matched by
-  // configuration and run name, so they survive a rebuild of the page. A rebuilt value
-  // that differs from what was typed is overridden by the typed value until Reset.
-  const EDITS_KEY = "noresm3-cmip7-cost-plan:v2";
-  const CFG_FIELDS = ["costPerYear", "throughput"];
-  const SIM_FIELDS = ["years", "ensemble", "priority", "status", "yearsCompleted", "membersRunning", "steps"];
+  // Nothing is kept in the browser: everyone sees the plan the page was built with and
+  // what progress.json says, and edits made here last until the page is reloaded. Clear
+  // the edits earlier versions of the page kept.
+  try { localStorage.removeItem("noresm3-cmip7-cost-plan:v2"); } catch (err){}
 
   // The workflow every run goes through; the tracker has one column per step. Run follows
   // the Status. Steps marked auto are filled in from progress.json when the NIRD progress
@@ -922,58 +924,6 @@
   const autoSteps = row => (autoRun(row) && autoRun(row).steps) || {};
   // A run whose case issue is open but whose model files have not reached NIRD yet.
   const issueOpened = row => row.status === "pending" && Array.isArray(row.cases) && row.cases.length > 0;
-  const BASE_CONFIGS = clone(DEFAULT_CONFIGS), BASE_SIMS = clone(DEFAULT_SIMS);
-  const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
-  let editsRestored = false;
-  function cfgNameOf(list, id){ const c = list.find(x => x.id === id); return c ? c.name : null; }
-  function collectEdits(){
-    const out = { configs: {}, sims: {} };
-    configs.forEach(c => {
-      const base = BASE_CONFIGS.find(b => b.id === c.id);
-      if (!base) return;
-      const d = {};
-      if (c.name !== base.name) d.name = c.name;
-      CFG_FIELDS.forEach(f => { if (!same(c[f], base[f])) d[f] = c[f] ?? null; });
-      if (Object.keys(d).length) out.configs[base.name] = d;
-    });
-    sims.forEach(r => {
-      const base = BASE_SIMS.find(b => b.id === r.id);
-      if (!base) return;
-      const d = {};
-      SIM_FIELDS.forEach(f => { if (!same(r[f], base[f])) d[f] = r[f] ?? null; });
-      if (r.configId !== base.configId) d.configName = cfgNameOf(configs, r.configId);
-      if (Object.keys(d).length) out.sims[base.name] = d;
-    });
-    return out;
-  }
-  function applyEdits(saved){
-    let applied = 0;
-    Object.entries(saved.configs || {}).forEach(([name, d]) => {
-      const c = configs.find(x => x.name === name);
-      if (!c) return;
-      Object.assign(c, d); applied++;
-    });
-    Object.entries(saved.sims || {}).forEach(([name, d]) => {
-      const r = sims.find(x => x.name === name);
-      if (!r) return;
-      const { configName, ...fields } = d;
-      Object.assign(r, fields);
-      if (configName){ const c = configs.find(x => x.name === configName); if (c) r.configId = c.id; }
-      applied++;
-    });
-    return applied;
-  }
-  try {
-    const saved = JSON.parse(localStorage.getItem(EDITS_KEY) || "null");
-    if (saved && applyEdits(saved)) editsRestored = true;
-  } catch (err){}
-  function saveEdits(){
-    try {
-      const edits = collectEdits();
-      if (!Object.keys(edits.configs).length && !Object.keys(edits.sims).length) localStorage.removeItem(EDITS_KEY);
-      else localStorage.setItem(EDITS_KEY, JSON.stringify(edits));
-    } catch (err){}
-  }
   let configSeq = configs.length, simSeq = sims.length;
 
   let selectedChainRoot = null; // job id clicked, for highlight
@@ -986,9 +936,6 @@
   const el = (id) => document.getElementById(id);
   const slotsInput = el("slotsInput");
   const costUnitInput = el("costUnitInput");
-  const resetBtn = el("resetBtn");
-  const downloadBtn = el("downloadBtn");
-  const setDefaultBtn = el("setDefaultBtn");
   const fileStatus = el("fileStatus");
   const uploadBtn = el("uploadBtn");
   const csvFileInput = el("csvFileInput");
@@ -1009,7 +956,6 @@
   const simTbody = el("simTbody");
   const addConfigBtn = el("addConfigBtn");
   const addSimBtn = el("addSimBtn");
-  const costHeader = el("costHeader");
   const tooltip = el("tooltip");
 
   // ---------------- scheduling engine ----------------
@@ -1055,12 +1001,12 @@
       if (row.status === "completed" || normalizePriority(row.priority) === 0){ rowJobIds.set(row.id, []); return; }
       const cfg = configById.get(row.configId) || configs[0];
       if (!cfg){ rowJobIds.set(row.id, []); return; }
-      if (!hasTiming(cfg)){
+      if (!hasTiming(cfg, row)){
         if (ensembleCount(row) > 0) untimedRows.push(row);
         rowJobIds.set(row.id, []);
         return;
       }
-      const throughput = Number(cfg.throughput);
+      const throughput = Number(sypdOn(cfg, row));
       const years = Math.max(Number(row.years) || 0, 0);
       const fullDuration = years / throughput;
       const inProgress = row.status === "in-progress";
@@ -1069,7 +1015,7 @@
       // clamp to the run's own length so a typo can't imply more progress than the run has.
       const yearsCompleted = inProgress ? Math.min(years, Math.max(0, Number(row.yearsCompleted) || 0)) : 0;
       const progressFrac = years > 0 ? (yearsCompleted / years) : 0;
-      const costPerYear = Number(cfg.costPerYear) || 0;
+      const costPerYear = Number(costOn(cfg, row)) || 0;
       const ens = ensembleCount(row);
       // Only the first membersRunning members of an in-progress run are already going;
       // the others wait in the queue like any pending run.
@@ -1111,8 +1057,8 @@
       // what's left, matching the remaining duration its jobs actually carry above.
       if (r.status === "completed" || normalizePriority(r.priority) === 0){ rowDuration.set(r.id, 0); return; }
       const cfg = configById.get(r.configId) || configs[0];
-      if (!cfg || !hasTiming(cfg)){ rowDuration.set(r.id, 0); return; }
-      const throughput = Number(cfg.throughput);
+      if (!cfg || !hasTiming(cfg, r)){ rowDuration.set(r.id, 0); return; }
+      const throughput = Number(sypdOn(cfg, r));
       const ens = ensembleCount(r);
       if (ens === 0){ rowDuration.set(r.id, 0); return; }
       const years = Math.max(Number(r.years)||0,0);
@@ -1239,10 +1185,21 @@
     return { jobs: result, makespan, totalWork, totalCost, criticalPath, chainJobIds, jobCount: jobs.length, maxElapsed, untimedRows };
   }
 
-  // A configuration can be scheduled once it has a positive throughput. Cost may still be
-  // blank; those runs schedule normally and add nothing to the cost totals.
-  function hasTiming(cfg){
-    return Number(cfg && cfg.throughput) > 0;
+  // Each configuration has a cost and throughput on each machine. A run is costed on the
+  // machine its cases run on, as their timing files say (row.machine), and on Olivia until
+  // then.
+  const MACHINES = [
+    { key: "olivia", label: "Olivia", cost: "costPerYear", sypd: "throughput" },
+    { key: "betzy", label: "Betzy", cost: "betzyCostPerYear", sypd: "betzyThroughput" },
+  ];
+  const machineOf = row => MACHINES.find(m => m.key === (row && row.machine)) || MACHINES[0];
+  const costOn = (cfg, row) => cfg ? cfg[machineOf(row).cost] : null;
+  const sypdOn = (cfg, row) => cfg ? cfg[machineOf(row).sypd] : null;
+  // A run can be scheduled once its configuration has a positive throughput on the run's
+  // machine. Cost may still be blank; those runs schedule normally and add nothing to the
+  // cost totals.
+  function hasTiming(cfg, row){
+    return Number(sypdOn(cfg, row)) > 0;
   }
   // A blank ensemble size is "not decided yet": it schedules one member and is flagged.
   // An explicit 0 excludes the run.
@@ -1345,7 +1302,6 @@
     const result = computeSchedule(configs, sims, slots);
     lastResult = result;
     renderCostTable();
-    saveEdits();
     renderTrackerStats();
 
     if (result.error){
@@ -1394,8 +1350,8 @@
       const off = isRowOff(r);
       const members = ensembleCount(r);
       const years = Math.max(0, Number(r.years) || 0);
-      const cpy = cfg && Number(cfg.costPerYear) > 0 ? Number(cfg.costPerYear) : null;
-      const sypd = cfg && hasTiming(cfg) ? Number(cfg.throughput) : null;
+      const cpy = Number(costOn(cfg, r)) > 0 ? Number(costOn(cfg, r)) : null;
+      const sypd = hasTiming(cfg, r) ? Number(sypdOn(cfg, r)) : null;
       const memberYears = off ? 0 : members * years;
       return {
         r, cfg, res, off, members, years, cpy, sypd, memberYears,
@@ -1429,7 +1385,7 @@
         + `<td class="n"><input type="number" class="num" min="0" step="1" data-sim="${id}" data-field="members" data-key="${id}:members" value="${ens === null ? "" : ens}" placeholder="not set"${dis}></td>`
         + `<td class="n"><input type="number" class="num" min="0" step="1" data-sim="${id}" data-field="years" data-key="${id}:years" value="${it.years}"${dis}></td>`
         + `<td class="n">${it.off ? dash : fmtN(it.memberYears)}</td>`
-        + `<td>${configSelect(it, it.off)}</td>`
+        + `<td>${configSelect(it, it.off)}${machineOf(it.r).key !== MACHINES[0].key ? ` <span class="ct-muted" title="Costed on ${machineOf(it.r).label}, where its timing files say it runs">on ${machineOf(it.r).label}</span>` : ""}</td>`
         + `<td class="n">${it.cpy !== null ? fmtN(it.cpy) : dash}</td>`
         + `<td class="n">${it.sypd ? it.sypd.toFixed(0) : dash}</td>`
         + `<td class="n">${it.core !== null ? fmtM(it.core) : (it.off ? dash : '<span class="ct-muted">needs timing</span>')}</td>`
@@ -1786,7 +1742,7 @@
     const inProgress = row.status === "in-progress";
     const yearsCompleted = inProgress ? Math.min(years, Math.max(0, Number(row.yearsCompleted) || 0)) : 0;
     const progressFrac = years > 0 ? (yearsCompleted / years) : 0;
-    return years * (1 - progressFrac) * (Number(cfg.costPerYear) || 0) * ens;
+    return years * (1 - progressFrac) * (Number(costOn(cfg, row)) || 0) * ens;
   }
 
   // Priority 0 means "won't be conducted" (see Ensemble 0) — those runs never produce a job,
@@ -2096,7 +2052,6 @@
   function renderTables(){
     renderConfigTable();
     renderSimTable();
-    costHeader.textContent = "Cost / sim-yr";
   }
 
   function configResolution(cfg){
@@ -2115,7 +2070,7 @@
       head.className = "cfg-res";
       if (RES_SERIES[res]) head.style.setProperty("--res-colour", `var(--series-${RES_SERIES[res]})`);
       const th = document.createElement("th");
-      th.colSpan = 4; th.textContent = res || "Other";
+      th.colSpan = 2 + 2 * MACHINES.length; th.textContent = res || "Other";
       head.appendChild(th);
       configTbody.appendChild(head);
       configs.filter(cfg => configResolution(cfg) === res).forEach(renderConfigRow);
@@ -2136,29 +2091,29 @@
       nameWrap.appendChild(swatch); nameWrap.appendChild(nameInput);
       tdName.appendChild(nameWrap);
 
-      const tdCost = document.createElement("td");
-      const costInput = document.createElement("input");
-      costInput.type = "number"; costInput.className = "num"; costInput.min = "0"; costInput.step = "any";
-      costInput.value = cfg.costPerYear == null ? "" : cfg.costPerYear; costInput.placeholder = "not known";
-      costInput.classList.toggle("needs-timing", cfg.costPerYear == null);
-      costInput.addEventListener("input", () => {
-        cfg.costPerYear = parseOptionalNumber(costInput.value);
-        costInput.classList.toggle("needs-timing", cfg.costPerYear == null);
-        recomputeAndRenderChartAndStats();
+      // A cost and a throughput for each machine; the values measured on NIRD can't be edited.
+      const cells = MACHINES.flatMap(mc => {
+        const m = cfg.measured && cfg.measured[mc.key];
+        const note = m ? `Measured on NIRD: ${m.jobs} job${m.jobs === 1 ? "" : "s"} of ${m.cases} case${m.cases === 1 ? "" : "s"} `
+          + `on ${mc.label}, ${m.years} simulated years. Built with ${m.built.cost ?? "no cost"} / ${m.built.sypd ?? "no throughput"}.` : "";
+        return [mc.cost, mc.sypd].map(field => {
+          const td = document.createElement("td");
+          td.className = field === mc.cost ? "cfg-num cfg-machine-start" : "cfg-num";
+          const input = document.createElement("input");
+          input.type = "number"; input.className = "num"; input.min = "0"; input.step = "any";
+          input.value = cfg[field] == null ? "" : cfg[field]; input.placeholder = "not known";
+          const flag = () => input.classList.toggle("needs-timing", field === mc.sypd ? !(Number(cfg[field]) > 0) : cfg[field] == null);
+          flag();
+          input.addEventListener("input", () => {
+            cfg[field] = parseOptionalNumber(input.value);
+            flag();
+            recomputeAndRenderChartAndStats();
+          });
+          if (m){ input.readOnly = true; input.classList.add("measured"); input.title = note; }
+          td.appendChild(input);
+          return td;
+        });
       });
-      tdCost.appendChild(costInput);
-
-      const tdThr = document.createElement("td");
-      const thrInput = document.createElement("input");
-      thrInput.type = "number"; thrInput.className = "num"; thrInput.min = "0"; thrInput.step = "any";
-      thrInput.value = cfg.throughput == null ? "" : cfg.throughput; thrInput.placeholder = "not known";
-      thrInput.classList.toggle("needs-timing", !hasTiming(cfg));
-      thrInput.addEventListener("input", () => {
-        cfg.throughput = parseOptionalNumber(thrInput.value);
-        thrInput.classList.toggle("needs-timing", !hasTiming(cfg));
-        recomputeAndRenderChartAndStats();
-      });
-      tdThr.appendChild(thrInput);
 
       const tdDel = document.createElement("td"); tdDel.className = "col-narrow";
       const delBtn = document.createElement("button");
@@ -2173,7 +2128,7 @@
       });
       tdDel.appendChild(delBtn);
 
-      tr.appendChild(tdName); tr.appendChild(tdCost); tr.appendChild(tdThr); tr.appendChild(tdDel);
+      tr.appendChild(tdName); cells.forEach(td => tr.appendChild(td)); tr.appendChild(tdDel);
       configTbody.appendChild(tr);
   }
 
@@ -2530,7 +2485,6 @@
     const result = computeSchedule(configs, sims, slots);
     lastResult = result;
     renderCostTable();
-    saveEdits();
     renderTrackerStats();
     if (result.error){
       errorBanner.hidden = false;
@@ -2576,19 +2530,9 @@
       applyChainHighlight();
     }
   });
-  resetBtn.addEventListener("click", () => {
-    configs = clone(DEFAULT_CONFIGS);
-    sims = clone(DEFAULT_SIMS);
-    slots = DEFAULT_SLOTS; costUnit = DEFAULT_COST_UNIT;
-    slotsInput.value = DEFAULT_SLOTS; costUnitInput.value = DEFAULT_COST_UNIT;
-    cpToggle.checked = false; selectedChainRoot = null;
-    configSeq = configs.length; simSeq = sims.length;
-    applyAutoProgress(progressData);
-    render();
-  });
   addConfigBtn.addEventListener("click", () => {
     configSeq++;
-    configs.push({ id: uid("c", configSeq), name: "New configuration", costPerYear: null, throughput: null });
+    configs.push({ id: uid("c", configSeq), name: "New configuration", costPerYear: null, throughput: null, betzyCostPerYear: null, betzyThroughput: null });
     render();
   });
   addSimBtn.addEventListener("click", () => {
@@ -2597,217 +2541,12 @@
     render();
   });
 
-  // ---------------- spreadsheet export ----------------
-  function csvEscape(v){
-    const s = v === undefined || v === null ? "" : String(v);
-    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-  }
-  function csvRow(cells){ return cells.map(csvEscape).join(","); }
-
-  function buildExportCsv(){
-    const rowById = new Map(sims.map(r => [r.id, r]));
-    const lines = [];
-
-    lines.push(csvRow(["Model configurations"]));
-    lines.push(csvRow(["Configuration", `Cost / sim-yr (${costUnit})`, "Throughput (SYPD)"]));
-    configs.forEach(c => lines.push(csvRow([c.name, c.costPerYear == null ? "" : c.costPerYear, c.throughput == null ? "" : c.throughput])));
-    lines.push("");
-
-    lines.push(csvRow(["Simulation plan"]));
-    lines.push(csvRow([
-      "CMIP Simulation", "Dependency 1", "Dependency 2", "# Years", "Ens", "Configuration", "Priority",
-      "CMIP Priority", "AMIP", "Status", "Years Complete", "Members Running",
-    ]));
-    // Re-emit a blank line + label row ahead of each MIP group, same convention as the
-    // imported file used — but only when a row actually carries a MIP tag, so a plan with
-    // no MIP grouping (the tool's own default) doesn't grow a stray leading blank line.
-    let lastMip = null;
-    sims.forEach(r => {
-      const mip = r.mip || null;
-      if (mip && mip !== lastMip){ lines.push(""); lines.push(csvRow([mip])); }
-      lastMip = mip;
-      const deps = rowDeps(r).map(id => (rowById.get(id) || {}).name || "");
-      const cfg = configs.find(c => c.id === r.configId);
-      lines.push(csvRow([
-        r.name, deps[0] || "", deps[1] || "", r.years, r.ensemble == null ? "" : r.ensemble, cfg ? cfg.name : "", r.priority == null ? 1 : r.priority,
-        r.cmipPriority || "", r.amip || "",
-        STATUS_LABELS[r.status] || "Pending",
-        r.status === "in-progress" ? (r.yearsCompleted == null ? 0 : r.yearsCompleted) : "",
-        r.status === "in-progress" && r.membersRunning != null ? runningCount(r) : "",
-      ]));
-    });
-    lines.push("");
-
-    lines.push(csvRow(["Settings"]));
-    lines.push(csvRow(["Parallel slots", slots]));
-    lines.push(csvRow(["Cost unit label", costUnit]));
-    lines.push("");
-
-    const result = computeSchedule(configs, sims, slots);
-    lines.push(csvRow(["Computed schedule"]));
-    if (result.error){
-      lines.push(csvRow(["Error", result.error]));
-    } else {
-      lines.push(csvRow(["Fastest completion (days)", result.makespan.toFixed(2)]));
-      lines.push(csvRow(["Critical-path floor (days)", result.criticalPath.toFixed(2)]));
-      lines.push(csvRow([`Total compute cost (${costUnit})`, result.totalCost.toFixed(2)]));
-      const utilization = result.makespan > 0 ? (result.totalWork / (result.makespan * slots)) * 100 : 0;
-      lines.push(csvRow(["Slot utilization (%)", utilization.toFixed(1)]));
-
-      const mipBreakdown = computeMipBreakdown(result);
-      if (mipBreakdown.list.length > 1){
-        lines.push("");
-        lines.push(csvRow(["Cost by MIP"]));
-        lines.push(csvRow(["Resolution", "MIP", `Cost (${costUnit})`, "Runs", "% of total"]));
-        mipBreakdown.list.slice().sort((a, b) => a.res.localeCompare(b.res) || b.cost - a.cost).forEach(g => {
-          const pct = result.totalCost > 0 ? (g.cost / result.totalCost) * 100 : 0;
-          lines.push(csvRow([g.res, g.mip, g.cost.toFixed(2), g.runCount, pct.toFixed(1)]));
-        });
-      }
-
-      const priorityBreakdown = computePriorityBreakdown(result);
-      if (priorityBreakdown.list.length > 1 || priorityBreakdown.excludedCount){
-        lines.push("");
-        lines.push(csvRow(["Cost by Priority"]));
-        lines.push(csvRow(["Priority", `Cost (${costUnit})`, "Runs", "% of total"]));
-        priorityBreakdown.list.forEach(g => {
-          const pct = result.totalCost > 0 ? (g.cost / result.totalCost) * 100 : 0;
-          lines.push(csvRow([g.priority, g.cost.toFixed(2), g.runCount, pct.toFixed(1)]));
-        });
-        if (priorityBreakdown.excludedCount){
-          const excludedPct = result.totalCost > 0 ? (priorityBreakdown.excludedCost / result.totalCost) * 100 : 0;
-          lines.push(csvRow(["0 (excluded)", priorityBreakdown.excludedCost.toFixed(2), priorityBreakdown.excludedCount, excludedPct.toFixed(1)]));
-        }
-      }
-
-      lines.push("");
-      lines.push(csvRow(["Simulation", "Configuration", "Priority", "Status", "Slot", "Start (days)", "End (days)", "Duration (days)", `Cost (${costUnit})`]));
-      result.jobs.slice().sort((a, b) => a.start - b.start || a.machine - b.machine).forEach(j => {
-        const cfg = configs.find(c => c.id === j.cfgId);
-        lines.push(csvRow([
-          j.label, cfg ? cfg.name : "", j.rowPriority, j.pinned ? `In progress (${j.yearsCompleted.toFixed(1)}/${j.years} yr, ${j.progressPct.toFixed(1)}%)` : "Pending",
-          "Slot " + (j.machine + 1), j.start.toFixed(2), j.end.toFixed(2), j.duration.toFixed(2), j.cost.toFixed(2),
-        ]));
-      });
-    }
-    return lines.join("\r\n");
-  }
-
-  const downloadsCapPromise = (typeof window !== "undefined" && window.claude && typeof window.claude.use === "function")
-    ? window.claude.use("downloads") : Promise.resolve(null);
-
   function showFileStatus(msg, isError){
     fileStatus.textContent = msg;
     fileStatus.classList.toggle("status-error", !!isError);
     clearTimeout(fileStatus._hideTimer);
     fileStatus._hideTimer = setTimeout(() => { fileStatus.textContent = ""; }, 6000);
   }
-
-  // Plain Blob+anchor download — works when this page is opened as a standalone file
-  // (no window.claude), where there's no sandboxed iframe blocking it. Inside the hosted
-  // artifact frame that same click is blocked, which is exactly what the downloads
-  // capability above exists to bridge, so this is only reached outside that frame.
-  function triggerBrowserDownload(filename, data){
-    try {
-      const blob = new Blob([data], { type: "text/plain;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-      return true;
-    } catch (err){ return false; }
-  }
-
-  async function attemptSave(filename, data){
-    const downloads = await downloadsCapPromise;
-    if (!downloads){
-      if (triggerBrowserDownload(filename, data)) showFileStatus("Saved " + filename + ".");
-      else showFileStatus("Downloads aren't available in this view.", true);
-      return;
-    }
-    try {
-      await downloads.save({ filename, data });
-      showFileStatus("Saved " + filename + ".");
-    } catch (err){
-      const code = err && err.code;
-      if ((code === "extension_not_enabled" || code === "rejected_extension") && filename.endsWith(".csv")){
-        return attemptSave(filename.replace(/\.csv$/, ".txt"), data);
-      }
-      if (code === "declined"){ showFileStatus("Save cancelled."); return; }
-      if (code === "rate_limited"){ showFileStatus("Busy — try again in a moment.", true); return; }
-      showFileStatus("Couldn't save the file (" + (code || "error") + ").", true);
-    }
-  }
-
-  downloadBtn.addEventListener("click", () => {
-    showFileStatus("Preparing download…");
-    attemptSave("cmip7-run-plan.csv", buildExportCsv());
-  });
-
-  // ---------------- "set as default plan" ----------------
-  // Serializes a value as JS source (quoted keys are valid JS, not just JSON, so this
-  // reads back in fine even though it's not byte-identical to the original hand-written
-  // style). Field order is fixed explicitly so a stray transient property on a live row
-  // object (e.g. one left over from editing) never leaks into the regenerated defaults.
-  function literalizeConfigs(list){
-    return list.map(c => JSON.stringify({
-      id: c.id, name: c.name,
-      costPerYear: parseOptionalNumber(c.costPerYear),
-      throughput: parseOptionalNumber(c.throughput),
-    })).map(s => "    " + s + ",").join("\n");
-  }
-  function depsOfRow(r){
-    return Array.isArray(r.dependsOn) ? r.dependsOn : (r.dependsOn ? [r.dependsOn] : []);
-  }
-  function literalizeSims(list){
-    return list.map(r => JSON.stringify({
-      id: r.id, name: r.name, dependsOn: depsOfRow(r),
-      years: Number(r.years) || 0,
-      ensemble: normalizeEnsemble(r.ensemble),
-      configId: r.configId,
-      priority: normalizePriority(r.priority),
-      status: r.status || "pending",
-      yearsCompleted: Math.max(0, Number(r.yearsCompleted) || 0),
-      membersRunning: r.membersRunning == null || r.membersRunning === "" ? null : runningCount(r),
-      mip: r.mip || "", cmipPriority: r.cmipPriority || "", amip: r.amip || "",
-      experiment: r.experiment, resolution: r.resolution, startYear: r.startYear,
-    })).map(s => "    " + s + ",").join("\n");
-  }
-
-  // Splices a freshly built default-data block into a copy of the page's own pristine
-  // source, so the downloaded file is this same tool with the current plan baked in as
-  // what loads next time — no server or saved state required, just a file swap.
-  function buildDefaultedSource(){
-    const startMarker = "let DEFAULT_CONFIGS = [";
-    const endMarker = "let configs = clone(DEFAULT_CONFIGS);";
-    const startIdx = PAGE_SOURCE_TEMPLATE.indexOf(startMarker);
-    const endIdx = PAGE_SOURCE_TEMPLATE.indexOf(endMarker);
-    if (startIdx === -1 || endIdx === -1){
-      throw new Error("Couldn't locate the default-data block in this page's source.");
-    }
-    const block = "let DEFAULT_CONFIGS = [\n" + literalizeConfigs(configs) + "\n  ];\n"
-      + "  let DEFAULT_SIMS = [\n" + literalizeSims(sims) + "\n  ];\n"
-      + "  let DEFAULT_SLOTS = " + (Number(slots) || 5) + ";\n"
-      + "  let DEFAULT_COST_UNIT = " + JSON.stringify(costUnit || "core-hr") + ";\n"
-      + "  let DEFAULT_PROGRESS = " + JSON.stringify(DEFAULT_PROGRESS) + ";\n\n  ";
-    return PAGE_SOURCE_TEMPLATE.slice(0, startIdx) + block + PAGE_SOURCE_TEMPLATE.slice(endIdx);
-  }
-
-  setDefaultBtn.addEventListener("click", () => {
-    try {
-      showFileStatus("Preparing updated default file…");
-      attemptSave("noresm3_cmip7_scheduler.html", buildDefaultedSource());
-      // Mirror the change into this running session too, so "Reset to default plan"
-      // reflects the new default immediately rather than only after reopening the file.
-      DEFAULT_CONFIGS = clone(configs);
-      DEFAULT_SIMS = clone(sims);
-      DEFAULT_SLOTS = Number(slots) || 5;
-      DEFAULT_COST_UNIT = costUnit || "core-hr";
-    } catch (err){
-      showFileStatus("Couldn't build the default file.", true);
-    }
-  });
 
   // ---------------- spreadsheet import ----------------
   // Full RFC4180-ish parser (not a line-splitter) so a quoted field can contain
@@ -3035,6 +2774,8 @@
     const tab = TABS.includes(want) ? want : "tracker";
     TABS.forEach(name => { el("tab-" + name).hidden = name !== tab; });
     costUnitInput.closest("label").hidden = tab !== "cost";
+    // The control bar holds only the cost unit, so it shows on the cost tab alone.
+    costUnitInput.closest(".control-bar").style.display = tab === "cost" ? "" : "none";
     document.querySelectorAll(".tab-nav a").forEach(a => {
       if (a.dataset.tab === tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
@@ -3117,11 +2858,46 @@
     return p;
   }
 
+  // A configuration's cost and throughput on each machine come from the timing files of its
+  // runs' cases there, the mean over all their jobs with each job weighted by the years it
+  // simulated. A machine where none of its cases has run keeps the value the page was built
+  // with.
+  function applyMeasuredTiming(){
+    configs.forEach(cfg => {
+      Object.entries(cfg.measured || {}).forEach(([key, m]) => {
+        const mc = MACHINES.find(x => x.key === key);
+        cfg[mc.cost] = m.built.cost;
+        cfg[mc.sypd] = m.built.sypd;
+      });
+      delete cfg.measured;
+    });
+    const groups = new Map();
+    sims.forEach(row => (row.cases || []).forEach(c => (Array.isArray(c.timing) ? c.timing : []).forEach(t => {
+      const mc = MACHINES.find(x => x.key === t.machine);
+      if (!mc || !(t.years > 0) || !(t.sypd > 0) || !Number.isFinite(t.cost)) return;
+      const key = row.configId + " " + mc.key;
+      if (!groups.has(key)) groups.set(key, { id: row.configId, mc, list: [] });
+      groups.get(key).list.push(t);
+    })));
+    groups.forEach(({ id, mc, list }) => {
+      const cfg = configs.find(c => c.id === id);
+      if (!cfg) return;
+      const years = list.reduce((s, t) => s + t.years, 0);
+      (cfg.measured = cfg.measured || {})[mc.key] = {
+        built: { cost: cfg[mc.cost], sypd: cfg[mc.sypd] },
+        cases: list.length, years: Math.round(years * 10) / 10,
+        jobs: list.reduce((s, t) => s + (t.jobs || 0), 0),
+      };
+      cfg[mc.cost] = Math.round(list.reduce((s, t) => s + t.cost * t.years, 0) / years * 100) / 100;
+      cfg[mc.sypd] = Math.round(years / list.reduce((s, t) => s + t.years / t.sypd, 0) * 100) / 100;
+    });
+  }
+
   function applyAutoProgress(data){
     if (!data || typeof data !== "object" || !Array.isArray(data.cases)) return;
     progressData = data;
     const unmatched = (data.skipped || []).map(s => `#${s.issue}, ${s.reason}`);
-    sims.forEach(r => { delete r.cases; delete r.owner; });
+    sims.forEach(r => { delete r.cases; delete r.owner; delete r.machine; });
     data.cases.forEach(c => {
       const row = sims.find(r => r.resolution === c.resolution && (c.labels || []).includes(r.experiment));
       c.variant = (c.labels || []).find(l => VARIANT.test(l));
@@ -3133,8 +2909,12 @@
     sims.forEach(row => {
       if (!row.cases) return;
       row.owner = [...new Set(row.cases.map(c => c.owner))].join(", ");
+      // The run is on the machine its latest case's latest job ran on.
+      const latest = row.cases.filter(c => c.machine).sort((a, b) => a.issue - b.issue).pop();
+      if (latest) row.machine = latest.machine;
       runs[row.name] = runProgress(row);
     });
+    applyMeasuredTiming();
     autoProgress = { updated: data.updated, runs, unmatched };
     Object.entries(runs).forEach(([name, p]) => {
       const row = sims.find(r => r.name === name);
@@ -3151,7 +2931,6 @@
 
   applyAutoProgress(DEFAULT_PROGRESS);
   render();
-  if (editsRestored) showFileStatus("Your edits from last time are back. Reset to default plan discards them.");
   if (/^https?:$/.test(location.protocol)){
     fetch("progress.json", { cache: "no-store" })
       .then(r => r.ok ? r.json() : null)

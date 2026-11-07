@@ -8,9 +8,9 @@ published at https://ns9560k.web.sigma2.no/datalake/diagnostics/noresm/cmip7_pla
 
 `build_page.sh` builds the page with the published plan. It runs
 `build_scheduler.py`, which fills `scheduler_template.html` in from
-`noresm3_experiments_decoded.csv` (the experiments) and `noresm3_model_cost.csv`
-(the cost of each configuration). To publish it, run on NIRD from this
-repository's clone:
+`noresm3_experiments_decoded.csv` (the experiments) and its own `COSTS` table
+(each configuration's cost, throughput and compsets). To publish it, run on NIRD
+from this repository's clone:
 
 ```bash
 git pull
@@ -25,8 +25,12 @@ shows as Pending; to see the progress, build a copy of it into the page:
 workflow/build_page.sh preview.html --progress progress.json
 ```
 
-The plan (resolutions, members, years, slots) is set in `build_page.sh`; the
-page's layout, text and workflow in `scheduler_template.html`.
+The plan (resolutions, members, years, slots) is set in `build_page.sh`, and the
+page's layout, text and workflow in `scheduler_template.html`. A configuration's
+cost and throughput come from its cases' timing files, through `progress.json`;
+`COSTS` in `build_scheduler.py` holds the values from earlier timing runs, which
+the page uses for a configuration with nothing running yet, and which compsets
+belong to each configuration.
 
 ## The case issues
 
@@ -82,8 +86,8 @@ the later model date. Another member of the ensemble gets its own variant, e.g.
 
 Writes `progress.json` next to the published page, which reads it on load. For
 every case issue it records the latest model date in the case's file names, such
-as `<case>.cam.i.1930-01-01-00000.nc`, and the sets of years cmip7-prep has
-CMORized. The page groups the cases into runs by experiment and resolution, and
+as `<case>.cam.i.1930-01-01-00000.nc`, the sets of years cmip7-prep has
+CMORized, and the case's cost and throughput from its timing files. The page groups the cases into runs by experiment and resolution, and
 into members by variant, and counts the years from each run's start year. A run's
 years done are the mean over its members.
 
@@ -93,7 +97,8 @@ Run it on NIRD, from this repository's clone:
 python3 -I workflow/nird_progress.py \
     /nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json \
     --dir "/nird/datalake/NS9560K/noresm3/cases/{case}/atm/hist" \
-    --cmor-dir "/nird/datalake/NS9560K/noresm3/cases/{case}.cmor"
+    --cmor-dir "/nird/datalake/NS9560K/noresm3/cases/{case}.cmor" \
+    --timing-dir "/nird/datalake/NS9560K/noresm3/cases/{case}/timing"
 ```
 
 - `--dir` is each case's directory, with `{case}` standing for the case name.
@@ -101,6 +106,14 @@ python3 -I workflow/nird_progress.py \
   `completed_steps_<first>-<last>.json` files cmip7-prep writes there. A set of
   years counts once it has every `cmor-` step any of the run's sets has, so a set
   where one realm failed does not count; the range ends at the first year missing.
+- `--timing-dir` is each case's timing directory. The script reads the Machine,
+  Model Cost (pe-hours per simulated year) and Model Throughput (simulated years
+  per day) of every `noresm_timing.*` file there, one per job, gzipped or not. For
+  each machine it averages the case's jobs there, weighting each job by the years
+  it simulated, and it records the machine of the latest job. The page combines a
+  configuration's cases the same way, separately for Olivia and Betzy, shows the
+  result in place of the value it was built with, and costs each run on the machine
+  its latest case ran on.
 - `--pattern` sets which files count (default `*.cam.i.*.nc`).
 - `--issues` reads the issues from a saved copy of the GitHub API's answer
   instead of fetching them.
