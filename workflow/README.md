@@ -98,7 +98,8 @@ python3 -I workflow/nird_progress.py \
     /nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json \
     --dir "/nird/datalake/NS9560K/noresm3/cases/{case}/atm/hist" \
     --cmor-dir "/nird/datalake/NS9560K/noresm3/cases/{case}.cmor" \
-    --timing-dir "/nird/datalake/NS9560K/noresm3/cases/{case}/timing"
+    --timing-dir "/nird/datalake/NS9560K/noresm3/cases/{case}/timing" \
+    --timing-dir "/nird/datalake/NS9560K/noresm3/cases/{case}/{case}/timing"
 ```
 
 - `--dir` is each case's directory, with `{case}` standing for the case name.
@@ -113,7 +114,9 @@ python3 -I workflow/nird_progress.py \
   it simulated, and it records the machine of the latest job. The page combines a
   configuration's cases the same way, separately for Olivia and Betzy, shows the
   result in place of the value it was built with, and costs each run on the machine
-  its latest case ran on.
+  its latest case ran on. Some cases keep their timing files one level down, in a
+  directory named after the case, so `--timing-dir` is given once for each layout;
+  the first that exists is read.
 - `--pattern` sets which files count (default `*.cam.i.*.nc`).
 - `--issues` reads the issues from a saved copy of the GitHub API's answer
   instead of fetching them.

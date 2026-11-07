@@ -22,13 +22,17 @@ For each case it records:
     simulated. The machine of its latest job is the one it runs on.
 
 --dir gives each case's directory, --cmor-dir its cmip7-prep output directory
-and --timing-dir its timing directory, with {case} standing for the case name:
+and --timing-dir its timing directory, with {case} standing for the case name.
+Some cases keep their timing files one level down, in a directory named after
+the case, so --timing-dir is given once for each layout; the first that exists
+is read:
 
   python3 -I workflow/nird_progress.py \\
       /nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json \\
       --dir "/nird/datalake/NS9560K/noresm3/cases/{case}/atm/hist" \\
       --cmor-dir "/nird/datalake/NS9560K/noresm3/cases/{case}.cmor" \\
-      --timing-dir "/nird/datalake/NS9560K/noresm3/cases/{case}/timing"
+      --timing-dir "/nird/datalake/NS9560K/noresm3/cases/{case}/timing" \\
+      --timing-dir "/nird/datalake/NS9560K/noresm3/cases/{case}/{case}/timing"
 
 --pattern sets which files count (default *.cam.i.*.nc). --issues reads the
 issues from a file saved from the GitHub API instead of fetching them.
@@ -164,7 +168,9 @@ def main():
     p.add_argument("out", help="where to write progress.json")
     p.add_argument("--dir", required=True, help='each case\'s directory, e.g. "/archive/{case}/atm/hist"')
     p.add_argument("--cmor-dir", help='each case\'s cmip7-prep output directory, e.g. "/cases/{case}.cmor"')
-    p.add_argument("--timing-dir", help='each case\'s timing directory, e.g. "/cases/{case}/timing"')
+    p.add_argument("--timing-dir", action="append", default=[],
+                   help='each case\'s timing directory, e.g. "/cases/{case}/timing"; give it more than '
+                        'once for cases laid out differently, and the first that exists is read')
     p.add_argument("--pattern", default="*.cam.i.*.nc", help="dated files that count, as a shell pattern")
     p.add_argument("--repo", default=REPO, help="the repository with the case issues")
     p.add_argument("--issues", help="read the issues from this JSON file instead of GitHub")
@@ -202,8 +208,9 @@ def main():
             if sets:
                 case["cmor"] = sets
                 report += "; CMORized " + ", ".join(f"{s['first']}-{s['last']}" for s in sets)
-        if a.timing_dir:
-            timing, machine = case_timing(a.timing_dir.format(case=title))
+        timing_dir = next((d for d in (t.format(case=title) for t in a.timing_dir) if os.path.isdir(d)), None)
+        if timing_dir:
+            timing, machine = case_timing(timing_dir)
             if timing:
                 case["timing"], case["machine"] = timing, machine
                 report += "".join(f"; {t['machine']} {t['cost']} pe-hrs/yr, {t['sypd']} SYPD over {t['jobs']} jobs"
