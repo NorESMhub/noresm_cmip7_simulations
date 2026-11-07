@@ -1,0 +1,73 @@
+NorESM3 CMIP7 Experiment Tracker,,,,,,,,,,,,,,,,,,,
+"To Filter: Click the small triangle (filter icon) in any header cell (e.g., Tier or activity_id). Uncheck the boxes for items you want to hide, or use the search box to find a specific entry (e.g ""C4MIP"")",,,To Sort: Click the filter icon in a header and select Sort A to Z to organize the entire list alphabetically by that column.,,"To Reset: If you want to see everything again, click the filter icon and select Select All or go to the Data menu and select Clear filter.",,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,
+Tier,experiment_id,activity_id,experiment,branches from,required_model_components,start_year,end_year,min_yrs_per_sim,Ensemble Members,Total years,Resolution,Compset Alias,tag ,Datasets and defaults,Estimated CPU hours,Estimated Storage,NorESM4CMIP7_WP,Person_responsible,Comments
+DECK,amip,CMIP,Atmosphere with observed SSTs and SICs prescribed,-,AGCM,1979,2021,43,1,43,"LM, MM","green - exists
+read - does not exist yet
+yellow - needs confirmation",,,,,WP1/INES2,,DMS emissions from hist or piControl?
+DECK,piControl,CMIP,Coupled atmosphere-ocean 1850 control (conc-driven),-,AOGCM,1,400,400,,500,,N1850GhgGaxg,noresm3_0_beta28,,,,WP1/INES2,,Extend to cover all perturbation periods
+DECK,esm-piControl,CMIP,Coupled atmosphere-ocean 1850 control (emission-driven),-,AOGCM BGC,1,400,400,,500,,N1850EsmGhgGaxg,noresm3_0_beta28,,,,WP2/INES2,,
+DECK,abrupt-4xCO2,CMIP,Abrupt quadrupling of CO2,piControl,AOGCM,1,300,300,,0,,N4xCO2GhgGaxg,,,,,WP1/INES2,,Branch yr 101+ of piControl; 150yr extension to 300yr recommended
+DECK,1pctCO2,CMIP,1% per year increase in CO2,piControl,AOGCM,1,150,150,,0,,N1PctCO2GhgGaxg,noresm3_0_beta28,,,,WP1/INES2,,Branch yr 101+ of piControl
+DECK,historical,CMIP,All-forcing simulation of recent past (conc-driven),piControl,AOGCM,1850,2021,172,,174,,NHistGhgGaxg,noresm3_0_beta28,,,,WP1/INES2,,
+DECK,esm-hist,CMIP,All-forcing simulation of recent past (emission-driven),esm-piControl,AOGCM BGC,1850,2021,172,,0,,NHistEsmGhgGaxg,noresm3_0_beta28,,,,WP2/INES2,,
+DECK,piClim-Control,CMIP,Pre-industrial conditions with prescribed SST/SIC,-,AGCM,1,30,30,,0,,N1850Ghg,noresm3_0_beta28,,,,WP2,,Baseline for ERF calculations
+DECK,piClim-anthro,CMIP,piClim-Control with present-day anthropogenic forcing,-,AGCM,1,30,30,,0,,NF1850GhgAnthro,,,,,WP2,,Quantify present-day total anthropogenic ERF
+DECK,piClim-4xCO2,CMIP,piClim-Control with 4x 1850 CO2,-,AGCM,1,30,30,,0,,NF4xCO2Ghg,,,,,WP2,,Quantify ERF of 4xCO2
+Fast Track,esm-scen7-h-AQ,AerChemMIP,Future scenario with high aerosol/ozone precursor emissions,esm-hist,AOGCM AER CHEM,2021,2100,80,3,240,,,,,,,WP2,,Alt: esm-scen7-h-Aer if no interactive chem
+Fast Track,esm-scen7-vllo-AQ,AerChemMIP,Future scenario with low aerosol/ozone precursor emissions,esm-hist,AOGCM AER CHEM,2021,2100,80,3,240,,,,,,,WP2,,
+Fast Track,hist-piAQ,AerChemMIP,Historical with pre-industrial aerosol/ozone precursors,piControl,AOGCM AER CHEM,1850,2021,172,6,1032,,,,,,,WP2/WP3,,Alt: hist-piAer
+Fast Track,piClim-X,AerChemMIP,"Single-forcing ERF: CH4, N2O, NOX, ODS, SO2",piControl,AGCM CHEM/AER,1979,2021,43,6,258,,,,,,,WP2,,5 separate experiments
+Fast Track,1pctCO2-bgc,C4MIP,Biogeochemically coupled 1%/yr CO2,piControl,AOGCM BGC,1,140,140,1,140,,N1PctCO2BgcGhgGaxg,,,,,WP4,NORCE,"β, γ feedbacks; backward compat with CMIP5/6"
+Fast Track,1pctCO2-rad,C4MIP,Radiatively coupled 1%/yr CO2,piControl,AOGCM BGC,1,140,140,1,140,,N1PctCO2RadGhgGaxg,,,,,WP4,NORCE,"β, γ feedbacks; backward compat with CMIP5/6"
+Fast Track,esm-flat10,C4MIP,10 PgC/yr constant CO2 emissions,esm-piControl,AOGCM BGC,1,300,300,1,300,,N10EsmGhgGaxg,,,,,WP4,CICERO,TCRE
+Fast Track,esm-flat10-cdr,C4MIP,10 PgC/yr CO2 removal after esm-flat10,esm-flat10,AOGCM BGC,100,300,201,1,201,,N10CdrEsmGhgGaxg,,,,,WP4,CICERO,TCRE under -ve emissions
+Fast Track,esm-flat10-zec,C4MIP,Zero emissions after esm-flat10,esm-flat10,AOGCM BGC,100,300,201,1,201,,N10ZecEsmGhgGaxg,,,,,WP4,CICERO,ZEC. Start all ensemble members from 1850.
+Fast Track,amip-p4k,CFMIP,AMIP with uniform +4K SST in ice-free regions,piControl,AGCM,1979,2021,43,1,43,,NFAMIPp4k,,,,,WP3,,
+Fast Track,amip-piForcing,CFMIP,AMIP 1870-present with constant PI forcing,-,AGCM,1870,2022,153,1,153,,NFAMIPpiF,,,,,WP3,,
+Fast Track,abrupt-2xCO2,C4MIP/CFMIP,Abrupt doubling of CO2,piControl,AOGCM,1,300,300,1,300,,N2xCO2GhgGaxg,noresm3_0_beta28,,,,WP3/WP4,,Part of CFMIP FT
+Fast Track,abrupt-0p5CO2,CFMIP,Abrupt halving of CO2,piControl,AOGCM,1,300,300,1,300,,N0p5xCO2GhgGaxg,noresm3_0_beta28,,,,WP3,,
+Fast Track,hist-aer,DAMIP,Historical + future aerosol forcing only,piControl,AOGCM,1850,2021,172,3,516,,,,,,,WP3,,
+Fast Track,hist-GHG,DAMIP,Historical GHG forcing only,piControl,AOGCM,1850,2021,172,3,516,,,,,,,WP3,,
+Fast Track,hist-nat,DAMIP,Natural-only (solar + volcano) historical,piControl,AOGCM,1850,2021,172,3,516,,,,,,,WP3,,
+Fast Track,dcppB-forecast-cmip6,DCPP,Forecast initialized from obs (2025-2036),OBS product,AOGCM,2025,2035,11,10,110,,,,,,,WP3,,
+Fast Track,g7-1p5K-sai,GeoMIP,SAI to stabilize at 1.5C,historical,AOGCM,2035,2085,51,1,51,,,,,,,WP4,,
+Fast Track,land-hist,LMIP,Land-only historical simulation 1850-2022,piControl,LAND,1850,2022,173,1,173,,,,,,,WP2,,
+Fast Track,abrupt-127k,PMIP,Abrupt orbit+GHG of 127ka (last interglacial),piControl,AOGCM,1,100,100,1,100,,,,,,,,,Not in NorESM4CMIP7 scope?
+Fast Track,piClim-aer,RFMIP/AerChemMIP,ERF by present-day aerosols,-,AGCM,1,30,30,1,30,,,,,,,WP2,,
+Fast Track,piClim-histaer,RFMIP,Historical+future transient ERF from aerosols,-,AGCM,1,30,30,1,30,,,,,,,WP2/WP3,,
+Fast Track,piClim-histall,RFMIP,Historical+future transient ERF from all forcers,-,AGCM,1,30,30,1,30,,,,,,,WP2/WP3,,
+Fast Track,esm-scen7-h,ScenarioMIP,High emissions / policy roll-back,esm-hist,AOGCM,2021,2100,80,3,240,,N7hEsmGhgGaxg,,,,,WP4,,
+Fast Track,esm-scen7-m,ScenarioMIP,Current policy (no strengthening),esm-hist,AOGCM,2021,2100,80,3,240,,N7mEsmGhgGaxg,,,,,WP4,,scen7-m is a tier 1 priority also when running emission  driven
+Fast Track,esm-scen7-ml,ScenarioMIP,Modest mitigation (short of Paris),esm-hist,AOGCM,2021,2100,80,3,240,,N7mlEsmGhgGaxg,,,,,WP4,,
+Fast Track,esm-scen7-vl,ScenarioMIP,Very Low,esm-hist,AOGCM,2021,2100,80,3,240,,N7vlEsmGhgGaxg,,,,,WP4,,
+Fast Track,esm-scen7-l,ScenarioMIP,Low,esm-hist,AOGCM,2021,2100,80,3,240,,N7lEsmGhgGaxg,,,,,WP4,,
+Fast Track,esm-scen7-ln,ScenarioMIP,Low-Negative,esm-hist,AOGCM,2021,2100,80,3,240,,N7lnEsmGhgGaxg,,,,,WP4,,
+Fast Track,esm-scen7-hl,ScenarioMIP,High-low,esm-hist,AOGCM,2021,2100,80,3,240,,N7hlEsmGhgGaxg,,,,,WP4,,
+Fast Track,esm-scen7-h-ext,ScenarioMIP,h extension,esm-scen7-h,AOGCM,2100,2300,200,3,600,,N7hEsmGhgGaxg,,,,,WP4,,
+Fast Track,esm-scen7-m-ext,ScenarioMIP,m extension,esm-scen7-m,AOGCM,2100,2300,200,3,600,,N7mEsmGhgGaxg,,,,,WP4,,
+Fast Track,esm-scen7-ml-ext,ScenarioMIP,ml extension,esm-scen7-ml,AOGCM,2100,2300,200,3,600,,N7mlEsmGhgGaxg,,,,,WP4,,
+Fast Track,esm-scen7-vl-ext,ScenarioMIP,vl extension,esm-scen7-vl,AOGCM,2100,2300,200,3,600,,N7vlEsmGhgGaxg,,,,,WP4,,
+Fast Track,esm-scen7-l-ext,ScenarioMIP,l extension,esm-scen7-l,AOGCM,2100,2300,200,3,600,,N7lEsmGhgGaxg,,,,,WP4,,
+Fast Track,esm-scen7-ln-ext,ScenarioMIP,ln extension,esm-scen7-ln,AOGCM,2100,2300,200,3,600,,N7lnEsmGhgGaxg,,,,,WP4,,
+Fast Track,esm-scen7-hl-ext,ScenarioMIP,hl extension,esm-scen7-hl,AOGCM,2100,2300,200,3,600,,N7hlEsmGhgGaxg,,,,,WP4,,
+Satellite MIP (P1),flat10-bgc,C4MIP,Biogeochem-only flat10,piControl,AOGCM BGC,1,300,300,1,300,,,,,,,WP4,NORCE,"Quantification of β, γ"
+Satellite MIP (P1),flat10-rad,C4MIP,Radiatively-only flat10,piControl,AOGCM BGC,1,300,300,1,300,,,,,,,WP4,NORCE,E-driven vs C-driven TBD
+Satellite MIP (P1),esm-flat10-nz,C4MIP,Net-zero emissions after esm-flat10,esm-flat10-cdr,AOGCM BGC,150,300,150,1,150,,,,,,,WP4,CICERO,ZEC diagnostic
+Satellite MIP (P1),esm-flat10-rev,C4MIP,Reversal experiment after esm-flat10,esm-flat10-zec,AOGCM BGC,200,300,100,1,100,,,,,,,WP4,CICERO,Reversibility — Sanderson
+Satellite MIP (P1),abrupt-2xCO2-bgc,C4MIP,"Abrupt 2xCO2, BGC coupling only",piControl,AOGCM BGC,1,300,300,1,300,,,,,,,WP4,,New for CMIP7
+Satellite MIP (P1),abrupt-2xCO2-rad,C4MIP,"Abrupt 2xCO2, RAD coupling only",piControl,AOGCM BGC,1,300,300,1,300,,,,,,,WP4,,New for CMIP7
+Satellite MIP (P1),esm-pi-pulse-500,C4MIP,500 PgC pulse from PI,esm-piControl,AOGCM BGC,1,300,300,1,300,,,,,,,WP4,NORCE,New for CMIP7
+Satellite MIP (P1),esm-pi-pulse-500-bgc,C4MIP,"500 PgC pulse, BGC coupling",esm-piControl,AOGCM BGC,1,300,300,1,300,,,,,,,WP4,NORCE,New for CMIP7
+Satellite MIP (P2),flat10-zec-bgc,C4MIP,"Zero emissions after flat10, BGC only",flat10-bgc,AOGCM BGC,100,300,200,1,200,,,,,,,WP4,,ZEC BGC decomposition
+Satellite MIP (P2),flat10-cdr-bgc,C4MIP,"CDR after flat10, BGC only",flat10-bgc,AOGCM BGC,100,300,200,1,200,,,,,,,WP4,,CDR BGC decomposition
+Satellite MIP (P2),hist-co2-bgc,C4MIP/DAMIP,"Historical CO2-only, BGC coupling",piControl,AOGCM BGC,1850,2021,171,,0,,,,,,,WP4,,Assumes DAMIP hist-co2 run
+Placeholder,OMIP-TBD,OMIP,Ocean model intercomparison,,AOGCM,,,,,0,,,,,,,WP1,,Ocean evaluation
+Placeholder,SIMIP-TBD,SIMIP,Sea ice model intercomparison,,AOGCM,,,,,0,,,,,,,WP1,,Sea ice evaluation
+Placeholder,GFMIP-TBD,GFMIP,Green's function SST experiments,,AOGCM,,,,,0,,,,,,,WP1,,Bloch-Johnson et al. 2024
+Placeholder,NAHosMIP-TBD,NAHosMIP,NA freshwater hosing experiments,,AOGCM,,,,,0,,,,,,,WP1,,AMOC weakening/recovery
+Placeholder,ISMIP7-TBD,ISMIP7,Ice sheet model intercomparison,,AOGCM + ICE,,,,,0,,,,,,,WP1,,Greenland ice sheet coupling
+Placeholder,CDRMIP-TBD,CDRMIP,"CDR experiments (BECCS, OAE)",,AOGCM BGC,,,,,0,,,,,,,WP4,,Resolved CDR in ESM
+Placeholder,TIPMIP-TBD,TIPMIP,Tipping point experiments,,AOGCM BGC,,,,,0,,,,,,,WP4,,Extended warming levels
+Placeholder,CERESMIP-TBD,CERESMIP,Earth energy imbalance experiments,,AOGCM,,,,,0,,,,,,,WP3,,EEI analysis
+Placeholder,HT-MIP-TBD,HT-MIP,Hunga Tonga eruption impact,,AOGCM/AGCM,,,,,0,,,,,,,WP3,,Prescribed SST + H2O

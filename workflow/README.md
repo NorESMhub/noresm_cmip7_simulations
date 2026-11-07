@@ -1,8 +1,32 @@
 # Workflow
 
-These files feed the NorESM3 CMIP7 Cost Plan and Schedule Tracker, published at
-https://ns9560k.web.sigma2.no/datalake/diagnostics/noresm/cmip7_planning/
+These files build and feed the NorESM3 CMIP7 Cost Plan and Schedule Tracker,
+published at https://ns9560k.web.sigma2.no/datalake/diagnostics/noresm/cmip7_planning/
 (`/nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/` on NIRD).
+
+## The page
+
+`build_page.sh` builds the page with the published plan. It runs
+`build_scheduler.py`, which fills `scheduler_template.html` in from
+`noresm3_experiments_decoded.csv` (the experiments) and `noresm3_model_cost.csv`
+(the cost of each configuration). To publish it, run on NIRD from this
+repository's clone:
+
+```bash
+git pull
+workflow/build_page.sh /nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/index.html
+```
+
+Run without an argument, it writes `noresm3_cmip7_scheduler.html` in the current
+directory. A page opened as a local file can't fetch `progress.json`, so every run
+shows as Pending; to see the progress, build a copy of it into the page:
+
+```bash
+workflow/build_page.sh preview.html --progress progress.json
+```
+
+The plan (resolutions, members, years, slots) is set in `build_page.sh`; the
+page's layout, text and workflow in `scheduler_template.html`.
 
 ## The case issues
 

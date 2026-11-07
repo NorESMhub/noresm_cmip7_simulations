@@ -1,0 +1,3162 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+
+<title>CMIP7 Cost Plan and Schedule Tracker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light;
+    --page:            #f9f9f7;
+    --surface:         #fcfcfb;
+    --surface-raised:  #ffffff;
+    --text-primary:    #0b0b0b;
+    --text-secondary:  #52514e;
+    --text-muted:      #898781;
+    --gridline:        #e1e0d9;
+    --border:          rgba(11,11,11,0.10);
+    --border-strong:   rgba(11,11,11,0.18);
+
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --series-4: #eda100;
+    --series-5: #e87ba4;
+    --series-6: #008300;
+    --series-7: #4a3aa7;
+    --series-8: #e34948;
+
+    --accent:          #2a78d6;
+    --accent-wash:     #eaf1fb;
+    --danger:          #d03b3b;
+    --danger-wash:     #fceceb;
+
+    --focus-ring: #2a78d6;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --page:            #0d0d0d;
+      --surface:         #1a1a19;
+      --surface-raised:  #212120;
+      --text-primary:    #ffffff;
+      --text-secondary:  #c3c2b7;
+      --text-muted:      #898781;
+      --gridline:        #2c2c2a;
+      --border:          rgba(255,255,255,0.10);
+      --border-strong:   rgba(255,255,255,0.20);
+
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --series-4: #c98500;
+      --series-5: #d55181;
+      --series-6: #008300;
+      --series-7: #9085e9;
+      --series-8: #e66767;
+
+      --accent:          #3987e5;
+      --accent-wash:     #17223a;
+      --danger:          #e66767;
+      --danger-wash:     #3a1c1c;
+      --focus-ring: #3987e5;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --page:            #0d0d0d;
+    --surface:         #1a1a19;
+    --surface-raised:  #212120;
+    --text-primary:    #ffffff;
+    --text-secondary:  #c3c2b7;
+    --text-muted:      #898781;
+    --gridline:        #2c2c2a;
+    --border:          rgba(255,255,255,0.10);
+    --border-strong:   rgba(255,255,255,0.20);
+
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
+
+    --accent:          #3987e5;
+    --accent-wash:     #17223a;
+    --danger:          #e66767;
+    --danger-wash:     #3a1c1c;
+    --focus-ring: #3987e5;
+  }
+
+  *{ box-sizing: border-box; }
+  html, body{ margin:0; padding:0; }
+  body{
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.45;
+  }
+  .mono{ font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace; }
+  .tabular{ font-variant-numeric: tabular-nums; }
+
+  #app{
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  /* ---------- header ---------- */
+  .page-header{ display:flex; flex-direction:column; gap:6px; }
+  .eyebrow{
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  h1{
+    margin:0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .subtitle{
+    margin:0;
+    color: var(--text-secondary);
+    font-size: 14.5px;
+    max-width: 68ch;
+  }
+
+  /* ---------- control bar ---------- */
+  .control-bar{
+    display:flex;
+    flex-wrap: wrap;
+    align-items:end;
+    gap: 16px;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .control{ display:flex; flex-direction:column; gap:5px; }
+  .control span{
+    font-size: 11.5px;
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+  .control input{
+    font-family: "JetBrains Mono", monospace;
+    font-size: 14px;
+    padding: 7px 9px;
+    border-radius: 6px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-raised);
+    color: var(--text-primary);
+    width: 110px;
+  }
+  .control input:focus-visible{ outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+  .spacer{ flex: 1 1 auto; }
+
+  .btn{
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-raised);
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+  .btn:hover{ border-color: var(--accent); }
+  .btn:focus-visible{ outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+  .btn-ghost{ background: transparent; }
+  .btn-sm{ padding: 4px 9px; font-size: 12px; }
+  .btn[disabled]{ opacity: 0.5; cursor: default; }
+  .download-status{ font-size: 12px; color: var(--text-muted); }
+  .download-status.status-error{ color: var(--danger); }
+
+  /* ---------- stats ---------- */
+  .stats-grid{
+    display:grid;
+    grid-template-columns: 1.3fr 1fr 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 860px){ .stats-grid{ grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px){ .stats-grid{ grid-template-columns: 1fr; } }
+
+  .stat-tile{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display:flex;
+    flex-direction:column;
+    gap: 6px;
+  }
+  .stat-tile.hero{ background: var(--accent-wash); border-color: transparent; }
+  .stat-label{ font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+  .stat-value{
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .stat-tile.hero .stat-value{ font-size: 42px; }
+  .stat-sub{ font-size: 12px; color: var(--text-muted); }
+  .stat-sub .mono{ color: var(--text-secondary); }
+
+  /* ---------- cards ---------- */
+  .card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .card h2{ margin:0; font-size: 16px; font-weight: 700; }
+  .chart-card-head{
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .chart-controls{ display:flex; align-items:center; gap: 18px; flex-wrap: wrap; }
+
+  .toggle{ display:flex; align-items:center; gap:7px; font-size: 13px; color: var(--text-secondary); cursor:pointer; user-select:none; }
+  .toggle input{ width: 15px; height: 15px; accent-color: var(--accent); cursor:pointer; }
+
+  .legend{ display:flex; align-items:center; gap: 14px; flex-wrap: wrap; }
+  .legend-item{ display:flex; align-items:center; gap:6px; font-size: 12.5px; color: var(--text-secondary); }
+  .legend-swatch{ width:11px; height:11px; border-radius:3px; flex:none; }
+  .config-name-wrap{ display:flex; align-items:center; gap:8px; }
+  .config-name-wrap input{ flex:1 1 auto; }
+
+  .chart-scroll{ overflow-x: auto; border-radius: 8px; }
+  .chart-hint{ margin:0; font-size: 12px; color: var(--text-muted); }
+
+  /* ---------- cost breakdown cards (by MIP, by priority, ...) ---------- */
+  .cost-breakdown{ display:flex; flex-direction:column; gap:9px; }
+  .cost-group-head{
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap;
+    padding-top:10px; border-top:1px solid var(--border);
+  }
+  .cost-breakdown > .cost-group-head:first-child{ padding-top:0; border-top:none; }
+  .cost-group-title{ font-weight:700; font-size:14px; color:var(--text-primary); }
+  .cost-row{
+    display:grid; grid-template-columns: minmax(84px,150px) 1fr minmax(120px,auto);
+    align-items:center; gap:12px; font-size:13px;
+  }
+  .cost-row .cost-name{
+    font-weight:600; color:var(--text-primary);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .cost-bar-track{ height:10px; border-radius:5px; background:var(--gridline); overflow:hidden; }
+  .cost-bar-fill{ height:100%; background:var(--res-colour, var(--accent)); border-radius:5px; }
+  /* One block per resolution in Cost by MIP, edged and filled in that resolution's colour. */
+  .cost-res-group{
+    display:flex; flex-direction:column; gap:9px;
+    padding-left:12px; border-left:4px solid var(--res-colour, var(--accent));
+  }
+  .cost-res-group + .cost-res-group{ margin-top:12px; }
+  .cost-res-group > .cost-group-head{ padding-top:0; border-top:none; }
+  .cost-res-group .cost-group-title{ color:var(--res-colour, var(--text-primary)); }
+  .cost-row .cost-figures{
+    font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--text-secondary);
+    text-align:right; white-space:nowrap; font-variant-numeric: tabular-nums;
+  }
+  .cost-row .cost-figures b{ color:var(--text-primary); font-weight:600; }
+  .cost-breakdown-note{ margin:2px 0 0; font-size:12px; color:var(--text-muted); }
+  .error-banner{
+    background: var(--danger-wash);
+    color: var(--danger);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .timing-note{
+    background: var(--accent-wash);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+  .timing-note b{ font-weight: 600; }
+  .cost-table td, .cost-table th{ white-space: nowrap; }
+  .cost-table td.n, .cost-table th.n{ text-align: right; font-variant-numeric: tabular-nums; }
+  /* Resolution heading rows: light purple. */
+  .cost-table tr.ct-res th{ background: color-mix(in srgb, var(--series-7) 24%, transparent); color: var(--text-primary); font-size: 13.5px; font-weight: 700; padding-top: 9px; }
+  .cost-table tr.ct-res th span{ font-weight: 500; color: var(--text-secondary); margin-left: 10px; }
+  /* Resolution heading rows in the configuration table. */
+  #configTable tr.cfg-res th{
+    background: var(--accent-wash); font-size: 13.5px; font-weight: 700; text-align: left;
+    color: var(--res-colour, var(--text-primary));
+    border-left: 4px solid var(--res-colour, var(--accent));
+  }
+  .cost-table tr.ct-sub td{ color: var(--text-secondary); font-weight: 600; }
+  .cost-table tr.ct-total td{ font-weight: 700; border-top: 2px solid var(--border-strong); }
+  .cost-table tr.ct-off td{ color: var(--text-muted); }
+  /* Each MIP's rows share a tint and a left edge in that MIP's colour. */
+  .cost-table tr.ct-mip td{ background: color-mix(in srgb, var(--mip-colour) 9%, transparent); }
+  .cost-table tr.ct-mip.ct-sub td{ background: color-mix(in srgb, var(--mip-colour) 18%, transparent); }
+  .cost-table tr.ct-mip td:first-child{ border-left: 4px solid var(--mip-colour); }
+  .cost-table td.ct-mipname{ color: var(--mip-colour); font-weight: 600; }
+  .cost-table tr.ct-note td{ color: var(--text-muted); font-size: 12px; }
+  .cost-table .ct-name{ font-weight: 600; }
+  .cost-table .ct-muted{ color: var(--text-muted); }
+  /* Editable cells in the cost table. */
+  .cost-table td.ct-include, .cost-table th.ct-include{ width: 1%; text-align: center; }
+  .cost-table td.ct-include input{ width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+  .ct-toolbar{ display: flex; gap: 8px; margin: 10px 0 8px; }
+  .cost-table .ct-toggle{ all: unset; cursor: pointer; font-weight: 700; }
+  .cost-table .ct-toggle:focus-visible{ outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 3px; }
+  .cost-table tr.ct-grouphead .ct-toggle{ color: var(--mip-colour); }
+  .cost-table tr.ct-grouphead td{ cursor: default; }
+  .cost-table .ct-groupinfo{ margin-left: 10px; font-weight: 400; color: var(--text-secondary); }
+  table.data-table.cost-table input.num{ width: 64px; min-width: 52px; }
+  table.data-table.cost-table select{ width: auto; min-width: 190px; }
+  table.data-table#configTable input.num{ width: 110px; }
+  .cost-table tr.ct-off input:disabled, .cost-table tr.ct-off select:disabled{ opacity: .55; }
+  .cost-table tr.ct-offhead th{ background: var(--surface-2, var(--accent-wash)); text-align: left; font-weight: 600; }
+  .cost-table tr.ct-offhead th span{ font-weight: 400; color: var(--text-muted); margin-left: 10px; font-size: 12px; }
+  .cost-table .ct-offtoggle{ all: unset; cursor: pointer; color: var(--text-primary); font-weight: 600; }
+  .cost-table .ct-offtoggle:focus-visible{ outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 3px; }
+  input.num.needs-timing{ border-color: var(--accent); }
+
+  /* ---------- editor tables ---------- */
+  .editor-head{ display:flex; flex-direction: column; gap: 2px; }
+  .editor-caption{ margin:0; font-size: 12.5px; color: var(--text-muted); }
+  .table-scroll{ overflow-x: auto; }
+  table.data-table{
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 620px;
+    font-size: 13px;
+  }
+  #simTable{ min-width: 990px; }
+  #simTable input.priority-input{ width: 56px; }
+  .sim-name-wrap{ display:flex; align-items:center; gap:6px; }
+  .sim-name-wrap input{ flex:1 1 auto; }
+  .status-badge{
+    flex: none; font-family:"JetBrains Mono",monospace; font-size: 10.5px; font-weight: 700;
+    padding: 1px 5px; border-radius: 999px; line-height: 1.5; white-space: nowrap;
+  }
+  .status-badge.badge-completed{ background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--text-secondary); }
+  .status-badge.badge-inprogress{ background: var(--accent-wash); color: var(--accent); }
+  .status-badge.badge-opened{ background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .status-cell{ display:flex; align-items:center; gap:5px; }
+  .status-cell .status-select{ min-width: 104px; flex: 1 1 auto; }
+  .status-cell .status-select{ min-width: 118px; }
+  .progress-cell{ display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  table.data-table .progress-cell input.status-progress{ width: 54px; min-width: 54px; flex: none; text-align:right; }
+  .progress-bar{ width: 56px; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--text-muted) 22%, transparent); overflow: hidden; flex: none; }
+  .progress-fill{ height: 100%; background: var(--accent); }
+  .progress-bar.is-done .progress-fill{ background: var(--series-1); }
+  .progress-text{ font-size: 12px; color: var(--text-secondary); }
+  #simTable .col-cmor{ text-align: center; }
+  #simTable .col-cmor input{ width: 16px; height: 16px; }
+  table.data-table th{
+    text-align: left;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border-strong);
+    white-space: nowrap;
+  }
+  table.data-table td{
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--gridline);
+    vertical-align: middle;
+  }
+  table.data-table tr:last-child td{ border-bottom: none; }
+  table.data-table input[type="text"],
+  table.data-table input[type="number"],
+  table.data-table select{
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    padding: 5px 7px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text-primary);
+    width: 100%;
+    min-width: 90px;
+  }
+  table.data-table input:focus-visible,
+  table.data-table select:focus-visible{ outline: 2px solid var(--focus-ring); outline-offset: 0; border-color: transparent; }
+  table.data-table td.col-name input{ min-width: 150px; }
+  table.data-table td.col-narrow{ width: 1%; }
+  table.data-table input.num{ width: 76px; min-width: 60px; text-align:right; }
+  .row-del{
+    border:none; background:transparent; color: var(--text-muted);
+    cursor:pointer; font-size: 15px; line-height:1; padding: 4px 6px; border-radius: 6px;
+  }
+  .row-del:hover{ color: var(--danger); background: var(--danger-wash); }
+  #trackerStats{ grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  @media (max-width: 760px){ #trackerStats{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  #simTable td.col-name input{ min-width: 170px; }
+  #simTable input.num{ width: 58px; min-width: 50px; }
+  #simTable td.col-owner{ font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; }
+  #simTable td.col-cases{ white-space: nowrap; }
+  a.case-chip{ text-decoration: none; cursor: pointer; }
+  a.case-chip:hover{ text-decoration: underline; }
+  .case-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 6px; margin-right: 3px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); cursor: default; }
+  .tab-nav{ display:flex; gap:4px; margin: 4px 0 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .tab-nav a{ padding: 9px 16px; font-weight: 600; font-size: 14px; color: var(--text-secondary); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab-nav a:hover{ color: var(--text-primary); }
+  .tab-nav a[aria-current="page"]{ color: var(--accent); border-bottom-color: var(--accent); }
+  .wf-details{ margin: 4px 0 14px; border: 1px solid var(--border); border-radius: 8px; padding: 0 14px; }
+  .wf-details[open]{ padding-bottom: 10px; }
+  .wf-head{ cursor: pointer; padding: 10px 0; font-size: 15px; font-weight: 600; color: color-mix(in srgb, var(--series-2) 75%, var(--text-primary)); }
+  .wf-details[open] > .wf-head{ border-bottom: 1px solid var(--border); }
+  .wf-intro{ margin: 10px 0 0; font-size: 13px; color: var(--text-secondary); }
+  .wf-phase{ margin-top: 18px; }
+  .wf-phase h3{ font-size: 14px; margin: 0 0 6px; padding-left: 8px; border-left: 3px solid var(--series-2); color: color-mix(in srgb, var(--series-2) 75%, var(--text-primary)); text-transform: uppercase; letter-spacing: .04em; }
+  .wf-steps{ margin: 0; padding-left: 0; list-style: none; }
+  .wf-steps > li{ padding: 8px 0 10px; border-bottom: 1px solid var(--border); }
+  .wf-steps > li:last-child{ border-bottom: none; }
+  .wf-steps > li:target, .wf-steps > li.wf-hit{ background: var(--accent-wash); }
+  .wf-title{ font-weight: 600; }
+  .wf-steps p{ margin: 4px 0 0; color: var(--text-secondary); font-size: 13px; }
+  .wf-more{ margin: 6px 0 2px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px; }
+  .wf-more[open]{ padding-bottom: 8px; }
+  .wf-more > summary{ cursor: pointer; padding: 5px 0; font-weight: 600; color: var(--accent); }
+  .wf-more[open] > summary{ border-bottom: 1px solid var(--border); }
+  .wf-decide{ margin-top: 5px; font-size: 13px; color: var(--text-secondary); }
+  .wf-decide ul{ margin: 3px 0 0; padding-left: 18px; }
+  .wf-parts{ margin: 3px 0 0; padding-left: 18px; font-size: 13px; color: var(--text-secondary); }
+  .wf-tag{ display:inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 9px; margin-left: 6px; vertical-align: 1px; }
+  .wf-auto{ background: color-mix(in srgb, var(--series-1) 18%, transparent); color: var(--series-1); }
+  .wf-manual{ background: color-mix(in srgb, var(--text-muted) 18%, transparent); color: var(--text-secondary); }
+  #simTable th.step-h{ font-size: 11px; padding: 4px 3px; text-align: center; white-space: nowrap; }
+  #simTable th.step-h a{ color: inherit; text-decoration: none; display: inline-block; min-width: 18px; }
+  #simTable th.step-group{ text-align: center; font-size: 11px; color: var(--text-muted); padding: 4px; border-bottom: 1px solid var(--border); }
+  #simTable td.step-c{ text-align: center; padding: 3px; }
+  #simTable th.step-h.step-wide{ text-align: left; padding: 4px 8px; }
+  #simTable th.step-h.step-wide + th.step-h.step-wide{ border-left: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent); }
+  #simTable td.step-c input{ width: 15px; height: 15px; min-width: 0; }
+  #simTable td.step-c .step-mark{ font-size: 13px; color: var(--text-muted); }
+  #simTable td.step-c .step-mark.done{ color: var(--series-1); font-weight: 700; }
+  #simTable td.step-c .step-mark.running{ color: var(--accent); }
+  #simTable .th-note{ font-size: 10px; font-weight: 500; color: var(--series-1); white-space: nowrap; }
+  #simTable td.step-c .step-range{ font-size: 10px; white-space: nowrap; color: var(--accent); }
+  #simTable td.step-c .step-range.done{ color: var(--series-1); font-weight: 700; }
+  #simTable td.step-c.auto-done{ background: color-mix(in srgb, var(--series-1) 10%, transparent); }
+  #simTable thead th[rowspan]:not(:first-child):not(.col-narrow),
+  #simTable tbody td:not(:first-child):not(.step-c):not(.col-narrow):not(.phase-start){ border-left: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent); }
+  #simTable td.phase-start,
+  #simTable th.step-h.phase-start,
+  #simTable th.step-group{ border-left: 2px solid color-mix(in srgb, var(--text-muted) 60%, transparent); }
+  .caption-list{ margin: 6px 0 0; padding-left: 20px; }
+  .caption-list li{ margin: 2px 0; }
+  .auto-note{ color: var(--text-muted); }
+  #simTable tr.sim-group th{ text-align: left; font-size: 13px; font-weight: 700; padding: 9px 10px 6px; color: var(--series-1); background: color-mix(in srgb, var(--series-1) 14%, transparent); border-left: 4px solid var(--series-1); }
+  #simTable tr.sim-group-off th{ color: var(--text-muted); background: color-mix(in srgb, var(--text-muted) 10%, transparent); border-left-color: var(--text-muted); }
+  #simTable tr.row-disabled{ opacity: 0.5; }
+  #simTable tr.row-disabled td.col-name input{ text-decoration: line-through; text-decoration-color: var(--text-muted); }
+  #simTable tr.row-completed{ opacity: 0.55; }
+  #simTable tr.row-completed td.col-name input{ font-style: italic; }
+  #simTable tr.row-inprogress td.col-name{ box-shadow: inset 2px 0 0 var(--accent); }
+  #simTable tr.row-opened td.col-name{ box-shadow: inset 2px 0 0 color-mix(in srgb, var(--accent) 40%, transparent); }
+
+  /* ---------- svg chart ---------- */
+  .gantt-bar{ cursor: pointer; }
+  .gantt-bar rect.bar{ stroke: none; }
+  .gantt-bar.dimmed{ opacity: 0.22; }
+  .gantt-bar.chain rect.bar{ stroke: var(--text-primary); stroke-width: 2.5px; }
+  .bar-cfg-1{ fill: var(--series-1); }
+  .bar-cfg-2{ fill: var(--series-2); }
+  .bar-cfg-3{ fill: var(--series-3); }
+  .bar-cfg-4{ fill: var(--series-4); }
+  .bar-cfg-5{ fill: var(--series-5); }
+  .bar-cfg-6{ fill: var(--series-6); }
+  .bar-cfg-7{ fill: var(--series-7); }
+  .bar-cfg-8{ fill: var(--series-8); }
+  /* `fill` only paints the SVG bars above — swatches are plain HTML spans and need background */
+  .legend-swatch.bar-cfg-1{ background: var(--series-1); }
+  .legend-swatch.bar-cfg-2{ background: var(--series-2); }
+  .legend-swatch.bar-cfg-3{ background: var(--series-3); }
+  .legend-swatch.bar-cfg-4{ background: var(--series-4); }
+  .legend-swatch.bar-cfg-5{ background: var(--series-5); }
+  .legend-swatch.bar-cfg-6{ background: var(--series-6); }
+  .legend-swatch.bar-cfg-7{ background: var(--series-7); }
+  .legend-swatch.bar-cfg-8{ background: var(--series-8); }
+  .bar-label{ font-family:"JetBrains Mono",monospace; font-size: 11px; pointer-events:none; }
+  .axis-text{ font-family:"JetBrains Mono",monospace; font-size: 11px; fill: var(--text-muted); }
+  .lane-text{ font-family:"JetBrains Mono",monospace; font-size: 12px; fill: var(--text-secondary); font-weight: 600; }
+  .gridline{ stroke: var(--gridline); stroke-width: 1; }
+  .lane-band{ fill: var(--surface-raised); }
+  .bar-elapsed{ opacity: 0.38; }
+  .today-line{ stroke: var(--text-primary); stroke-width: 1.5; stroke-dasharray: 3,3; opacity: 0.55; }
+  .today-text{ font-family:"JetBrains Mono",monospace; font-size: 10.5px; font-weight: 600; fill: var(--text-secondary); text-anchor: middle; }
+
+  /* ---------- tooltip ---------- */
+  .tooltip{
+    position: fixed;
+    z-index: 40;
+    pointer-events: none;
+    background: var(--surface-raised);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12.5px;
+    color: var(--text-primary);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
+    max-width: 260px;
+  }
+  .tooltip[hidden]{ display:none; }
+  .tooltip .tt-title{ font-weight: 700; margin-bottom: 4px; font-family:"JetBrains Mono",monospace; }
+  .tooltip .tt-row{ display:flex; justify-content: space-between; gap: 10px; color: var(--text-secondary); }
+  .tooltip .tt-row b{ color: var(--text-primary); font-weight: 600; font-family:"JetBrains Mono",monospace; }
+
+  @media (prefers-reduced-motion: no-preference){
+    .btn, .row-del{ transition: border-color .12s ease, color .12s ease, background .12s ease; }
+  }
+</style>
+
+<div id="app">
+
+  <header class="page-header">
+    <div class="eyebrow">NorESM3 · CMIP7</div>
+    <h1>CMIP7 Cost Plan and Schedule Tracker</h1>
+    <p class="subtitle">Where each NorESM3 CMIP7 run stands, the steps every run goes through from GitHub issue to ESGF, and what the plan costs on Olivia.</p>
+  </header>
+
+  <nav class="tab-nav" aria-label="Contents">
+    <a href="#tracker" data-tab="tracker">Tracker</a>
+    <a href="#cost" data-tab="cost">Cost plan</a>
+  </nav>
+
+  <section class="control-bar" aria-label="Controls">
+    <label class="control" hidden="">
+      <span>Parallel slots</span>
+      <input type="number" id="slotsInput" min="1" max="24" step="1" value="5">
+    </label>
+    <label class="control">
+      <span>Cost unit label</span>
+      <input type="text" id="costUnitInput" value="core-hr" maxlength="14">
+    </label>
+    <div class="spacer"></div>
+    <span id="fileStatus" class="download-status" aria-live="polite"></span>
+    <input type="file" id="csvFileInput" accept=".csv,.txt,text/csv,text/plain" hidden="">
+    <button id="uploadBtn" class="btn btn-ghost" type="button" hidden="">Upload CSV</button>
+    <button id="downloadBtn" class="btn btn-ghost" type="button">Download spreadsheet</button>
+    <button id="setDefaultBtn" class="btn btn-ghost" type="button" title="Downloads an updated copy of this tool with the current plan baked in as its default — replace your saved HTML file with it to make the change permanent.">Set as default plan</button>
+    <button id="resetBtn" class="btn btn-ghost" type="button">Reset to default plan</button>
+  </section>
+
+  <div class="tab-panel" id="tab-tracker">
+  <section class="stats-grid" id="trackerStats" aria-label="Tracker summary"></section>
+
+  <section class="card editor-card" id="simPlanCard">
+    <div class="editor-head">
+      <h2>Simulation tracker</h2>
+      <ul class="editor-caption caption-list">
+        <li><b>Status and Progress:</b> read automatically. A run is In progress once its files reach NIRD, and Completed once its issue has the <code>completed</code> label.</li>
+        <li><b>Issues:</b> the runs' GitHub issues in <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/issues" target="_blank" rel="noopener">NorESMhub/noresm_cmip7_simulations</a>, one per case; hover an issue for its case name, click it to open it. An issue shows up here once its title is the case name and its labels name the experiment and the variant (see <a href="#wf-issue">Prepare</a>).</li>
+        <li><b>Check boxes:</b> the columns follow the headings under <a href="#workflow">Workflow</a> below. A box you tick is saved only in your own browser; other people don't see it.</li>
+        <li class="auto-note" id="autoNote"></li>
+      </ul>
+    </div>
+    <details class="wf-details" id="workflow" open>
+      <summary class="wf-head">Workflow: what every run goes through</summary>
+      <p class="wf-intro">The tracker has a column for each step below, under the same headings, as well as the run's Status and Progress. Status, Progress and Atm/Lnd are <span class="wf-tag wf-auto">determined automatically on NIRD</span>: nobody fills them in, because the progress script reads how far the run and cmip7-prep have got. The others are <span class="wf-tag wf-manual">check box</span> steps ticked by hand. Under each step, <b>To decide</b> lists what the group still has to agree on.</p>
+
+      <div class="wf-phase">
+        <h3>Prepare</h3>
+        <ul class="wf-steps">
+          <li id="wf-prepare">
+            <p>Tick the Prepare column once all three are done.</p>
+            <p id="wf-casename"><b>1. Determine the case name.</b></p>
+            <details class="wf-more">
+              <summary>How a case is named</summary>
+              <p>A case is named <code>compset.resolution.version.issue.date</code>, for example <code>n1850Gaxg.LM.nor30b22.502.20260801</code>:</p>
+              <ul class="wf-parts">
+              <li><b>compset:</b> see column M of the <a href="https://docs.google.com/spreadsheets/d/1qps0xZDkEy1M3GZgjt9mAqAFj2NUK_xd/edit?gid=13331701#gid=13331701" target="_blank" rel="noopener">NorESM3 CMIP7 experiments spreadsheet</a>;</li>
+              <li><b>resolution:</b> <code>LM</code> for ne16pg3_tn14, <code>MM</code> for ne30pg3_tn14;</li>
+              <li><b>version:</b> <code>nor30</code> for noresm3_0_, followed by the beta, e.g. <code>b22</code> for beta22;</li>
+              <li><b>issue:</b> the number the case's <a href="#wf-issue">GitHub issue</a> will have;</li>
+              <li><b>date:</b> the date the case is made, as YYYYMMDD.</li>
+              </ul>
+            </details>
+            <p id="wf-issue"><b>2. Make the experiment's GitHub issue.</b></p>
+            <details class="wf-more">
+              <summary>What the issue needs</summary>
+              <p>Issues go in <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/issues" target="_blank" rel="noopener">NorESMhub/noresm_cmip7_simulations</a>, one per case. The tracker is filled in from them, so:</p>
+              <ul class="wf-parts">
+                <li><b>title:</b> the <a href="#wf-casename">case name</a> and nothing else;</li>
+                <li><b>experiment label:</b> the CMIP7 experiment, e.g. <code>esm-hist</code>, spelt as in the tracker;</li>
+                <li><b>variant label:</b> the ensemble member, e.g. <code>r1i1p1f1</code>;</li>
+                <li><b>assignee:</b> whoever runs it, shown as the run's owner;</li>
+                <li><b><code>completed</code>:</b> add this label when the run has finished;</li>
+                <li><b><code>test</code>:</b> add this label to a case that is not a CMIP7 run, to leave it out.</li>
+              </ul>
+            </details>
+            <details class="wf-more" id="wf-cases">
+              <summary>How the tracker reads the issues</summary>
+              <p>Once the progress script has read an issue, the run shows it in the Issues column. The experiment label and the case name's resolution pick the run; the variant label picks the member.</p>
+              <ul class="wf-parts">
+                <li><b>continuing a simulation in a new case:</b> give the new issue the same experiment and variant labels. The tracker reads the two as one simulation and takes its progress from the later model date, as with #2 and #11;</li>
+                <li><b>another member of the ensemble:</b> give it its own variant, e.g. <code>r2i1p1f1</code>. The run's years done are the mean over its members;</li>
+                <li><b>a case that is not a CMIP7 run:</b> label it <code>test</code>, and the tracker leaves it out.</li>
+              </ul>
+            </details>
+            <p id="wf-script"><b>3. Add the run script.</b></p>
+            <details class="wf-more">
+              <summary>How the run script is added</summary>
+              <p>Push the case's run script straight to <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/tree/CMIP7_Runscripts/scripts" target="_blank" rel="noopener"><code>scripts/</code></a> on the <code>CMIP7_Runscripts</code> branch; this needs write access to the repository.</p>
+              <ul class="wf-parts">
+                <li><b>name:</b> <code>issue.compset.resolution.beta.date.sh</code>, each part copied from the case name, e.g. <code>011.n1850GHGGaxg.LM.b28.20261102.sh</code> for <code>n1850GHGGaxg.LM.nor30b28.011.20261102</code>;</li>
+                <li><b>push:</b> in a clone of the repository, <code>git switch CMIP7_Runscripts</code> and <code>git pull</code>, copy the script into <code>scripts/</code> under its name, then <code>git add</code>, <code>git commit</code> and <code>git push</code>. Without a clone, use <b>Add file → Upload files</b> in <code>scripts/</code> on GitHub and choose <b>Commit directly to the CMIP7_Runscripts branch</b>;</li>
+                <li><b>commit message:</b> <code>Run script for #11</code>, with the case's issue number. GitHub then shows the commit on the issue. Don't write <code>Closes #11</code> or <code>Fixes #11</code>: either closes the issue;</li>
+                <li><b>issue:</b> add a line with the script's link to the issue's description, e.g. <code>Run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/011.n1850GHGGaxg.LM.b28.20261102.sh</code>.</li>
+              </ul>
+            </details></li>
+        </ul>
+      </div>
+
+      <div class="wf-phase">
+        <h3>QA</h3>
+        <ul class="wf-steps">
+          <li id="wf-runqa">
+            <details class="wf-more" id="wf-case">
+              <summary>Create and build the case on Betzy or Olivia</summary>
+              <p>On Olivia, cases go in <code>/cluster/projects/nn9560k/$USER</code>, each in a directory named after the case: <code>/cluster/projects/nn9560k/$USER/&lt;case&gt;</code>.</p>
+              <div class="wf-decide"><b>To decide:</b>
+                <ul>
+                  <li>where cases go on Betzy;</li>
+                  <li>ARCHIVE_CASE_FOLDER;</li>
+                  <li>a template build script;</li>
+                  <li>whether runs start as hybrid or branch runs.</li>
+                </ul></div>
+            </details>
+            <details class="wf-more">
+              <summary>QA the run <span class="wf-tag wf-manual">check box</span></summary>
+              <p>Go through the QA checklist, then tick the box.</p>
+              <div class="wf-decide"><b>To decide:</b> the checklist of items to check.</div>
+            </details></li>
+        </ul>
+      </div>
+
+      <div class="wf-phase">
+        <h3>Run</h3>
+        <ul class="wf-steps">
+          <li id="wf-runstep">
+            <p>The run is tracked automatically: the progress script reads its Status and Progress on NIRD.</p>
+            <details class="wf-more" id="wf-run">
+              <summary>How the run is done and tracked</summary>
+              <p>Set the run's priority and coordinate it with the other runs. Copy the output to NIRD by hand with rsync while the run is going. The progress script reads the years done from the atmosphere history files copied there, and the tracker shows them in the Progress column and sets the Status to In progress. To set it to Completed, add the <code>completed</code> label to its issue.</p>
+              <div class="wf-decide"><b>To decide:</b>
+                <ul>
+                  <li>how often to write restarts (every 5 or 10 years?);</li>
+                  <li>how to log what was run (code version and settings);</li>
+                  <li>whether the case directory is archived on NIRD too;</li>
+                  <li>which files are removed (for example intermediate restart files).</li>
+                </ul></div>
+            </details></li>
+        </ul>
+      </div>
+
+      <div class="wf-phase">
+        <h3>CMORize</h3>
+        <details class="wf-more">
+        <summary>The CMORization steps</summary>
+        <ul class="wf-steps">
+          <li id="wf-cmorissue"><div class="wf-title">Make the CMORization issue <span class="wf-tag wf-manual">check box</span></div>
+            <div class="wf-decide"><b>To decide:</b> whether it goes in cmor4noresm; what information it needs; how urgency is shown.</div></li>
+          <li id="wf-cmoratm"><div class="wf-title">CMORize the atmosphere, land, sea ice and land ice using cmip7-prep <span class="wf-tag wf-auto">determined automatically on NIRD</span></div>
+            <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code>. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>.</p></li>
+          <li id="wf-qaatm"><div class="wf-title">Validate the cmip7-prep output <span class="wf-tag wf-manual">check box</span></div></li>
+          <li id="wf-cmorocn"><div class="wf-title">CMORize the ocean and ocean biogeochemistry using cmor4cmip7 <span class="wf-tag wf-manual">check box</span></div></li>
+          <li id="wf-qaocn"><div class="wf-title">QA the cmor4cmip7 output <span class="wf-tag wf-manual">check box</span></div></li>
+        </ul>
+        </details>
+      </div>
+
+      <div class="wf-phase">
+        <h3>Publish</h3>
+        <ul class="wf-steps">
+          <li id="wf-esgf"><div class="wf-title">Publish the data on ESGF <span class="wf-tag wf-manual">check box</span></div></li>
+        </ul>
+      </div>
+    </details>
+    <div class="table-scroll">
+      <table class="data-table" id="simTable">
+        <thead id="simThead"></thead>
+        <tbody id="simTbody"></tbody>
+      </table>
+    </div>
+    <button id="addSimBtn" class="btn btn-ghost btn-sm" type="button">+ Add simulation</button>
+  </section>
+  </div>
+
+  <div class="tab-panel" id="tab-cost" hidden="">
+  <section class="card editor-card">
+    <div class="editor-head">
+      <h2>Model configurations</h2>
+      <p class="editor-caption">Enter each configuration's cost and throughput from its timing file; the total, the cost table and Cost by MIP below fill in from these straight away. All timings are from Olivia. Throughput is in simulated years per day (SYPD); cost per simulated year is in the unit set above. Edits are kept in this browser.</p>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table" id="configTable">
+        <thead><tr>
+          <th>Configuration</th>
+          <th id="costHeader">Cost / sim-yr</th>
+          <th>Throughput (SYPD)</th>
+          <th class="col-narrow"></th>
+        </tr></thead>
+        <tbody id="configTbody"></tbody>
+      </table>
+    </div>
+    <button id="addConfigBtn" class="btn btn-ghost btn-sm" type="button">+ Add configuration</button>
+  </section>
+
+  <section class="stats-grid" id="statsGrid" aria-label="Summary"></section>
+
+  <section id="errorBanner" class="error-banner" hidden=""></section>
+
+  <section id="timingNote" class="timing-note" hidden=""></section>
+
+  <section class="card" id="costTableCard">
+    <div class="editor-head">
+      <h2>Cost table</h2>
+      <p class="editor-caption"><b>All timings are from Olivia</b>, so core-hours are Olivia core-hours and SYPD is Olivia throughput. Click a MIP to open or close its runs. Edit Members, Years each and Configuration here, or untick a run to take it out of the plan; costs come from the Model configurations above and update straight away. Unticked runs are listed at the bottom. It shows the full planned cost; progress is tracked on the Tracker page. Core-hours are members × years × cost per simulated year. Days per member is how long one member takes on its own.</p>
+    </div>
+    <div class="ct-toolbar">
+      <button type="button" class="btn btn-ghost btn-sm" data-action="expand-all">Expand all</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-action="collapse-all">Collapse all</button>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table cost-table" id="costTable"></table>
+    </div>
+  </section>
+
+  <!-- The run schedule is hidden for now; the page is a cost plan. Remove hidden to bring it back. -->
+  <section class="card chart-card" id="scheduleCard" hidden="">
+    <div class="chart-card-head">
+      <h2>Run schedule</h2>
+      <div class="chart-controls">
+        <label class="toggle"><input type="checkbox" id="criticalPathToggle"><span>Highlight critical-path chain</span></label>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+    <div class="chart-scroll"><div id="chartContainer"></div></div>
+    <p class="chart-hint">Hover a run for details · click a run to trace its dependency chain · click empty space to clear.</p>
+  </section>
+
+  <section class="card" id="mipCard">
+    <div class="editor-head">
+      <h2>Cost by MIP</h2>
+      <p class="editor-caption" id="mipCaption">Total compute cost (core-hr), grouped by the MIP each simulation belongs to — runs without a MIP tag are grouped into DECK.</p>
+    </div>
+    <div id="mipBreakdown" class="cost-breakdown"></div>
+  </section>
+
+  <!-- Cost by priority is not shown: priority is 1 for DECK, 2 otherwise and 0 for off, so it repeats Cost by MIP. -->
+  <section class="card" id="priorityCard" hidden="">
+    <div class="editor-head">
+      <h2>Cost by priority</h2>
+      <p class="editor-caption" id="priorityCaption">Total compute cost (core-hr), grouped by each simulation's priority level.</p>
+    </div>
+    <div id="priorityBreakdown" class="cost-breakdown"></div>
+    <p class="cost-breakdown-note" id="priorityExcludedNote"></p>
+  </section>
+
+  </div>
+
+  <div id="tooltip" class="tooltip" hidden=""></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // Snapshot of this document's own pristine markup, captured before any render() call
+  // mutates the DOM — "Set as default plan" splices a fresh default-data block into a
+  // copy of this text and offers it back as a downloadable, self-contained HTML file.
+  const PAGE_SOURCE_TEMPLATE = "<!doctype html>\n" + document.documentElement.outerHTML;
+
+  // ---------------- default data (the tool's own default plan) ----------------
+  let DEFAULT_CONFIGS = [
+    {"id":"c1","name":"NorESM3 ne16","costPerYear":2564.96,"throughput":19.16},
+    {"id":"c7","name":"NorESM3 ne30","costPerYear":null,"throughput":null},
+    {"id":"c4","name":"NorESM3 ESM ne16","costPerYear":2760.72,"throughput":17.8},
+    {"id":"c8","name":"NorESM3 ESM ne30","costPerYear":null,"throughput":null},
+    {"id":"c2","name":"NorESM3 AMIP ne16","costPerYear":null,"throughput":null},
+    {"id":"c9","name":"NorESM3 AMIP ne30","costPerYear":null,"throughput":null},
+    {"id":"c3","name":"NorESM3 ocean-only","costPerYear":null,"throughput":null},
+    {"id":"c5","name":"NorESM3 land-only","costPerYear":null,"throughput":null},
+    {"id":"c6","name":"NorESM3 DCPP","costPerYear":null,"throughput":null},
+  ];
+  let DEFAULT_SIMS = [
+    {"id":"r1","name":"piControl","dependsOn":[],"years":200,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"No"},
+    {"id":"r2","name":"esm-piControl","dependsOn":["r1"],"years":200,"ensemble":null,"configId":"c4","priority":1,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"No"},
+    {"id":"r3","name":"historical","dependsOn":["r1"],"years":172,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"No"},
+    {"id":"r4","name":"esm-hist","dependsOn":["r2"],"years":172,"ensemble":null,"configId":"c4","priority":1,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"No"},
+    {"id":"r5","name":"amip","dependsOn":[],"years":43,"ensemble":null,"configId":"c2","priority":1,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"Yes"},
+    {"id":"r6","name":"1pctCO2","dependsOn":["r1"],"years":150,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"No"},
+    {"id":"r7","name":"abrupt-4xCO2","dependsOn":["r1"],"years":300,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"No"},
+    {"id":"r8","name":"piClim-control","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":2,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"Yes"},
+    {"id":"r9","name":"piClim-4xCO2","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":2,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"Yes"},
+    {"id":"r10","name":"piClim-anthro","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":2,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"Yes"},
+    {"id":"r11","name":"hist-piAer","dependsOn":["r1"],"years":172,"ensemble":null,"configId":"c4","priority":0,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r12","name":"hist-piAQ","dependsOn":["r1"],"years":172,"ensemble":null,"configId":"c1","priority":3,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r13","name":"piClim-CH4","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":3,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"Yes"},
+    {"id":"r14","name":"piClim-N2O","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":3,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"Yes"},
+    {"id":"r15","name":"piClim-NOx","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":3,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"Yes"},
+    {"id":"r16","name":"piClim-ODS","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":3,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"Yes"},
+    {"id":"r17","name":"piClim-SO2","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":3,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"Yes"},
+    {"id":"r18","name":"scen7-h-Aer","dependsOn":["r3"],"years":79,"ensemble":null,"configId":"c4","priority":0,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r19","name":"esm-scen7-h-Aer","dependsOn":["r4"],"years":79,"ensemble":null,"configId":"c4","priority":0,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r20","name":"scen7-h-AQ","dependsOn":["r3"],"years":79,"ensemble":null,"configId":"c1","priority":3,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r21","name":"esm-scen7-h-AQ","dependsOn":["r4"],"years":79,"ensemble":null,"configId":"c4","priority":0,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r22","name":"scen7-vl-Aer","dependsOn":["r3"],"years":79,"ensemble":null,"configId":"c4","priority":0,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r23","name":"esm-scen7-vl-Aer","dependsOn":["r4"],"years":79,"ensemble":null,"configId":"c4","priority":0,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r24","name":"scen7-vl-AQ","dependsOn":["r3"],"years":79,"ensemble":null,"configId":"c1","priority":3,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r25","name":"esm-scen7-vl-AQ","dependsOn":["r4"],"years":79,"ensemble":null,"configId":"c2","priority":0,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r26","name":"abrupt-0p5xCO2","dependsOn":["r1"],"years":300,"ensemble":null,"configId":"c1","priority":4,"status":"pending","yearsCompleted":0,"mip":"CFMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r27","name":"abrupt-2xCO2","dependsOn":["r1"],"years":300,"ensemble":null,"configId":"c1","priority":4,"status":"pending","yearsCompleted":0,"mip":"CFMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r28","name":"amip-p4K","dependsOn":[],"years":43,"ensemble":null,"configId":"c2","priority":1,"status":"pending","yearsCompleted":0,"mip":"CFMIP","cmipPriority":"1","amip":"Yes"},
+    {"id":"r29","name":"amip-piForcing","dependsOn":[],"years":152,"ensemble":null,"configId":"c2","priority":1,"status":"pending","yearsCompleted":0,"mip":"CFMIP","cmipPriority":"1","amip":"Yes"},
+    {"id":"r30","name":"1pctCO2-bgc","dependsOn":["r1"],"years":150,"ensemble":null,"configId":"c1","priority":2,"status":"pending","yearsCompleted":0,"mip":"C4MIP","cmipPriority":"1","amip":"No"},
+    {"id":"r31","name":"1pctCO2-rad","dependsOn":["r1"],"years":150,"ensemble":null,"configId":"c1","priority":2,"status":"pending","yearsCompleted":0,"mip":"C4MIP","cmipPriority":"1","amip":"No"},
+    {"id":"r32","name":"esm-flat10","dependsOn":["r2"],"years":100,"ensemble":null,"configId":"c4","priority":2,"status":"pending","yearsCompleted":0,"mip":"C4MIP","cmipPriority":"1","amip":"No"},
+    {"id":"r33","name":"esm-flat10-cdr","dependsOn":["r32"],"years":220,"ensemble":null,"configId":"c4","priority":2,"status":"pending","yearsCompleted":0,"mip":"C4MIP","cmipPriority":"1","amip":"No"},
+    {"id":"r34","name":"esm-flat10-zec","dependsOn":["r32"],"years":100,"ensemble":null,"configId":"c4","priority":2,"status":"pending","yearsCompleted":0,"mip":"C4MIP","cmipPriority":"1","amip":"No"},
+    {"id":"r35","name":"scen7-h","dependsOn":["r3"],"years":79,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"2","amip":"No"},
+    {"id":"r36","name":"esm-scen7-h","dependsOn":["r4"],"years":79,"ensemble":null,"configId":"c4","priority":1,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r37","name":"scen7-h-ext","dependsOn":["r35"],"years":100,"ensemble":null,"configId":"c1","priority":4,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"2","amip":"No"},
+    {"id":"r38","name":"esm-scen7-h-ext","dependsOn":["r36"],"years":100,"ensemble":null,"configId":"c4","priority":4,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r39","name":"scen7-hl","dependsOn":["r3"],"years":79,"ensemble":null,"configId":"c1","priority":2,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"Unranked","amip":"No"},
+    {"id":"r40","name":"esm-scen7-hl","dependsOn":["r4"],"years":79,"ensemble":null,"configId":"c4","priority":2,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r41","name":"scen7-hl-ext","dependsOn":["r39"],"years":50,"ensemble":null,"configId":"c1","priority":4,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"Unranked","amip":"No"},
+    {"id":"r42","name":"esm-scen7-hl-ext","dependsOn":["r40"],"years":50,"ensemble":null,"configId":"c4","priority":4,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r43","name":"scen7-l","dependsOn":["r3"],"years":79,"ensemble":null,"configId":"c1","priority":3,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"2","amip":"No"},
+    {"id":"r44","name":"esm-scen7-l","dependsOn":["r4"],"years":79,"ensemble":null,"configId":"c4","priority":3,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r45","name":"scen7-l-ext","dependsOn":["r43"],"years":50,"ensemble":null,"configId":"c1","priority":4,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"2","amip":"No"},
+    {"id":"r46","name":"esm-scen7-l-ext","dependsOn":["r44"],"years":50,"ensemble":null,"configId":"c4","priority":4,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r47","name":"scen7-ln","dependsOn":["r3"],"years":79,"ensemble":null,"configId":"c1","priority":3,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"Unranked","amip":"No"},
+    {"id":"r48","name":"esm-scen7-ln","dependsOn":["r4"],"years":79,"ensemble":null,"configId":"c4","priority":3,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r49","name":"scen7-ln-ext","dependsOn":["r47"],"years":50,"ensemble":null,"configId":"c1","priority":0,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"Unranked","amip":"No"},
+    {"id":"r50","name":"esm-scen7-ln-ext","dependsOn":["r48"],"years":50,"ensemble":null,"configId":"c4","priority":0,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r51","name":"scen7-m","dependsOn":["r3"],"years":79,"ensemble":null,"configId":"c1","priority":2,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r52","name":"esm-scen7-m","dependsOn":["r4"],"years":79,"ensemble":null,"configId":"c4","priority":2,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r53","name":"scen7-m-ext","dependsOn":["r51"],"years":50,"ensemble":null,"configId":"c1","priority":4,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r54","name":"esm-scen7-m-ext","dependsOn":["r52"],"years":50,"ensemble":null,"configId":"c4","priority":4,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r55","name":"scen7-ml","dependsOn":["r3"],"years":79,"ensemble":null,"configId":"c1","priority":3,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"Unranked","amip":"No"},
+    {"id":"r56","name":"esm-scen7-ml","dependsOn":["r4"],"years":79,"ensemble":null,"configId":"c4","priority":3,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r57","name":"scen7-ml-ext","dependsOn":["r55"],"years":50,"ensemble":null,"configId":"c1","priority":0,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"Unranked","amip":"No"},
+    {"id":"r58","name":"esm-scen7-ml-ext","dependsOn":["r56"],"years":50,"ensemble":null,"configId":"c4","priority":0,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r59","name":"scen7-vl","dependsOn":["r3"],"years":79,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"Unranked","amip":"No"},
+    {"id":"r60","name":"esm-scen7-vl","dependsOn":["r4"],"years":79,"ensemble":null,"configId":"c4","priority":1,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r61","name":"scen7-vl-ext","dependsOn":["r59"],"years":100,"ensemble":null,"configId":"c1","priority":4,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"Unranked","amip":"No"},
+    {"id":"r62","name":"esm-scen7-vl-ext","dependsOn":["r60"],"years":100,"ensemble":null,"configId":"c4","priority":4,"status":"pending","yearsCompleted":0,"mip":"ScenarioMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r63","name":"dcppB-forecast-cmip6","dependsOn":[],"years":10,"ensemble":null,"configId":"c6","priority":1,"status":"pending","yearsCompleted":0,"mip":"DCPP","cmipPriority":"1","amip":"No"},
+    {"id":"r64","name":"hist-aer","dependsOn":["r1"],"years":186,"ensemble":null,"configId":"c4","priority":4,"status":"pending","yearsCompleted":0,"mip":"DAMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r65","name":"hist-GHG","dependsOn":["r1"],"years":186,"ensemble":null,"configId":"c4","priority":4,"status":"pending","yearsCompleted":0,"mip":"DAMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r66","name":"hist-nat","dependsOn":["r1"],"years":186,"ensemble":null,"configId":"c4","priority":4,"status":"pending","yearsCompleted":0,"mip":"DAMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r67","name":"G7-1p5K-SAI","dependsOn":["r55"],"years":50,"ensemble":null,"configId":"c1","priority":3,"status":"pending","yearsCompleted":0,"mip":"GeoMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r68","name":"land-hist","dependsOn":[],"years":121,"ensemble":null,"configId":"c5","priority":1,"status":"pending","yearsCompleted":0,"mip":"LMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r69","name":"abrupt-127k","dependsOn":["r1"],"years":100,"ensemble":null,"configId":"c1","priority":3,"status":"pending","yearsCompleted":0,"mip":"PMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r70","name":"piClim-aer","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":3,"status":"pending","yearsCompleted":0,"mip":"RFMIP","cmipPriority":"1","amip":"Yes"},
+    {"id":"r71","name":"piClim-histaer","dependsOn":["r1"],"years":251,"ensemble":null,"configId":"c2","priority":3,"status":"pending","yearsCompleted":0,"mip":"RFMIP","cmipPriority":"1","amip":"Yes"},
+    {"id":"r72","name":"piClim-histall","dependsOn":["r1"],"years":251,"ensemble":null,"configId":"c2","priority":0,"status":"pending","yearsCompleted":0,"mip":"RFMIP","cmipPriority":"1","amip":"Yes"},
+    {"id":"r73","name":"vl-cf","dependsOn":["r3"],"years":85,"ensemble":null,"configId":"c1","priority":0,"status":"pending","yearsCompleted":0,"mip":"PolMIP","cmipPriority":"2","amip":"No"},
+    {"id":"r74","name":"esm-vl-cf","dependsOn":["r4"],"years":85,"ensemble":null,"configId":"c1","priority":0,"status":"pending","yearsCompleted":0,"mip":"PolMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r75","name":"vl-cf-ext","dependsOn":["r73"],"years":100,"ensemble":null,"configId":"c1","priority":0,"status":"pending","yearsCompleted":0,"mip":"PolMIP","cmipPriority":"2","amip":"No"},
+    {"id":"r76","name":"esm-vl-cf-ext","dependsOn":["r74"],"years":100,"ensemble":null,"configId":"c1","priority":0,"status":"pending","yearsCompleted":0,"mip":"PolMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r77","name":"piControl(ext)","dependsOn":["r1"],"years":300,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"PolMIP","cmipPriority":"","amip":""},
+    {"id":"r78","name":"esm-piControl(ext)","dependsOn":["r2"],"years":800,"ensemble":null,"configId":"c4","priority":1,"status":"pending","yearsCompleted":0,"mip":"PolMIP","cmipPriority":"","amip":""},
+  ];
+  let DEFAULT_SLOTS = 5;
+  let DEFAULT_COST_UNIT = "core-hr";
+  let DEFAULT_PROGRESS = null;
+
+  let configs = clone(DEFAULT_CONFIGS);
+  let sims = clone(DEFAULT_SIMS);
+  let slots = DEFAULT_SLOTS;
+  let costUnit = DEFAULT_COST_UNIT;
+  // Edits are kept in this browser as changes to the built-in plan, matched by
+  // configuration and run name, so they survive a rebuild of the page. A rebuilt value
+  // that differs from what was typed is overridden by the typed value until Reset.
+  const EDITS_KEY = "noresm3-cmip7-cost-plan:v2";
+  const CFG_FIELDS = ["costPerYear", "throughput"];
+  const SIM_FIELDS = ["years", "ensemble", "priority", "status", "yearsCompleted", "membersRunning", "steps"];
+
+  // The workflow every run goes through; the tracker has one column per step. Run follows
+  // the Status. Steps marked auto are filled in from progress.json when the NIRD progress
+  // script has written one next to the page; until then they are ticked by hand.
+  const ISSUES_REPO = "NorESMhub/noresm_cmip7_simulations";
+  const ISSUES_URL = `https://github.com/${ISSUES_REPO}/issues`;
+  const WORKFLOW_STEPS = [
+    { key: "prepare",   short: "Done",     name: "Case prepared: named, its GitHub issue and run script made", phase: "Prepare" },
+    { key: "runqa",     short: "Done",       name: "QA checklist done", phase: "QA" },
+    { key: "run",       short: "Run",        name: "Run: Status and Progress", phase: "Run", derived: true, cols: 2 },
+    { key: "cmorissue", short: "Issue",      name: "CMORization issue made", phase: "CMORize" },
+    { key: "cmoratm",   short: "Atm/Lnd",    name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", auto: true, range: true },
+    { key: "qaatm",     short: "QA",         name: "cmip7-prep output validated" },
+    { key: "cmorocn",   short: "Ocn/Ice",    name: "Ocean and ocean biogeochemistry CMORized with cmor4cmip7" },
+    { key: "qaocn",     short: "QA",         name: "cmor4cmip7 output QA done" },
+    { key: "esgf",      short: "ESGF",       name: "Published on ESGF", phase: "Publish" },
+  ];
+  const stepDone = (row, key) => key === "run" ? row.status === "completed"
+    : (autoSteps(row)[key] === true || (Array.isArray(row.steps)
+      && (row.steps.includes(key) || (key === "prepare" && row.steps.includes("case")))));
+  // progressData is progress.json as read; autoProgress is what it says for each run, keyed by
+  // run name: { yearsCompleted, modelDate, completed, cmorFrom, cmorTo, cmorYears, steps }.
+  let progressData = null, autoProgress = null;
+  const autoRun = row => (autoProgress && autoProgress.runs && autoProgress.runs[row.name]) || null;
+  const autoSteps = row => (autoRun(row) && autoRun(row).steps) || {};
+  // A run whose case issue is open but whose model files have not reached NIRD yet.
+  const issueOpened = row => row.status === "pending" && Array.isArray(row.cases) && row.cases.length > 0;
+  const BASE_CONFIGS = clone(DEFAULT_CONFIGS), BASE_SIMS = clone(DEFAULT_SIMS);
+  const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+  let editsRestored = false;
+  function cfgNameOf(list, id){ const c = list.find(x => x.id === id); return c ? c.name : null; }
+  function collectEdits(){
+    const out = { configs: {}, sims: {} };
+    configs.forEach(c => {
+      const base = BASE_CONFIGS.find(b => b.id === c.id);
+      if (!base) return;
+      const d = {};
+      if (c.name !== base.name) d.name = c.name;
+      CFG_FIELDS.forEach(f => { if (!same(c[f], base[f])) d[f] = c[f] ?? null; });
+      if (Object.keys(d).length) out.configs[base.name] = d;
+    });
+    sims.forEach(r => {
+      const base = BASE_SIMS.find(b => b.id === r.id);
+      if (!base) return;
+      const d = {};
+      SIM_FIELDS.forEach(f => { if (!same(r[f], base[f])) d[f] = r[f] ?? null; });
+      if (r.configId !== base.configId) d.configName = cfgNameOf(configs, r.configId);
+      if (Object.keys(d).length) out.sims[base.name] = d;
+    });
+    return out;
+  }
+  function applyEdits(saved){
+    let applied = 0;
+    Object.entries(saved.configs || {}).forEach(([name, d]) => {
+      const c = configs.find(x => x.name === name);
+      if (!c) return;
+      Object.assign(c, d); applied++;
+    });
+    Object.entries(saved.sims || {}).forEach(([name, d]) => {
+      const r = sims.find(x => x.name === name);
+      if (!r) return;
+      const { configName, ...fields } = d;
+      Object.assign(r, fields);
+      if (configName){ const c = configs.find(x => x.name === configName); if (c) r.configId = c.id; }
+      applied++;
+    });
+    return applied;
+  }
+  try {
+    const saved = JSON.parse(localStorage.getItem(EDITS_KEY) || "null");
+    if (saved && applyEdits(saved)) editsRestored = true;
+  } catch (err){}
+  function saveEdits(){
+    try {
+      const edits = collectEdits();
+      if (!Object.keys(edits.configs).length && !Object.keys(edits.sims).length) localStorage.removeItem(EDITS_KEY);
+      else localStorage.setItem(EDITS_KEY, JSON.stringify(edits));
+    } catch (err){}
+  }
+  let configSeq = configs.length, simSeq = sims.length;
+
+  let selectedChainRoot = null; // job id clicked, for highlight
+  let lastResult = null;
+
+  function clone(x){ return JSON.parse(JSON.stringify(x)); }
+  function uid(prefix, n){ return prefix + n; }
+
+  // ---------------- DOM refs ----------------
+  const el = (id) => document.getElementById(id);
+  const slotsInput = el("slotsInput");
+  const costUnitInput = el("costUnitInput");
+  const resetBtn = el("resetBtn");
+  const downloadBtn = el("downloadBtn");
+  const setDefaultBtn = el("setDefaultBtn");
+  const fileStatus = el("fileStatus");
+  const uploadBtn = el("uploadBtn");
+  const csvFileInput = el("csvFileInput");
+  const statsGrid = el("statsGrid");
+  const errorBanner = el("errorBanner");
+  const timingNote = el("timingNote");
+  const legendEl = el("legend");
+  const chartContainer = el("chartContainer");
+  const mipCard = el("mipCard");
+  const mipCaption = el("mipCaption");
+  const mipBreakdownEl = el("mipBreakdown");
+  const priorityCard = el("priorityCard");
+  const priorityCaption = el("priorityCaption");
+  const priorityBreakdownEl = el("priorityBreakdown");
+  const priorityExcludedNote = el("priorityExcludedNote");
+  const cpToggle = el("criticalPathToggle");
+  const configTbody = el("configTbody");
+  const simTbody = el("simTbody");
+  const addConfigBtn = el("addConfigBtn");
+  const addSimBtn = el("addSimBtn");
+  const costHeader = el("costHeader");
+  const tooltip = el("tooltip");
+
+  // ---------------- scheduling engine ----------------
+  function computeSchedule(configs, sims, slots){
+    const configById = new Map(configs.map(c => [c.id, c]));
+    const rowById = new Map(sims.map(r => [r.id, r]));
+    const depsOf = (r) => (Array.isArray(r.dependsOn) ? r.dependsOn : (r.dependsOn ? [r.dependsOn] : [])).filter(Boolean);
+
+    // cycle detection (row-level dependency graph, up to 2 parents per row)
+    const visiting = new Set(), visited = new Set();
+    let cyclePath = null;
+    function dfs(rowId, stack){
+      if (cyclePath) return;
+      if (visiting.has(rowId)){ cyclePath = stack.concat([rowId]); return; }
+      if (visited.has(rowId)) return;
+      visiting.add(rowId); stack.push(rowId);
+      const r = rowById.get(rowId);
+      if (r){
+        for (const dep of depsOf(r)){
+          if (rowById.has(dep)) dfs(dep, stack);
+          if (cyclePath) break;
+        }
+      }
+      stack.pop(); visiting.delete(rowId); visited.add(rowId);
+    }
+    sims.forEach(r => dfs(r.id, []));
+    if (cyclePath){
+      return { error: "Circular dependency: " + cyclePath.map(id => (rowById.get(id)||{}).name || id).join(" → ") };
+    }
+
+    // expand rows into jobs (one per ensemble member). A completed run contributes no jobs
+    // at all — it's already done and simply drops out. A priority-0 run means "this won't be
+    // conducted" and drops out the same way, regardless of ensemble/status. An in-progress run
+    // contributes jobs for only its REMAINING duration/cost, pinned to start "now" (day 0)
+    // below, since it's already occupying a slot in real life rather than waiting in the queue.
+    // A run on a configuration with no throughput yet has no duration, so it is left out of
+    // the schedule like a priority-0 run and reported in untimedRows. Its dependents are not
+    // blocked by it, so the schedule is a lower bound until every configuration has a timing.
+    const jobs = [];
+    const rowJobIds = new Map();
+    const untimedRows = [];
+    sims.forEach(row => {
+      if (row.status === "completed" || normalizePriority(row.priority) === 0){ rowJobIds.set(row.id, []); return; }
+      const cfg = configById.get(row.configId) || configs[0];
+      if (!cfg){ rowJobIds.set(row.id, []); return; }
+      if (!hasTiming(cfg)){
+        if (ensembleCount(row) > 0) untimedRows.push(row);
+        rowJobIds.set(row.id, []);
+        return;
+      }
+      const throughput = Number(cfg.throughput);
+      const years = Math.max(Number(row.years) || 0, 0);
+      const fullDuration = years / throughput;
+      const inProgress = row.status === "in-progress";
+      // Progress is tracked in years completed (the unit NorESM users actually track, e.g. off
+      // a restart file's model year) rather than a percentage, which is easy to enter wrong —
+      // clamp to the run's own length so a typo can't imply more progress than the run has.
+      const yearsCompleted = inProgress ? Math.min(years, Math.max(0, Number(row.yearsCompleted) || 0)) : 0;
+      const progressFrac = years > 0 ? (yearsCompleted / years) : 0;
+      const costPerYear = Number(cfg.costPerYear) || 0;
+      const ens = ensembleCount(row);
+      // Only the first membersRunning members of an in-progress run are already going;
+      // the others wait in the queue like any pending run.
+      const running = inProgress ? runningCount(row) : 0;
+      const ids = [];
+      for (let k = 0; k < ens; k++){
+        const jid = ens === 1 ? row.id : (row.id + "__" + k);
+        const pinned = k < running;
+        const frac = pinned ? progressFrac : 0;
+        jobs.push({
+          id: jid, rowId: row.id,
+          label: ens === 1 ? row.name : (row.name + " #" + (k+1)),
+          cfgId: cfg.id, cfgIndex: configs.indexOf(cfg),
+          years, remainingYears: years - (pinned ? yearsCompleted : 0),
+          duration: fullDuration * (1 - frac), cost: years * (1 - frac) * costPerYear,
+          depRowIds: pinned ? [] : depsOf(row),
+          rowPriority: normalizePriority(row.priority),
+          pinned, elapsed: fullDuration * frac,
+          yearsCompleted: pinned ? yearsCompleted : null,
+          progressPct: pinned ? frac * 100 : null,
+        });
+        ids.push(jid);
+      }
+      rowJobIds.set(row.id, ids);
+    });
+
+    if (!jobs.length){
+      return { jobs: [], makespan: 0, totalWork: 0, totalCost: 0, criticalPath: 0, chainJobIds: new Set(), jobCount: 0, maxElapsed: 0, untimedRows };
+    }
+
+    // row-level successor map + per-row duration (jobs of a row share duration).
+    // A row can have up to 2 parents, so it appears as a "child" under each parent it depends on.
+    const childRows = new Map(sims.map(r => [r.id, []]));
+    sims.forEach(r => { depsOf(r).forEach(dep => { if (childRows.has(dep)) childRows.get(dep).push(r.id); }); });
+    const rowDuration = new Map();
+    sims.forEach(r => {
+      // a completed run, a priority-0 run, or one with 0 ensemble members, contributes nothing
+      // to the critical path — none of them actually run. An in-progress run contributes only
+      // what's left, matching the remaining duration its jobs actually carry above.
+      if (r.status === "completed" || normalizePriority(r.priority) === 0){ rowDuration.set(r.id, 0); return; }
+      const cfg = configById.get(r.configId) || configs[0];
+      if (!cfg || !hasTiming(cfg)){ rowDuration.set(r.id, 0); return; }
+      const throughput = Number(cfg.throughput);
+      const ens = ensembleCount(r);
+      if (ens === 0){ rowDuration.set(r.id, 0); return; }
+      const years = Math.max(Number(r.years)||0,0);
+      const fullDuration = years / throughput;
+      const yearsCompleted = r.status === "in-progress" ? Math.min(years, Math.max(0, Number(r.yearsCompleted) || 0)) : 0;
+      const progressFrac = years > 0 ? (yearsCompleted / years) : 0;
+      rowDuration.set(r.id, fullDuration * (1 - progressFrac));
+    });
+
+    const bMemo = new Map();
+    function bLevel(rowId){
+      if (bMemo.has(rowId)) return bMemo.get(rowId);
+      bMemo.set(rowId, 0); // guard (shouldn't recurse due to cycle check above)
+      const kids = childRows.get(rowId) || [];
+      const dur = rowDuration.get(rowId) || 0;
+      const val = kids.length ? dur + Math.max.apply(null, kids.map(bLevel)) : dur;
+      bMemo.set(rowId, val);
+      return val;
+    }
+    sims.forEach(r => bLevel(r.id));
+
+    const roots = sims.filter(r => depsOf(r).every(dep => !rowById.has(dep)));
+    const criticalPath = roots.length ? Math.max.apply(null, roots.map(r => bLevel(r.id))) : 0;
+
+    // critical chain trace (rows), then expand to jobs
+    let chainRows = [];
+    if (roots.length){
+      let cur = roots.reduce((a,b) => bLevel(a.id) >= bLevel(b.id) ? a : b);
+      chainRows.push(cur.id);
+      let guard0 = 0;
+      while (guard0++ < 10000){
+        const kids = childRows.get(cur.id) || [];
+        if (!kids.length) break;
+        const nextId = kids.reduce((a,b) => bLevel(a) >= bLevel(b) ? a : b);
+        cur = rowById.get(nextId);
+        chainRows.push(cur.id);
+      }
+    }
+    const chainJobIds = new Set();
+    chainRows.forEach(rid => (rowJobIds.get(rid) || []).forEach(jid => chainJobIds.add(jid)));
+
+    // discrete-event list scheduling on `slots` identical machines.
+    // A dependency row is "satisfied" as soon as its FIRST ensemble member completes —
+    // downstream runs do not wait for every member of a multi-member dependency to finish.
+    const machineFree = new Array(slots).fill(0);
+    const scheduled = new Set();
+    const result = [];
+
+    // In-progress runs are already occupying a slot right now — pin them to start at day 0
+    // for their remaining duration, rather than letting them compete through the ready queue
+    // (they can't be "scheduled later"; they're already happening).
+    const pinnedJobs = jobs.filter(j => j.pinned);
+    if (pinnedJobs.length > slots){
+      return { error: `${pinnedJobs.length} run(s) are marked in progress, but only ${slots} parallel slot${slots === 1 ? "" : "s"} ${slots === 1 ? "is" : "are"} available. Increase parallel slots or mark fewer runs in progress.` };
+    }
+    pinnedJobs.forEach((job, idx) => {
+      const start = 0, end = job.duration;
+      machineFree[idx] = end;
+      scheduled.add(job.id);
+      result.push(Object.assign({}, job, { start, end, machine: idx }));
+    });
+    const maxElapsed = pinnedJobs.length ? Math.max.apply(null, pinnedJobs.map(j => j.elapsed)) : 0;
+
+    const rowDone = new Set();
+    // a run with 0 ensemble members doesn't exist, so it can't block anything that depends on it
+    sims.forEach(r => { if ((rowJobIds.get(r.id) || []).length === 0) rowDone.add(r.id); });
+    const processedForCompletion = new Set();
+    let currentTime = 0;
+    const totalJobs = jobs.length;
+    const EPS = 1e-9;
+
+    function processCompletions(t){
+      for (let i = 0; i < result.length; i++){
+        const j = result[i];
+        if (j.end <= t + EPS && !processedForCompletion.has(j.id)){
+          processedForCompletion.add(j.id);
+          rowDone.add(j.rowId); // first completion of the row is enough to satisfy dependents
+        }
+      }
+    }
+    function isReady(job){
+      if (!job.depRowIds.length) return true;
+      return job.depRowIds.every(dep => !rowById.has(dep) || rowDone.has(dep));
+    }
+    // A row's full bLevel (which bundles in its downstream children's urgency) only belongs to
+    // whichever of its ensemble members has yet to finish and unlock those children. Once the row
+    // has already unlocked them (its first member completed), remaining siblings are just ordinary
+    // work — racing them ahead of other ready runs no longer serves any dependent.
+    function jobPriority(job){
+      return rowDone.has(job.rowId) ? job.duration : (bMemo.get(job.rowId) || job.duration);
+    }
+
+    let guard = 0;
+    while (scheduled.size < totalJobs){
+      guard++;
+      if (guard > 500000) return { error: "Scheduling failed to converge — check for malformed dependencies." };
+      processCompletions(currentTime);
+      const freeIdxs = [];
+      for (let i = 0; i < slots; i++) if (machineFree[i] <= currentTime + EPS) freeIdxs.push(i);
+      const ready = jobs.filter(j => !scheduled.has(j.id) && isReady(j));
+      if (ready.length && freeIdxs.length){
+        // explicit user priority (lower number = scheduled first) wins outright; the critical-path
+        // heuristic only breaks ties between runs that share the same priority level.
+        ready.sort((a,b) => (a.rowPriority - b.rowPriority) || (jobPriority(b) - jobPriority(a)) || (b.duration - a.duration) || a.id.localeCompare(b.id));
+        const n = Math.min(ready.length, freeIdxs.length);
+        for (let k = 0; k < n; k++){
+          const job = ready[k], m = freeIdxs[k];
+          const start = currentTime, end = start + job.duration;
+          machineFree[m] = end;
+          scheduled.add(job.id);
+          result.push(Object.assign({}, job, { start, end, machine: m }));
+        }
+        continue;
+      }
+      const future = machineFree.filter(t => t > currentTime + EPS);
+      if (!future.length) return { error: "Scheduling deadlock — some simulations can never become ready. Check dependency names." };
+      currentTime = Math.min.apply(null, future);
+    }
+
+    const makespan = result.reduce((m, j) => Math.max(m, j.end), 0);
+    const totalWork = jobs.reduce((s, j) => s + j.duration, 0);
+    const totalCost = jobs.reduce((s, j) => s + j.cost, 0);
+
+    return { jobs: result, makespan, totalWork, totalCost, criticalPath, chainJobIds, jobCount: jobs.length, maxElapsed, untimedRows };
+  }
+
+  // A configuration can be scheduled once it has a positive throughput. Cost may still be
+  // blank; those runs schedule normally and add nothing to the cost totals.
+  function hasTiming(cfg){
+    return Number(cfg && cfg.throughput) > 0;
+  }
+  // A blank ensemble size is "not decided yet": it schedules one member and is flagged.
+  // An explicit 0 excludes the run.
+  function normalizeEnsemble(v){
+    if (v === undefined || v === null || String(v).trim() === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.round(n)) : null;
+  }
+  function ensembleCount(row){
+    const n = normalizeEnsemble(row.ensemble);
+    return n === null ? 1 : n;
+  }
+  // Members of an in-progress run that are already going. Blank means all of them.
+  function runningCount(row){
+    const ens = ensembleCount(row);
+    const v = row.membersRunning;
+    if (v === undefined || v === null || String(v).trim() === "") return ens;
+    const n = Math.round(Number(v));
+    return Number.isFinite(n) ? Math.max(0, Math.min(ens, n)) : ens;
+  }
+  // Blank, zero or non-numeric input is stored as null, meaning "not known yet".
+  function parseOptionalNumber(v){
+    if (v === undefined || v === null || String(v).trim() === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) && n > 0 ? n : null;
+  }
+
+  // ---------------- formatting helpers ----------------
+  function fmtDays(d){ return d.toFixed(1); }
+  function fmtCompact(n){
+    const abs = Math.abs(n);
+    if (abs >= 1e6) return (n/1e6).toFixed(2) + "M";
+    if (abs >= 1e3) return (n/1e3).toFixed(1) + "K";
+    return Math.round(n).toLocaleString();
+  }
+  function relLuminance(hex){
+    const c = hex.replace('#','');
+    const r = parseInt(c.substring(0,2),16)/255, g = parseInt(c.substring(2,4),16)/255, b = parseInt(c.substring(4,6),16)/255;
+    const lin = v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
+    return 0.2126*lin(r) + 0.7152*lin(g) + 0.0722*lin(b);
+  }
+  const SERIES_HEX_LIGHT = ["#2a78d6","#eb6834","#1baf7a","#eda100","#e87ba4","#008300","#4a3aa7","#e34948"];
+
+  const STATUS_LABELS = { pending: "Pending", "in-progress": "In progress", completed: "Completed" };
+  function normalizeStatus(s){
+    const v = (s || "").trim().toLowerCase().replace(/[\s_]+/g, "-");
+    if (v === "completed" || v === "complete" || v === "done") return "completed";
+    if (v === "in-progress" || v === "inprogress" || v === "ongoing" || v === "active") return "in-progress";
+    return "pending";
+  }
+  // Priority 0 is a deliberate, meaningful value ("this run won't happen"), not a missing one —
+  // so unlike most numeric fields here, a falsy `|| 1` fallback would wrongly promote 0 back to
+  // 1. Only an actually blank/invalid value defaults to 1; an explicit 0 is preserved.
+  function normalizePriority(v){
+    if (v === undefined || v === null || v === "") return 1;
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 1;
+  }
+
+  // ---------------- SVG helpers ----------------
+  const SVGNS = "http://www.w3.org/2000/svg";
+  function svgEl(tag, attrs){
+    const e = document.createElementNS(SVGNS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  let measureCanvas = null;
+  function textWidth(str, fontPx){
+    if (!measureCanvas) measureCanvas = document.createElement("canvas");
+    const ctx = measureCanvas.getContext("2d");
+    ctx.font = fontPx + 'px "JetBrains Mono", monospace';
+    return ctx.measureText(str).width;
+  }
+  const LABEL_DEFAULT_PX = 11, LABEL_MIN_PX = 7, LABEL_PAD = 8;
+  // Every bar carries a label: shrink the font to fit a narrow bar, and only
+  // truncate (with an ellipsis) once even the smallest legible size can't fit.
+  function fitBarLabel(label, barWidthPx){
+    const available = barWidthPx - LABEL_PAD;
+    if (available <= 2) return null;
+    const fullWidth = textWidth(label, LABEL_DEFAULT_PX);
+    if (fullWidth <= available) return { text: label, fontPx: LABEL_DEFAULT_PX };
+    const scaled = LABEL_DEFAULT_PX * (available / fullWidth);
+    if (scaled >= LABEL_MIN_PX) return { text: label, fontPx: scaled };
+    let s = label;
+    while (s.length > 1 && textWidth(s + "…", LABEL_MIN_PX) > available) s = s.slice(0, -1);
+    return { text: s.length < label.length ? s + "…" : s, fontPx: LABEL_MIN_PX };
+  }
+  function niceStep(range, targetTicks){
+    if (range <= 0) return 1;
+    const raw = range / targetTicks;
+    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const norm = raw / mag;
+    let step;
+    if (norm < 1.5) step = 1; else if (norm < 3) step = 2; else if (norm < 7) step = 5; else step = 10;
+    return step * mag;
+  }
+
+  // ---------------- rendering ----------------
+  function render(){
+    const result = computeSchedule(configs, sims, slots);
+    lastResult = result;
+    renderCostTable();
+    saveEdits();
+    renderTrackerStats();
+
+    if (result.error){
+      errorBanner.hidden = false;
+      errorBanner.textContent = result.error;
+      timingNote.hidden = true;
+      statsGrid.innerHTML = "";
+      chartContainer.innerHTML = "";
+      legendEl.innerHTML = "";
+      mipCard.hidden = true; mipBreakdownEl.innerHTML = "";
+      priorityCard.hidden = true; priorityBreakdownEl.innerHTML = ""; priorityExcludedNote.hidden = true;
+      renderTables(); // still allow fixing the data
+      return;
+    }
+    errorBanner.hidden = true;
+
+    renderTimingNote(result);
+    renderStats(result);
+    renderLegend();
+    renderChart(result);
+    renderMipBreakdown(result);
+    renderPriorityBreakdown(result);
+    renderTables();
+  }
+
+  // ---------------- cost table ----------------
+  const costTableEl = el("costTable");
+  // Runs switched off (unticked, or ensemble 0) are listed in a collapsed group at the
+  // bottom of the table, where they can be ticked back on.
+  let showOffRuns = false;
+  // Open groups of the cost table: MIP groups ("res|mip") start closed, resolutions open.
+  const openMips = new Set();
+  const closedRes = new Set();
+  function renderCostTable(){
+    const fmtN = n => Math.round(n).toLocaleString("en-US");
+    const fmtM = n => (n / 1e6).toFixed(2) + "M";
+    const dash = '<span class="ct-muted">–</span>';
+    const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+    const rowById = new Map(sims.map(r => [r.id, r]));
+    const strip = (name, res) => res && name.endsWith(" " + res) ? name.slice(0, -res.length - 1) : name;
+    const NCOLS = 12;
+
+    const items = sims.map(r => {
+      const cfg = configs.find(c => c.id === r.configId) || configs[0];
+      const res = resolutionOf(r);
+      const off = isRowOff(r);
+      const members = ensembleCount(r);
+      const years = Math.max(0, Number(r.years) || 0);
+      const cpy = cfg && Number(cfg.costPerYear) > 0 ? Number(cfg.costPerYear) : null;
+      const sypd = cfg && hasTiming(cfg) ? Number(cfg.throughput) : null;
+      const memberYears = off ? 0 : members * years;
+      return {
+        r, cfg, res, off, members, years, cpy, sypd, memberYears,
+        name: strip(r.name, res),
+        mip: r.mip || "DECK",
+        parent: depsOf(r).map(d => strip((rowById.get(d) || {}).name || "", res)).filter(Boolean).join(", ") || "–",
+        core: cpy !== null && !off ? memberYears * cpy : null,
+        days: sypd ? years / sypd : null,
+      };
+    });
+    function depsOf(r){ return Array.isArray(r.dependsOn) ? r.dependsOn.filter(Boolean) : (r.dependsOn ? [r.dependsOn] : []); }
+    const sum = (list, k) => list.reduce((s, it) => s + (it[k] || 0), 0);
+
+    // The configuration menu lists every configuration, grouped by resolution.
+    const cfgRes = Array.from(new Set(configs.map(configResolution)))
+      .sort((a, b) => (a === "") - (b === "") || a.localeCompare(b));
+    function configSelect(it, disabled){
+      const opts = cfgRes.map(res => `<optgroup label="${esc(res || "Other")}">`
+        + configs.filter(c => configResolution(c) === res)
+            .map(c => `<option value="${esc(c.id)}"${it.cfg && c.id === it.cfg.id ? " selected" : ""}>${esc(c.name)}</option>`).join("")
+        + "</optgroup>").join("");
+      return `<select data-sim="${esc(it.r.id)}" data-field="config" data-key="${esc(it.r.id)}:config"${disabled ? " disabled" : ""}>${opts}</select>`;
+    }
+    function rowHtml(it, style){
+      const id = esc(it.r.id);
+      const ens = normalizeEnsemble(it.r.ensemble);
+      const dis = it.off ? " disabled" : "";
+      return `<tr class="ct-mip${it.off ? " ct-off" : ""}" style="${style}">`
+        + `<td class="ct-include"><input type="checkbox" data-sim="${id}" data-field="include" data-key="${id}:include"${it.off ? "" : " checked"} title="Include this run in the plan"></td>`
+        + `<td class="ct-name">${esc(it.name)}</td><td class="ct-mipname">${esc(it.mip)}</td><td>${esc(it.parent)}</td>`
+        + `<td class="n"><input type="number" class="num" min="0" step="1" data-sim="${id}" data-field="members" data-key="${id}:members" value="${ens === null ? "" : ens}" placeholder="not set"${dis}></td>`
+        + `<td class="n"><input type="number" class="num" min="0" step="1" data-sim="${id}" data-field="years" data-key="${id}:years" value="${it.years}"${dis}></td>`
+        + `<td class="n">${it.off ? dash : fmtN(it.memberYears)}</td>`
+        + `<td>${configSelect(it, it.off)}</td>`
+        + `<td class="n">${it.cpy !== null ? fmtN(it.cpy) : dash}</td>`
+        + `<td class="n">${it.sypd ? it.sypd.toFixed(0) : dash}</td>`
+        + `<td class="n">${it.core !== null ? fmtM(it.core) : (it.off ? dash : '<span class="ct-muted">needs timing</span>')}</td>`
+        + `<td class="n">${it.days !== null ? it.days.toFixed(1) : dash}</td></tr>`;
+    }
+
+    let html = '<thead><tr><th class="ct-include" title="Include in the plan">In</th><th>Simulation</th><th>MIP</th><th>Branches from</th>'
+      + '<th class="n">Members</th><th class="n">Years each</th><th class="n">Member-years</th><th>Configuration</th>'
+      + '<th class="n">Core-hr / sim-yr</th><th class="n">SYPD</th><th class="n">Core-hours</th><th class="n">Days per member</th></tr></thead>';
+    // Resolutions none of whose runs have a timing yet are left out, with a note.
+    const offItems = items.filter(it => it.off);
+    const active = items.filter(it => !it.off);
+    const untimedRes = Array.from(new Set(active.map(it => it.res)))
+      .filter(res => active.every(it => it.res !== res || it.core === null));
+    const shown = active.filter(it => !untimedRes.includes(it.res));
+    // Every MIP group is light blue.
+    const mipStyle = () => "--mip-colour: var(--series-1)";
+    const resList = Array.from(new Set(shown.map(it => it.res))).sort();
+    resList.forEach(res => {
+      const rr = shown.filter(it => it.res === res);
+      const untimed = rr.filter(it => it.core === null).length;
+      const resOpen = !closedRes.has(res);
+      html += `<tbody><tr class="ct-res"><th colspan="${NCOLS}"><button type="button" class="ct-toggle" data-action="toggle-res" data-res="${esc(res)}" aria-expanded="${resOpen}">`
+        + `${resOpen ? "▾" : "▸"} ${esc(res || "Other")}</button><span>${fmtM(sum(rr, "core"))} core-hours`
+        + `${untimed ? ` · ${untimed} need timing` : ""}</span></th></tr>`;
+      if (!resOpen){ html += "</tbody>"; return; }
+      const mips = new Map();
+      rr.forEach(it => { if (!mips.has(it.mip)) mips.set(it.mip, []); mips.get(it.mip).push(it); });
+      const order = Array.from(mips.keys()).sort((a, b) => (a !== "DECK") - (b !== "DECK") || sum(mips.get(b), "core") - sum(mips.get(a), "core"));
+      order.forEach(mip => {
+        const list = mips.get(mip);
+        const key = res + "|" + mip;
+        const open = openMips.has(key);
+        const untimedHere = list.filter(it => it.core === null).length;
+        html += `<tr class="ct-sub ct-mip ct-grouphead" style="${mipStyle(mip)}"><td colspan="6">`
+          + `<button type="button" class="ct-toggle" data-action="toggle-mip" data-key="${esc(key)}" aria-expanded="${open}">${open ? "▾" : "▸"} ${esc(mip)}</button>`
+          + `<span class="ct-groupinfo">${list.length} run${list.length === 1 ? "" : "s"}${untimedHere ? ` · ${untimedHere} need timing` : ""}</span></td>`
+          + `<td class="n">${fmtN(sum(list, "memberYears"))}</td><td colspan="3"></td><td class="n">${fmtM(sum(list, "core"))}</td><td></td></tr>`;
+        if (open) list.forEach(it => { html += rowHtml(it, mipStyle(mip)); });
+      });
+      html += "</tbody>";
+    });
+    html += `<tbody><tr class="ct-total"><td colspan="6">All</td><td class="n">${fmtN(sum(shown, "memberYears"))}</td><td colspan="3"></td>`
+      + `<td class="n">${fmtM(sum(shown, "core"))}</td><td></td></tr>`;
+    untimedRes.forEach(res => {
+      const n = active.filter(it => it.res === res).length;
+      html += `<tr class="ct-note"><td colspan="${NCOLS}">${esc(res || "Other")} not shown: none of its ${n} runs has a timing yet.</td></tr>`;
+    });
+    html += "</tbody>";
+    if (offItems.length){
+      const mips = Array.from(new Set(offItems.map(it => it.mip))).join(", ");
+      html += `<tbody><tr class="ct-offhead"><th colspan="${NCOLS}"><button type="button" class="ct-offtoggle" data-action="toggle-off" aria-expanded="${showOffRuns}">`
+        + `${showOffRuns ? "▾" : "▸"} Not in the plan for now: ${offItems.length} run${offItems.length === 1 ? "" : "s"} (${esc(mips)})</button>`
+        + `<span>${showOffRuns ? "tick a run to put it back in the plan" : "click to show"}</span></th></tr>`;
+      if (showOffRuns) offItems.forEach(it => { html += rowHtml(it, mipStyle(it.mip)); });
+      html += "</tbody>";
+    }
+    costTableEl.innerHTML = html;
+  }
+
+  // Edits in the cost table. A change is applied after focus has moved on, then the page
+  // is redrawn and focus is put back on the same field, so Tab moves through the table.
+  costTableEl.addEventListener("change", e => {
+    const t = e.target;
+    const row = t.dataset && sims.find(r => r.id === t.dataset.sim);
+    if (!row) return;
+    switch (t.dataset.field){
+      case "include":
+        if (t.checked){
+          if (normalizePriority(row.priority) === 0) row.priority = (row.mip || "DECK") === "DECK" ? 1 : 2;
+          if (normalizeEnsemble(row.ensemble) === 0) row.ensemble = 1;
+        } else {
+          row.priority = 0;
+        }
+        break;
+      case "members": row.ensemble = normalizeEnsemble(t.value); break;
+      case "years": row.years = Math.max(0, Math.round(Number(t.value) || 0)); break;
+      case "config": row.configId = t.value; break;
+      default: return;
+    }
+    setTimeout(() => {
+      const a = document.activeElement;
+      const key = a && a.dataset ? a.dataset.key : null;
+      render();
+      if (key){
+        const n = costTableEl.querySelector(`[data-key="${CSS.escape(key)}"]`);
+        if (n) n.focus();
+      }
+    }, 0);
+  });
+  el("costTableCard").addEventListener("click", e => {
+    const b = e.target.closest("[data-action]");
+    if (!b) return;
+    const keyOf = b2 => b2.dataset.key;
+    switch (b.dataset.action){
+      case "toggle-off": showOffRuns = !showOffRuns; break;
+      case "toggle-res": closedRes.has(b.dataset.res) ? closedRes.delete(b.dataset.res) : closedRes.add(b.dataset.res); break;
+      case "toggle-mip": openMips.has(keyOf(b)) ? openMips.delete(keyOf(b)) : openMips.add(keyOf(b)); break;
+      case "expand-all":
+        closedRes.clear();
+        sims.forEach(r => openMips.add(resolutionOf(r) + "|" + (r.mip || "DECK")));
+        break;
+      case "collapse-all": openMips.clear(); break;
+      default: return;
+    }
+    const focusKey = b.dataset.action + ":" + (b.dataset.key || b.dataset.res || "");
+    renderCostTable();
+    const again = Array.from(el("costTableCard").querySelectorAll("[data-action]"))
+      .find(x => x.dataset.action + ":" + (x.dataset.key || x.dataset.res || "") === focusKey);
+    if (again) again.focus();
+  });
+
+  function renderTimingNote(result){
+    const rows = result.untimedRows || [];
+    const unsetEns = sims.filter(r => r.status !== "completed" && normalizePriority(r.priority) !== 0 && normalizeEnsemble(r.ensemble) === null);
+    const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+    const ensMsg = unsetEns.length
+      ? `<b>${unsetEns.length} run${unsetEns.length === 1 ? " has" : "s have"} no ensemble size yet</b> and ${unsetEns.length === 1 ? "is" : "are"} counted with one member.`
+      : "";
+    if (!rows.length){
+      timingNote.hidden = !ensMsg;
+      timingNote.innerHTML = ensMsg;
+      return;
+    }
+    const byCfg = new Map();
+    rows.forEach(r => {
+      const cfg = configs.find(c => c.id === r.configId) || configs[0];
+      const name = cfg ? cfg.name : "?";
+      if (!byCfg.has(name)) byCfg.set(name, []);
+      byCfg.get(name).push(r.name);
+    });
+    const members = rows.reduce((s, r) => s + ensembleCount(r), 0);
+    const parts = Array.from(byCfg.entries())
+      .map(([cfg, names]) => `<b>${esc(cfg)}</b>: ${names.map(esc).join(", ")}`);
+    timingNote.hidden = false;
+    timingNote.innerHTML = `<b>${rows.length} run${rows.length === 1 ? "" : "s"} (${members} member${members === 1 ? "" : "s"}) need timing</b> and are left out of the cost totals until their configuration has a timing.<br>`
+      + parts.join(" · ")
+      + (ensMsg ? `<br><br>${ensMsg}` : "");
+  }
+
+  function renderTrackerStats(){
+    const box = el("trackerStats");
+    const active = sims.filter(r => !isRowOff(r));
+    const count = f => active.filter(f).length;
+    const tiles = [
+      { label: "Runs in the plan", value: active.length, sub: `${active.reduce((n, r) => n + ensembleCount(r), 0)} members` },
+      { label: "Issue opened", value: count(issueOpened), sub: "no files on NIRD yet" },
+      { label: "In progress", value: count(r => r.status === "in-progress"), sub: "running now", hero: true },
+      { label: "Completed", value: count(r => r.status === "completed"), sub: "run finished" },
+      { label: "CMORized", value: count(r => stepDone(r, "cmoratm") && stepDone(r, "cmorocn")), sub: "Atm/Lnd and Ocn/Ice both done" },
+      { label: "On ESGF", value: count(r => stepDone(r, "esgf")), sub: "published" },
+    ];
+    box.innerHTML = "";
+    tiles.forEach(t => {
+      const tile = document.createElement("div");
+      tile.className = "stat-tile" + (t.hero ? " hero" : "");
+      tile.innerHTML = `<div class="stat-label"></div><div class="stat-value tabular"></div><div class="stat-sub"></div>`;
+      tile.children[0].textContent = t.label;
+      tile.children[1].textContent = `${t.value}`;
+      tile.children[2].textContent = t.sub;
+      box.appendChild(tile);
+    });
+    const note = el("autoNote");
+    if (note){
+      const left = autoProgress && autoProgress.unmatched.length
+        ? ` Not shown: ${autoProgress.unmatched.join("; ")}.` : "";
+      note.textContent = autoProgress
+        ? `The cases come from their GitHub issues, and the years done and CMORized from NIRD${autoProgress.updated ? `, read on ${autoProgress.updated}` : ""}.${left}`
+        : "Years done are typed by hand until the NIRD progress script writes progress.json next to this page.";
+    }
+  }
+
+  function renderStats(result){
+    const utilization = (result.makespan > 0) ? (result.totalWork / (result.makespan * slots)) * 100 : 0;
+    const idleSlotDays = Math.max(0, result.makespan * slots - result.totalWork);
+    const gapVsCritical = result.makespan - result.criticalPath;
+    const completedCount = sims.filter(r => r.status === "completed").length;
+    const inProgressCount = sims.filter(r => r.status === "in-progress").length;
+    const progressNote = (completedCount || inProgressCount)
+      ? ` · ${[completedCount ? `${completedCount} completed` : null, inProgressCount ? `${inProgressCount} in progress` : null].filter(Boolean).join(", ")}`
+      : "";
+
+    statsGrid.innerHTML = "";
+    const scheduleShown = !el("scheduleCard").hidden;
+    const tiles = [
+      {
+        hero: true,
+        schedule: true,
+        label: "Fastest completion",
+        value: fmtDays(result.makespan) + " days",
+        sub: `${gapVsCritical >= 0.05 ? '+' + fmtDays(gapVsCritical) + ' d above the ' : 'at the '}<span class="mono tabular">${fmtDays(result.criticalPath)}</span>-day critical-path floor${progressNote}`,
+      },
+      {
+        hero: !scheduleShown,
+        label: (completedCount || inProgressCount) ? `Compute cost remaining (${costUnit})` : `Total compute cost (${costUnit})`,
+        value: fmtCompact(result.totalCost),
+        sub: `across <span class="mono tabular">${result.jobCount}</span> simulation members${progressNote}`,
+      },
+      {
+        schedule: true,
+        label: "Slot utilization",
+        value: utilization.toFixed(0) + "%",
+        sub: `<span class="mono tabular">${fmtDays(result.totalWork)}</span> slot-days of work on ${slots} slots`,
+      },
+      {
+        schedule: true,
+        label: "Idle slot-time",
+        value: fmtDays(idleSlotDays) + " d",
+        sub: `mostly early — few runs are ready until dependencies clear`,
+      },
+    ];
+    tiles.filter(t => scheduleShown || !t.schedule).forEach(t => {
+      const tile = document.createElement("div");
+      tile.className = "stat-tile" + (t.hero ? " hero" : "");
+      const label = document.createElement("div");
+      label.className = "stat-label"; label.textContent = t.label;
+      const value = document.createElement("div");
+      value.className = "stat-value tabular"; value.textContent = t.value;
+      const sub = document.createElement("div");
+      sub.className = "stat-sub"; sub.innerHTML = t.sub;
+      tile.appendChild(label); tile.appendChild(value); tile.appendChild(sub);
+      statsGrid.appendChild(tile);
+    });
+  }
+
+  // Groups the same `result.jobs` the cost stat tile sums — a completed run contributes
+  // nothing, an in-progress run only its remaining cost — so every group total, and their
+  // sum, always matches "Total/remaining compute cost" exactly.
+  // Groups by resolution and MIP. The resolution is read from the configuration name
+  // ("NorESM3 ESM ne30" -> "ne30"); a configuration without one groups under "".
+  function computeMipBreakdown(result){
+    const rowMap = jobRowLookup();
+    const groups = new Map();
+    result.jobs.forEach(job => {
+      const row = rowMap.get(job.rowId);
+      // A run with no MIP tag defaults into DECK — CMIP's baseline/core experiment set —
+      // rather than its own "Ungrouped" bucket, so a hand-added run without a tag just
+      // reads as part of the core set instead of needing its own category.
+      const mip = (row && row.mip) ? row.mip : "DECK";
+      const res = row ? resolutionOf(row) : "";
+      const key = res + "|" + mip;
+      const g = groups.get(key) || { mip, res, cost: 0, runCount: 0 };
+      g.cost += job.cost;
+      g.runCount += 1;
+      groups.set(key, g);
+    });
+    return { list: Array.from(groups.values()).sort((a, b) => b.cost - a.cost) };
+  }
+  // Colour of each resolution in Cost by MIP: the series its coupled runs use in the chart.
+  const RES_SERIES = { "ne16": 1, "ne30": 7 };
+  function resolutionOf(row){
+    const cfg = configs.find(c => c.id === row.configId) || configs[0];
+    const m = cfg && /\bne\d+\b/.exec(cfg.name || "");
+    return m ? m[0] : "";
+  }
+
+  // Shared row renderer for any "cost grouped by X" card — bars are scaled relative to the
+  // largest group in the list, so the biggest contributor always fills the full track width.
+  function renderCostRows(container, list, totalCost, labelOf){
+    container.innerHTML = "";
+    const maxCost = list.length ? Math.max.apply(null, list.map(g => g.cost)) : 0;
+    list.forEach(g => {
+      const label = labelOf(g);
+      const pctOfTotal = totalCost > 0 ? (g.cost / totalCost) * 100 : 0;
+      const barPct = maxCost > 0 ? (g.cost / maxCost) * 100 : 0;
+      const row = document.createElement("div");
+      row.className = "cost-row";
+      const name = document.createElement("span");
+      name.className = "cost-name"; name.textContent = label; name.title = label;
+      const track = document.createElement("div");
+      track.className = "cost-bar-track";
+      const fill = document.createElement("div");
+      fill.className = "cost-bar-fill"; fill.style.width = barPct.toFixed(1) + "%";
+      track.appendChild(fill);
+      const figures = document.createElement("span");
+      figures.className = "cost-figures";
+      const costB = document.createElement("b"); costB.textContent = fmtCompact(g.cost);
+      figures.appendChild(costB);
+      figures.appendChild(document.createTextNode(` · ${g.runCount} run${g.runCount === 1 ? "" : "s"} · ${pctOfTotal.toFixed(0)}%`));
+      row.appendChild(name); row.appendChild(track); row.appendChild(figures);
+      container.appendChild(row);
+    });
+  }
+
+  function currentCostLabel(){
+    const completedCount = sims.filter(r => r.status === "completed").length;
+    const inProgressCount = sims.filter(r => r.status === "in-progress").length;
+    return (completedCount || inProgressCount) ? "Compute cost remaining" : "Total compute cost";
+  }
+
+  function renderMipBreakdown(result){
+    const { list } = computeMipBreakdown(result);
+    // Resolutions of every run that would be conducted, timed or not, so a resolution
+    // whose runs all still need timing gets its own heading instead of vanishing.
+    const active = sims.filter(r => r.status !== "completed" && !isRowOff(r));
+    const resolutions = Array.from(new Set(active.map(resolutionOf))).sort();
+    if (resolutions.length > 1){
+      mipCard.hidden = false;
+      mipCaption.textContent = `${currentCostLabel()} (${costUnit}) for each resolution, grouped by the MIP each simulation belongs to; percentages are of that resolution's total.`;
+      mipBreakdownEl.innerHTML = "";
+      const untimedIds = new Set((result.untimedRows || []).map(r => r.id));
+      resolutions.forEach(res => {
+        const sub = list.filter(g => g.res === res);
+        const subtotal = sub.reduce((s, g) => s + g.cost, 0);
+        const untimed = active.filter(r => resolutionOf(r) === res && untimedIds.has(r.id)).length;
+        const group = document.createElement("div");
+        group.className = "cost-res-group";
+        if (RES_SERIES[res]) group.style.setProperty("--res-colour", `var(--series-${RES_SERIES[res]})`);
+        const head = document.createElement("div");
+        head.className = "cost-group-head";
+        const title = document.createElement("span");
+        title.className = "cost-group-title"; title.textContent = res || "Other";
+        const figs = document.createElement("span");
+        figs.className = "cost-figures";
+        const pct = result.totalCost > 0 ? (subtotal / result.totalCost) * 100 : 0;
+        figs.textContent = sub.length
+          ? `${fmtCompact(subtotal)} · ${pct.toFixed(0)}% of all${untimed ? ` · ${untimed} run${untimed === 1 ? "" : "s"} need timing` : ""}`
+          : `no timed runs yet · ${untimed} run${untimed === 1 ? "" : "s"} need timing`;
+        head.appendChild(title); head.appendChild(figs);
+        group.appendChild(head);
+        if (sub.length){
+          const rows = document.createElement("div");
+          rows.className = "cost-breakdown";
+          renderCostRows(rows, sub, subtotal, g => g.mip);
+          group.appendChild(rows);
+        }
+        mipBreakdownEl.appendChild(group);
+      });
+      return;
+    }
+    // Nothing to compare when every run falls into a single MIP (including an all-DECK
+    // plan) — the card would just restate the single cost stat tile as one 100% row.
+    if (list.length <= 1){
+      mipCard.hidden = true;
+      mipBreakdownEl.innerHTML = "";
+      return;
+    }
+    mipCard.hidden = false;
+    mipCaption.textContent = `${currentCostLabel()} (${costUnit}), grouped by the MIP each simulation belongs to — runs without a MIP tag are grouped into DECK.`;
+    renderCostRows(mipBreakdownEl, list, result.totalCost || 0, g => g.mip);
+  }
+
+  // A priority-0 row never reaches computeSchedule's job-building loop, so it has no job to
+  // read a cost off of. Mirror that loop's cost formula for a single row here instead, so the
+  // note below can report what the excluded runs would have cost. A completed run still
+  // nominally costs $0 either way — "excluded" means compute avoided, not compute already spent.
+  function rowNominalCost(row){
+    if (row.status === "completed") return 0;
+    const cfg = configs.find(c => c.id === row.configId) || configs[0];
+    if (!cfg) return 0;
+    const years = Math.max(Number(row.years) || 0, 0);
+    const ens = ensembleCount(row);
+    if (ens === 0) return 0;
+    const inProgress = row.status === "in-progress";
+    const yearsCompleted = inProgress ? Math.min(years, Math.max(0, Number(row.yearsCompleted) || 0)) : 0;
+    const progressFrac = years > 0 ? (yearsCompleted / years) : 0;
+    return years * (1 - progressFrac) * (Number(cfg.costPerYear) || 0) * ens;
+  }
+
+  // Priority 0 means "won't be conducted" (see Ensemble 0) — those runs never produce a job,
+  // so they're inherently absent from this cost breakdown, not a zero-cost row within it.
+  // They're still worth surfacing, so a separate note below the bars reports how many there
+  // are and what they would have cost had they been left in.
+  function computePriorityBreakdown(result){
+    const groups = new Map();
+    result.jobs.forEach(job => {
+      const p = job.rowPriority;
+      const g = groups.get(p) || { priority: p, cost: 0, runCount: 0 };
+      g.cost += job.cost;
+      g.runCount += 1;
+      groups.set(p, g);
+    });
+    const excludedRows = sims.filter(r => normalizePriority(r.priority) === 0);
+    const excludedCost = excludedRows.reduce((sum, r) => sum + rowNominalCost(r), 0);
+    return { list: Array.from(groups.values()).sort((a, b) => a.priority - b.priority), excludedCount: excludedRows.length, excludedCost };
+  }
+
+  const SHOW_PRIORITY_CARD = false;
+  function renderPriorityBreakdown(result){
+    if (!SHOW_PRIORITY_CARD){ priorityCard.hidden = true; return; }
+    const { list, excludedCount, excludedCost } = computePriorityBreakdown(result);
+    if (list.length <= 1 && !excludedCount){
+      priorityCard.hidden = true;
+      priorityBreakdownEl.innerHTML = "";
+      priorityExcludedNote.hidden = true;
+      return;
+    }
+    priorityCard.hidden = false;
+    priorityCaption.textContent = `${currentCostLabel()} (${costUnit}), grouped by each simulation's priority level.`;
+    renderCostRows(priorityBreakdownEl, list, result.totalCost || 0, g => "Priority " + g.priority);
+    if (excludedCount){
+      priorityExcludedNote.hidden = false;
+      priorityExcludedNote.textContent = `+ ${excludedCount} run${excludedCount === 1 ? "" : "s"} switched off with Priority 0 — left out of the totals, would cost ${fmtCompact(excludedCost)} ${costUnit} if run.`;
+    } else {
+      priorityExcludedNote.hidden = true;
+    }
+  }
+
+  // Bars are coloured by model type and resolution, not by configuration, so the
+  // per-experiment timings of one model (piControl, 1pctCO2, 4xCO2, ...) share a colour.
+  // Each type has a pair of related hues: the first for ne16, the second for ne30.
+  const TYPE_SERIES = { "Coupled": [1, 7], "ESM": [2, 8], "AMIP": [3, 6] };
+  function colourGroupOf(cfg){
+    const name = (cfg && cfg.name) || "";
+    const type = /\bAMIP\b/.test(name) ? "AMIP" : /\bESM\b/.test(name) ? "ESM" : "Coupled";
+    const m = /\bne(\d+)\b/.exec(name);
+    const res = m ? m[0] : "";
+    const pair = TYPE_SERIES[type];
+    const series = res === "ne30" ? pair[1] : res === "ne16" || !res ? pair[0] : 4 + (Number(m[1]) % 2);
+    return { key: type + " " + res, label: res ? `${type} ${res}` : type, series };
+  }
+  function seriesOf(cfgId){
+    return colourGroupOf(configs.find(c => c.id === cfgId)).series;
+  }
+
+  function renderLegend(){
+    legendEl.innerHTML = "";
+    const seen = new Set();
+    configs.forEach(cfg => {
+      const g = colourGroupOf(cfg);
+      if (seen.has(g.key)) return;
+      seen.add(g.key);
+      const item = document.createElement("div");
+      item.className = "legend-item";
+      const sw = document.createElement("span");
+      sw.className = "legend-swatch bar-cfg-" + g.series;
+      const label = document.createElement("span");
+      label.textContent = g.label;
+      item.appendChild(sw); item.appendChild(label);
+      legendEl.appendChild(item);
+    });
+  }
+
+  function jobRowLookup(){
+    const map = new Map();
+    sims.forEach(r => map.set(r.id, r));
+    return map;
+  }
+  function rowDeps(row){
+    if (!row) return [];
+    return (Array.isArray(row.dependsOn) ? row.dependsOn : (row.dependsOn ? [row.dependsOn] : [])).filter(Boolean);
+  }
+  // Ensemble 0 and Priority 0 both mean "this run won't happen" — same visual treatment,
+  // same exclusion from the schedule — just two different ways a user might express it.
+  function isRowOff(row){
+    return ensembleCount(row) === 0 || normalizePriority(row.priority) === 0;
+  }
+
+  function renderChart(result){
+    chartContainer.innerHTML = "";
+    const jobs = result.jobs;
+    if (!jobs.length){
+      const p = document.createElement("p");
+      p.className = "chart-hint";
+      p.textContent = "No simulations to schedule yet — add a row in the simulation plan below.";
+      chartContainer.appendChild(p);
+      return;
+    }
+    const rowMap = jobRowLookup();
+
+    const margin = { top: 26, right: 20, bottom: 34, left: 110 };
+    const laneHeight = 50, barHeight = 30;
+    const makespan = Math.max(result.makespan, 1);
+    // An in-progress run's already-elapsed portion is drawn before "today" (day 0), so the
+    // axis extends left to fit the longest one — everything else is unaffected (minDay stays 0).
+    const maxElapsed = result.maxElapsed || 0;
+    const minDay = maxElapsed > 0 ? -maxElapsed : 0;
+    const range = Math.max(makespan - minDay, 1);
+    const pxPerDay = Math.max(3, Math.min(18, 900 / range));
+    const plotWidth = range * pxPerDay;
+    const dayToX = (d) => margin.left + (d - minDay) * pxPerDay;
+    const width = margin.left + plotWidth + margin.right;
+    const height = margin.top + slots * laneHeight + margin.bottom;
+
+    const svg = svgEl("svg", { width, height, viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "Gantt chart of scheduled CMIP7 simulations" });
+
+    // alternating lane bands
+    for (let i = 0; i < slots; i++){
+      if (i % 2 === 1){
+        svg.appendChild(svgEl("rect", {
+          class: "lane-band", x: margin.left, y: margin.top + i*laneHeight,
+          width: plotWidth, height: laneHeight,
+        }));
+      }
+    }
+
+    // gridlines + x ticks
+    const step = niceStep(range, 8);
+    const firstTick = Math.ceil(minDay / step) * step;
+    for (let d = firstTick; d <= makespan + step*0.001; d += step){
+      const x = dayToX(d);
+      svg.appendChild(svgEl("line", { class:"gridline", x1:x, x2:x, y1: margin.top, y2: margin.top + slots*laneHeight }));
+      const t = svgEl("text", { class:"axis-text", x, y: margin.top + slots*laneHeight + 18, "text-anchor":"middle" });
+      t.textContent = Math.round(d);
+      svg.appendChild(t);
+    }
+    // "Today" marker — only meaningful (and only drawn) once some run's progress pushes the
+    // axis before day 0, since otherwise day 0 is already the obvious left edge of the chart.
+    if (minDay < 0){
+      const todayX = dayToX(0);
+      svg.appendChild(svgEl("line", {
+        class: "today-line", x1: todayX, x2: todayX, y1: margin.top - 8, y2: margin.top + slots*laneHeight,
+      }));
+      const todayLabel = svgEl("text", { class: "today-text", x: todayX, y: margin.top - 12, "text-anchor":"middle" });
+      todayLabel.textContent = "Today";
+      svg.appendChild(todayLabel);
+    }
+    const xlab = svgEl("text", { class:"axis-text", x: margin.left + plotWidth/2, y: height - 4, "text-anchor":"middle" });
+    xlab.textContent = "Elapsed time (days)";
+    svg.appendChild(xlab);
+
+    // lane labels
+    for (let i = 0; i < slots; i++){
+      const t = svgEl("text", { class:"lane-text", x: margin.left - 12, y: margin.top + i*laneHeight + laneHeight/2 + 4, "text-anchor":"end" });
+      t.textContent = "Slot " + (i+1);
+      svg.appendChild(t);
+    }
+
+    // bars
+    jobs.forEach(job => {
+      const x = dayToX(job.start);
+      const w = Math.max(2, job.duration * pxPerDay);
+      const y = margin.top + job.machine * laneHeight + (laneHeight - barHeight)/2;
+      const g = svgEl("g", { class: "gantt-bar", "data-job": job.id, "data-row": job.rowId, tabindex: "0" });
+
+      // The portion already run before today, shown desaturated and ending exactly at day 0 —
+      // only the solid segment to its right is what still needs to be scheduled/waited on.
+      // Part of the same hoverable/clickable group as the main bar, not a separate element.
+      if (job.pinned && job.elapsed > 0){
+        const ex = dayToX(job.start - job.elapsed);
+        const ew = Math.max(1, job.elapsed * pxPerDay);
+        g.appendChild(svgEl("rect", {
+          class: "bar bar-elapsed bar-cfg-" + seriesOf(job.cfgId),
+          x: ex, y, width: ew, height: barHeight, rx: 4,
+        }));
+      }
+
+      const rect = svgEl("rect", {
+        class: "bar bar-cfg-" + seriesOf(job.cfgId),
+        x, y, width: w, height: barHeight, rx: 4,
+      });
+      g.appendChild(rect);
+
+      const fit = fitBarLabel(job.label, w);
+      if (fit){
+        const hex = SERIES_HEX_LIGHT[seriesOf(job.cfgId) - 1];
+        const lum = relLuminance(hex);
+        const textColor = lum > 0.5 ? "#0b0b0b" : "#ffffff";
+        const label = svgEl("text", {
+          class: "bar-label", x: x + w/2, y: y + barHeight/2 + fit.fontPx*0.36,
+          "text-anchor":"middle", fill: textColor, style: "font-size:" + fit.fontPx.toFixed(2) + "px",
+        });
+        label.textContent = fit.text;
+        g.appendChild(label);
+      }
+
+      g.addEventListener("mouseenter", (ev) => showTooltip(ev, job, rowMap));
+      g.addEventListener("mousemove", (ev) => positionTooltip(ev));
+      g.addEventListener("mouseleave", hideTooltip);
+      g.addEventListener("click", (ev) => { ev.stopPropagation(); toggleChain(job.id); });
+      g.addEventListener("focus", (ev) => showTooltip(ev, job, rowMap));
+      g.addEventListener("blur", hideTooltip);
+      svg.appendChild(g);
+    });
+
+    chartContainer.appendChild(svg);
+    svg.addEventListener("click", () => clearChain());
+    applyChainHighlight();
+  }
+
+  function toggleChain(jobId){
+    selectedChainRoot = (selectedChainRoot === jobId) ? null : jobId;
+    applyChainHighlight();
+  }
+  function clearChain(){ selectedChainRoot = null; applyChainHighlight(); }
+
+  function applyChainHighlight(){
+    const bars = chartContainer.querySelectorAll(".gantt-bar");
+    if (!selectedChainRoot){
+      bars.forEach(b => b.classList.remove("dimmed", "chain"));
+      return;
+    }
+    if (!lastResult || !lastResult.jobs) return;
+    const byId = new Map(lastResult.jobs.map(j => [j.id, j]));
+    const rowMap = jobRowLookup();
+    const related = new Set([selectedChainRoot]);
+    const start = byId.get(selectedChainRoot);
+    if (start){
+      const addJobsOfRow = (rowId) => { lastResult.jobs.forEach(j => { if (j.rowId === rowId) related.add(j.id); }); };
+      addJobsOfRow(start.rowId);
+      // walk ancestors (row-level, up to 2 parents per row) back to every root
+      const seenRows = new Set([start.rowId]);
+      const stack = rowDeps(rowMap.get(start.rowId)).slice();
+      while (stack.length){
+        const rid = stack.pop();
+        if (seenRows.has(rid)) continue;
+        seenRows.add(rid);
+        addJobsOfRow(rid);
+        const r = rowMap.get(rid);
+        if (r) stack.push(...rowDeps(r));
+      }
+      // direct descendant rows (anything that lists this row as one of its dependencies)
+      sims.forEach(r => { if (rowDeps(r).includes(start.rowId)) addJobsOfRow(r.id); });
+    }
+    bars.forEach(b => {
+      const jid = b.getAttribute("data-job");
+      if (related.has(jid)){ b.classList.remove("dimmed"); b.classList.add("chain"); }
+      else { b.classList.add("dimmed"); b.classList.remove("chain"); }
+    });
+  }
+
+  function showTooltip(ev, job, rowMap){
+    const row = rowMap.get(job.rowId) || {};
+    const cfg = configs.find(c => c.id === job.cfgId) || {};
+    const depNames = rowDeps(row).map(id => (rowMap.get(id)||{}).name).filter(Boolean);
+    tooltip.innerHTML = "";
+    const title = document.createElement("div");
+    title.className = "tt-title"; title.textContent = job.label;
+    tooltip.appendChild(title);
+    const rows = [
+      ["Configuration", cfg.name || "—"],
+      ["Priority", row.priority == null ? 1 : row.priority],
+      ["Years", job.years],
+    ];
+    if (job.pinned){
+      rows.push(["Status", `In progress (${job.yearsCompleted.toFixed(1)}/${job.years} yr, ${job.progressPct.toFixed(1)}%)`]);
+      rows.push(["Years remaining", job.remainingYears.toFixed(1)]);
+    }
+    rows.push(
+      ["Start", fmtDays(job.start) + " d"],
+      ["End", fmtDays(job.end) + " d"],
+      ["Duration", fmtDays(job.duration) + " d" + (job.pinned ? " left" : "")],
+      ["Cost", fmtCompact(job.cost) + " " + costUnit + (job.pinned ? " left" : "")],
+      ["Depends on", depNames.length ? depNames.join(", ") : "none"],
+    );
+    rows.forEach(([k,v]) => {
+      const r = document.createElement("div");
+      r.className = "tt-row";
+      const kk = document.createElement("span"); kk.textContent = k;
+      const vv = document.createElement("b"); vv.textContent = v;
+      r.appendChild(kk); r.appendChild(vv);
+      tooltip.appendChild(r);
+    });
+    tooltip.hidden = false;
+    positionTooltip(ev);
+  }
+  function positionTooltip(ev){
+    const pad = 14;
+    let x = ev.clientX + pad, y = ev.clientY + pad;
+    const tw = 260, th = 180;
+    if (x + tw > window.innerWidth) x = ev.clientX - tw - pad;
+    if (y + th > window.innerHeight) y = ev.clientY - th - pad;
+    tooltip.style.left = Math.max(4,x) + "px";
+    tooltip.style.top = Math.max(4,y) + "px";
+  }
+  function hideTooltip(){ tooltip.hidden = true; }
+
+  // ---------------- editable tables ----------------
+  function configOptionsHTML(selectedId){
+    return configs.map(c => `<option value="${escapeAttr(c.id)}"${c.id===selectedId?" selected":""}></option>`).join("");
+  }
+  function escapeAttr(s){ return String(s).replace(/"/g,"&quot;"); }
+
+  function renderTables(){
+    renderConfigTable();
+    renderSimTable();
+    costHeader.textContent = "Cost / sim-yr";
+  }
+
+  function configResolution(cfg){
+    const m = /\bne\d+\b/.exec(cfg.name || "");
+    return m ? m[0] : "";
+  }
+
+  // Configurations are listed by resolution, each under its own heading; those without
+  // a resolution in their name come last, under "Other".
+  function renderConfigTable(){
+    configTbody.innerHTML = "";
+    const resolutions = Array.from(new Set(configs.map(configResolution)))
+      .sort((a, b) => (a === "") - (b === "") || a.localeCompare(b));
+    resolutions.forEach(res => {
+      const head = document.createElement("tr");
+      head.className = "cfg-res";
+      if (RES_SERIES[res]) head.style.setProperty("--res-colour", `var(--series-${RES_SERIES[res]})`);
+      const th = document.createElement("th");
+      th.colSpan = 4; th.textContent = res || "Other";
+      head.appendChild(th);
+      configTbody.appendChild(head);
+      configs.filter(cfg => configResolution(cfg) === res).forEach(renderConfigRow);
+    });
+  }
+
+  function renderConfigRow(cfg){
+      const tr = document.createElement("tr");
+
+      const tdName = document.createElement("td"); tdName.className = "col-name";
+      const nameWrap = document.createElement("div"); nameWrap.className = "config-name-wrap";
+      const swatch = document.createElement("span");
+      swatch.className = "legend-swatch bar-cfg-" + colourGroupOf(cfg).series;
+      swatch.title = "Chart color for this configuration";
+      const nameInput = document.createElement("input");
+      nameInput.type = "text"; nameInput.value = cfg.name;
+      nameInput.addEventListener("input", () => { cfg.name = nameInput.value || cfg.name; renderLegend(); refreshDependentSelects(); recomputeAndRenderChartAndStats(); });
+      nameWrap.appendChild(swatch); nameWrap.appendChild(nameInput);
+      tdName.appendChild(nameWrap);
+
+      const tdCost = document.createElement("td");
+      const costInput = document.createElement("input");
+      costInput.type = "number"; costInput.className = "num"; costInput.min = "0"; costInput.step = "any";
+      costInput.value = cfg.costPerYear == null ? "" : cfg.costPerYear; costInput.placeholder = "not known";
+      costInput.classList.toggle("needs-timing", cfg.costPerYear == null);
+      costInput.addEventListener("input", () => {
+        cfg.costPerYear = parseOptionalNumber(costInput.value);
+        costInput.classList.toggle("needs-timing", cfg.costPerYear == null);
+        recomputeAndRenderChartAndStats();
+      });
+      tdCost.appendChild(costInput);
+
+      const tdThr = document.createElement("td");
+      const thrInput = document.createElement("input");
+      thrInput.type = "number"; thrInput.className = "num"; thrInput.min = "0"; thrInput.step = "any";
+      thrInput.value = cfg.throughput == null ? "" : cfg.throughput; thrInput.placeholder = "not known";
+      thrInput.classList.toggle("needs-timing", !hasTiming(cfg));
+      thrInput.addEventListener("input", () => {
+        cfg.throughput = parseOptionalNumber(thrInput.value);
+        thrInput.classList.toggle("needs-timing", !hasTiming(cfg));
+        recomputeAndRenderChartAndStats();
+      });
+      tdThr.appendChild(thrInput);
+
+      const tdDel = document.createElement("td"); tdDel.className = "col-narrow";
+      const delBtn = document.createElement("button");
+      delBtn.className = "row-del"; delBtn.type = "button"; delBtn.textContent = "×";
+      delBtn.title = "Delete configuration";
+      delBtn.disabled = configs.length <= 1;
+      delBtn.addEventListener("click", () => {
+        if (configs.length <= 1) return;
+        configs = configs.filter(c => c.id !== cfg.id);
+        sims.forEach(r => { if (r.configId === cfg.id) r.configId = configs[0].id; });
+        render();
+      });
+      tdDel.appendChild(delBtn);
+
+      tr.appendChild(tdName); tr.appendChild(tdCost); tr.appendChild(tdThr); tr.appendChild(tdDel);
+      configTbody.appendChild(tr);
+  }
+
+  // Display order: the DECK first, then each MIP in alphabetical order, then the runs that
+  // are off. Within a group, ne16 comes before ne30, coupled runs come before
+  // atmosphere-only ones, and the sheet's order is kept otherwise, so a parent sits above
+  // the runs that branch from it.
+  function simDisplayGroups(){
+    const groups = new Map();
+    const resRank = row => { const r = resolutionOf(row); return (r ? Number(r.slice(2)) : 1e6) * 2 + (row.amip === "Yes" ? 1 : 0); };
+    sims.forEach((row, i) => {
+      const key = isRowOff(row) ? "￿" : (row.mip === "DECK" ? "" : (row.mip || "Other"));
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push({ row, i });
+    });
+    return [...groups.keys()].sort().map(key => ({
+      label: key === "" ? "DECK" : key === "￿" ? "Not in the plan for now" : key,
+      off: key === "￿",
+      rows: groups.get(key).sort((a, b) => resRank(a.row) - resRank(b.row) || a.i - b.i).map(x => x.row),
+    }));
+  }
+
+  function renderSimThead(){
+    const thead = el("simThead");
+    const phases = [];
+    WORKFLOW_STEPS.forEach(s => { if (s.phase) phases.push({ name: s.phase, n: 0 }); phases[phases.length - 1].n += s.cols || 1; });
+    thead.innerHTML =
+      `<tr><th rowspan="2">Simulation</th><th rowspan="2">Owner</th><th rowspan="2" title="The run's GitHub issues in NorESMhub/noresm_cmip7_simulations, one per case; hover for the case name">Issues</th><th rowspan="2">Members</th><th rowspan="2">Years</th>`
+      + phases.map(ph => `<th class="step-group" colspan="${ph.n}"><a href="#workflow">${ph.name}</a></th>`).join("")
+      + `<th rowspan="2" class="col-narrow"></th></tr><tr>`
+      + WORKFLOW_STEPS.map((s, i) => s.derived
+          // The run itself: its Status and its Progress, read from NIRD.
+          ? `<th class="step-h step-wide${s.phase ? " phase-start" : ""}" title="The run's status, determined automatically on NIRD"><a href="#wf-${s.key}">Status</a></th>`
+            + `<th class="step-h step-wide" title="Years done, determined automatically on NIRD by the progress script">Progress<div class="th-note">automatic, from NIRD</div></th>`
+          : `<th class="step-h${s.phase ? " phase-start" : ""}" title="${s.name}${s.auto ? " (determined automatically on NIRD)" : ""}"><a href="#wf-${s.key}">${s.short}</a></th>`).join("")
+      + `</tr>`;
+  }
+  const SIM_NCOLS = 6 + WORKFLOW_STEPS.reduce((n, s) => n + (s.cols || 1), 0);
+
+  function renderSimTable(){
+    renderSimThead();
+    simTbody.innerHTML = "";
+    simDisplayGroups().forEach(group => {
+      const head = document.createElement("tr");
+      head.className = "sim-group" + (group.off ? " sim-group-off" : "");
+      const th = document.createElement("th");
+      th.colSpan = SIM_NCOLS;
+      th.textContent = `${group.label} · ${group.rows.length} run${group.rows.length === 1 ? "" : "s"}`;
+      head.appendChild(th);
+      simTbody.appendChild(head);
+      group.rows.forEach(renderSimRow);
+    });
+  }
+
+  function renderSimRow(row){
+    {
+      const tr = document.createElement("tr");
+
+      if (row.status == null) row.status = "pending";
+      if (row.yearsCompleted == null) row.yearsCompleted = 0;
+
+      const tdName = document.createElement("td"); tdName.className = "col-name";
+      const nameWrap = document.createElement("div"); nameWrap.className = "sim-name-wrap";
+      const statusBadge = document.createElement("span"); statusBadge.className = "status-badge";
+      const nameInput = document.createElement("input");
+      nameInput.type = "text"; nameInput.value = row.name;
+      nameInput.addEventListener("input", () => { row.name = nameInput.value || row.name; refreshDependentSelects(); recomputeAndRenderChartAndStats(); });
+      nameWrap.appendChild(statusBadge); nameWrap.appendChild(nameInput);
+      tdName.appendChild(nameWrap);
+
+      if (!Array.isArray(row.dependsOn)) row.dependsOn = row.dependsOn ? [row.dependsOn] : [];
+
+      const tdDep1 = document.createElement("td");
+      const depSelect1 = document.createElement("select");
+      depSelect1.dataset.rowId = row.id; depSelect1.dataset.depSlot = "0";
+      buildDependsOnOptions(depSelect1, row, 0);
+      depSelect1.addEventListener("change", () => { row.dependsOn[0] = depSelect1.value; recomputeAndRenderChartAndStats(); });
+      tdDep1.appendChild(depSelect1);
+
+      const tdDep2 = document.createElement("td");
+      const depSelect2 = document.createElement("select");
+      depSelect2.dataset.rowId = row.id; depSelect2.dataset.depSlot = "1";
+      buildDependsOnOptions(depSelect2, row, 1);
+      depSelect2.addEventListener("change", () => { row.dependsOn[1] = depSelect2.value; recomputeAndRenderChartAndStats(); });
+      tdDep2.appendChild(depSelect2);
+
+      const tdYears = document.createElement("td");
+      const yearsInput = document.createElement("input");
+      yearsInput.type = "number"; yearsInput.className = "num"; yearsInput.min = "0"; yearsInput.step = "any"; yearsInput.value = row.years;
+      yearsInput.addEventListener("input", () => { row.years = parseFloat(yearsInput.value) || 0; updateStatusVisuals(); recomputeAndRenderChartAndStats(); });
+      tdYears.appendChild(yearsInput);
+
+      const tdEns = document.createElement("td");
+      const ensInput = document.createElement("input");
+      ensInput.type = "number"; ensInput.className = "num"; ensInput.min = "0"; ensInput.step = "1";
+      ensInput.value = row.ensemble == null ? "" : row.ensemble; ensInput.placeholder = "not set";
+      ensInput.classList.toggle("needs-timing", row.ensemble == null);
+      ensInput.title = "Blank means not decided yet and counts one member. 0 switches this run off, so it costs nothing. (Priority 0 does the same thing.)";
+      ensInput.addEventListener("input", () => {
+        row.ensemble = normalizeEnsemble(ensInput.value);
+        ensInput.classList.toggle("needs-timing", row.ensemble == null);
+        tr.classList.toggle("row-disabled", isRowOff(row));
+        recomputeAndRenderChartAndStats();
+      });
+      tdEns.appendChild(ensInput);
+      if (isRowOff(row)) tr.classList.add("row-disabled");
+
+      const tdCfg = document.createElement("td");
+      const cfgSelect = document.createElement("select");
+      cfgSelect.dataset.rowId = row.id;
+      cfgSelect.classList.add("cfg-select");
+      buildConfigOptions(cfgSelect, row);
+      cfgSelect.addEventListener("change", () => { row.configId = cfgSelect.value; recomputeAndRenderChartAndStats(); });
+      tdCfg.appendChild(cfgSelect);
+
+      const tdPriority = document.createElement("td");
+      const priorityInput = document.createElement("input");
+      priorityInput.type = "number"; priorityInput.className = "num priority-input"; priorityInput.min = "0"; priorityInput.step = "1";
+      priorityInput.value = row.priority == null ? 1 : row.priority;
+      priorityInput.title = "1 for DECK, 2 for the rest. 0 means this run won't be conducted for now — same effect as Ensemble 0.";
+      priorityInput.addEventListener("input", () => {
+        row.priority = normalizePriority(priorityInput.value);
+        tr.classList.toggle("row-disabled", isRowOff(row));
+        recomputeAndRenderChartAndStats();
+      });
+      tdPriority.appendChild(priorityInput);
+
+      const tdStatus = document.createElement("td");
+      const statusWrap = document.createElement("div"); statusWrap.className = "status-cell";
+      const statusSelect = document.createElement("select"); statusSelect.className = "status-select";
+      [["pending","Pending"],["in-progress","In progress"],["completed","Completed"]].forEach(([val, text]) => {
+        const opt = document.createElement("option"); opt.value = val; opt.textContent = text;
+        if (row.status === val) opt.selected = true;
+        statusSelect.appendChild(opt);
+      });
+      // Progress is entered in years completed — the unit a NorESM run is actually tracked in
+      // (e.g. the model year on a restart file) — not a percentage, which is easy to misread
+      // ("10" meant as 10 years out of 1000 is NOT the same as 10%).
+      const progressInput = document.createElement("input");
+      progressInput.type = "number"; progressInput.className = "status-progress"; progressInput.min = "0"; progressInput.step = "any";
+      progressInput.value = row.yearsCompleted; progressInput.placeholder = "yrs";
+      progressInput.title = "Years of this run already completed — not a percentage.";
+      function computedPct(){
+        const yrs = Math.max(0, Number(row.years) || 0);
+        const done = Math.min(yrs, Math.max(0, Number(row.yearsCompleted) || 0));
+        return yrs > 0 ? (done / yrs) * 100 : 0;
+      }
+      const runningInput = document.createElement("input");
+      runningInput.type = "number"; runningInput.className = "status-progress"; runningInput.min = "0"; runningInput.step = "1";
+      runningInput.value = row.membersRunning == null ? "" : row.membersRunning;
+      runningInput.placeholder = "all";
+      runningInput.title = "Members of this run already going. Blank means all of them; the rest wait in the queue.";
+      runningInput.addEventListener("input", () => {
+        row.membersRunning = runningInput.value.trim() === "" ? null : Math.max(0, Math.round(Number(runningInput.value) || 0));
+        updateStatusVisuals();
+        recomputeAndRenderChartAndStats();
+      });
+      // Progress column: years done (typed while In progress), a bar, and "N of M years · P%".
+      const tdProgress = document.createElement("td");
+      const progWrap = document.createElement("div"); progWrap.className = "progress-cell";
+      const progBar = document.createElement("div"); progBar.className = "progress-bar";
+      const progFill = document.createElement("div"); progFill.className = "progress-fill";
+      progBar.appendChild(progFill);
+      const progText = document.createElement("span"); progText.className = "progress-text";
+      const runningLabel = document.createElement("span"); runningLabel.className = "progress-text";
+      runningLabel.textContent = "running";
+      progWrap.appendChild(progressInput); progWrap.appendChild(progBar); progWrap.appendChild(progText);
+      progWrap.appendChild(runningInput); progWrap.appendChild(runningLabel);
+      tdProgress.appendChild(progWrap);
+
+      // One cell per workflow step: the run step is the Status and Progress cells; a range
+      // step shows the years progress.json reports; an automatic step read from progress.json
+      // shows a fixed tick; every other step is a check box.
+      const stepCells = WORKFLOW_STEPS.map(step => {
+        if (step.derived){
+          if (step.phase) tdStatus.classList.add("phase-start");
+          return [tdStatus, tdProgress];
+        }
+        const td = document.createElement("td");
+        td.className = "step-c" + (step.phase ? " phase-start" : "");
+        td.title = `${row.name}: ${step.name}`;
+        if (step.range){
+          const p = autoRun(row);
+          const m = document.createElement("span");
+          if (p && Number.isFinite(p.cmorFrom) && Number.isFinite(p.cmorTo)){
+            const done = autoSteps(row)[step.key] === true;
+            m.className = "step-range" + (done ? " done" : "");
+            m.textContent = `${p.cmorFrom}–${p.cmorTo}`;
+            td.title += `: years ${p.cmorFrom}–${p.cmorTo} done` + (p.members.length > 1
+              ? " by every member\n" + p.members.map(m => `${m.variant}: ${m.cmorFrom}–${m.cmorTo}`).join("\n") : "");
+            if (done) td.classList.add("auto-done");
+          } else {
+            m.className = "step-mark"; m.textContent = "·";
+            const some = p && p.members ? p.members.filter(x => Number.isFinite(x.cmorTo)) : [];
+            td.title += some.length ? ": not every member CMORized yet\n" + some.map(x => `${x.variant}: ${x.cmorFrom}–${x.cmorTo}`).join("\n")
+              : ": nothing CMORized yet";
+          }
+          td.appendChild(m); return td;
+        }
+        if (autoSteps(row)[step.key] === true){
+          td.classList.add("auto-done");
+          td.title += " (from NIRD)";
+          const m = document.createElement("span"); m.className = "step-mark done"; m.textContent = "✓";
+          td.appendChild(m); return td;
+        }
+        const box = document.createElement("input");
+        box.type = "checkbox"; box.checked = stepDone(row, step.key);
+        box.setAttribute("aria-label", `${row.name}: ${step.name}`);
+        box.addEventListener("change", () => {
+          const set = new Set(Array.isArray(row.steps) ? row.steps : []);
+          if (box.checked) set.add(step.key); else set.delete(step.key);
+          row.steps = WORKFLOW_STEPS.map(s => s.key).filter(k => set.has(k));
+          recomputeAndRenderChartAndStats();
+        });
+        td.appendChild(box); return td;
+      });
+
+      function updateStatusVisuals(){
+        const inProgress = row.status === "in-progress";
+        progressInput.style.display = inProgress ? "" : "none";
+        const multi = inProgress && ensembleCount(row) > 1;
+        runningInput.style.display = multi ? "" : "none";
+        runningLabel.style.display = multi ? "" : "none";
+        const pct = row.status === "completed" ? 100 : inProgress ? computedPct() : 0;
+        progFill.style.width = pct + "%";
+        progBar.classList.toggle("is-done", row.status === "completed");
+        progText.textContent = row.status === "completed" ? "Done"
+          : inProgress ? `of ${row.years} · ${pct.toFixed(0)}%`
+          : issueOpened(row) ? "Issue opened"
+          : "Not started";
+        const auto = autoProgress && autoProgress.runs && autoProgress.runs[row.name];
+        if (auto && auto.modelDate && row.status !== "completed") progText.textContent += ` · at ${auto.modelDate}`;
+        // Each member's own progress; the run's years done are their mean.
+        progText.title = auto && auto.members ? "Read from NIRD:\n" + auto.members.map(m =>
+          `${m.variant}: ${m.completed ? "completed" : m.modelDate ? `${m.years} years, at ${m.modelDate}` : "no files yet"}`).join("\n") : "";
+        tr.classList.toggle("row-completed", row.status === "completed");
+        tr.classList.toggle("row-inprogress", row.status === "in-progress");
+        tr.classList.toggle("row-opened", issueOpened(row));
+        if (issueOpened(row)){
+          statusBadge.hidden = false; statusBadge.textContent = "issue"; statusBadge.className = "status-badge badge-opened";
+          statusBadge.title = "An issue is open for this run, but NIRD has no model files for it yet";
+        }
+        else if (row.status === "completed"){ statusBadge.hidden = false; statusBadge.textContent = "✓"; statusBadge.className = "status-badge badge-completed"; statusBadge.title = "Completed — no cost remaining"; }
+        else if (row.status === "in-progress"){
+          statusBadge.hidden = false; statusBadge.textContent = computedPct().toFixed(0) + "%"; statusBadge.className = "status-badge badge-inprogress";
+          statusBadge.title = `${runningCount(row)} of ${ensembleCount(row)} member${ensembleCount(row) === 1 ? "" : "s"} running; ${row.yearsCompleted} of ${row.years} years done`;
+        }
+        else { statusBadge.hidden = true; }
+      }
+      statusSelect.addEventListener("change", () => { row.status = statusSelect.value; updateStatusVisuals(); recomputeAndRenderChartAndStats(); });
+      progressInput.addEventListener("input", () => {
+        // clamp what's USED immediately (so the chart/stats are always correct), but don't
+        // rewrite the field's text while the user may still be mid-keystroke — only reflect
+        // the clamp back into the field on blur, below.
+        const cap = Math.max(0, Number(row.years) || 0);
+        row.yearsCompleted = Math.max(0, Math.min(cap, parseFloat(progressInput.value) || 0));
+        updateStatusVisuals();
+        recomputeAndRenderChartAndStats();
+      });
+      progressInput.addEventListener("blur", () => { progressInput.value = row.yearsCompleted; });
+      statusWrap.appendChild(statusSelect);
+      tdStatus.appendChild(statusWrap);
+      updateStatusVisuals();
+
+      const tdDel = document.createElement("td"); tdDel.className = "col-narrow";
+      const delBtn = document.createElement("button");
+      delBtn.className = "row-del"; delBtn.type = "button"; delBtn.textContent = "×";
+      delBtn.title = "Delete simulation";
+      delBtn.addEventListener("click", () => {
+        sims = sims.filter(r => r.id !== row.id);
+        sims.forEach(r => { r.dependsOn = rowDeps(r).filter(d => d !== row.id); });
+        if (selectedChainRoot) selectedChainRoot = null;
+        render();
+      });
+      tdDel.appendChild(delBtn);
+
+      // Owner and cases come from the case issues, through progress.json; each case links to its issue.
+      const tdOwner = document.createElement("td"); tdOwner.className = "col-owner";
+      tdOwner.textContent = row.owner || "";
+      const tdCases = document.createElement("td"); tdCases.className = "col-cases";
+      const reached = c => c.modelDate ? `at ${c.modelDate}` : "no files on NIRD yet";
+      // With more than one member, each chip also names its member (r2 for r2i1p1f1).
+      const manyMembers = new Set((row.cases || []).map(c => c.variant)).size > 1;
+      (row.cases || []).forEach(c => {
+        const chip = document.createElement("a"); chip.className = "case-chip";
+        chip.href = `${ISSUES_URL}/${c.issue}`; chip.target = "_blank"; chip.rel = "noopener";
+        chip.textContent = "#" + String(c.issue).padStart(3, "0") + (manyMembers ? " " + c.variant.split("i")[0] : "");
+        chip.title = `${c.case}\n${c.variant} · ${c.version} · ${reached(c)} · ${c.owner}`;
+        tdCases.appendChild(chip);
+      });
+      if (row.cases && row.cases.length) nameInput.title = row.cases.map(c => `${c.case} (${reached(c)})`).join("\n");
+      tr.appendChild(tdName); tr.appendChild(tdOwner); tr.appendChild(tdCases); tr.appendChild(tdEns); tr.appendChild(tdYears);
+      stepCells.flat().forEach(td => tr.appendChild(td));
+      tr.appendChild(tdDel);
+      simTbody.appendChild(tr);
+    }
+  }
+
+  function buildDependsOnOptions(select, row, slotIndex){
+    // read the raw positional slots directly (not the compacted rowDeps()) so slot 1 and
+    // slot 2 stay tied to their own <select>, even while either is temporarily "None"
+    const arr = Array.isArray(row.dependsOn) ? row.dependsOn : [];
+    const current = arr[slotIndex] || "";
+    const otherSlotValue = arr[slotIndex === 0 ? 1 : 0] || "";
+    select.innerHTML = "";
+    const noneOpt = document.createElement("option");
+    noneOpt.value = ""; noneOpt.textContent = "None";
+    select.appendChild(noneOpt);
+    sims.forEach(r => {
+      if (r.id === row.id) return;
+      if (r.id === otherSlotValue) return; // can't pick the same dependency twice
+      const opt = document.createElement("option");
+      opt.value = r.id; opt.textContent = r.name;
+      if (r.id === current) opt.selected = true;
+      select.appendChild(opt);
+    });
+    if (current && !sims.some(r => r.id === current)) select.value = "";
+  }
+  function buildConfigOptions(select, row){
+    select.innerHTML = "";
+    configs.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.id; opt.textContent = c.name;
+      if (c.id === row.configId) opt.selected = true;
+      select.appendChild(opt);
+    });
+    if (!configs.some(c => c.id === row.configId) && configs.length){
+      row.configId = configs[0].id;
+      select.value = configs[0].id;
+    }
+  }
+  function refreshDependentSelects(){
+    // lightweight refresh of option labels without rebuilding whole rows (keeps focus stable)
+    simTbody.querySelectorAll("select:not(.cfg-select)").forEach(sel => {
+      const rid = sel.dataset.rowId;
+      const row = sims.find(r => r.id === rid);
+      if (!row) return;
+      const slotIndex = Number(sel.dataset.depSlot) || 0;
+      const currentVal = sel.value;
+      buildDependsOnOptions(sel, row, slotIndex);
+      sel.value = currentVal;
+    });
+    simTbody.querySelectorAll("select.cfg-select").forEach(sel => {
+      const rid = sel.dataset.rowId;
+      const row = sims.find(r => r.id === rid);
+      if (!row) return;
+      const currentVal = sel.value;
+      buildConfigOptions(sel, row);
+      sel.value = currentVal;
+    });
+  }
+
+  function recomputeAndRenderChartAndStats(){
+    const result = computeSchedule(configs, sims, slots);
+    lastResult = result;
+    renderCostTable();
+    saveEdits();
+    renderTrackerStats();
+    if (result.error){
+      errorBanner.hidden = false;
+      errorBanner.textContent = result.error;
+      timingNote.hidden = true;
+      statsGrid.innerHTML = "";
+      chartContainer.innerHTML = "";
+      legendEl.innerHTML = "";
+      mipCard.hidden = true; mipBreakdownEl.innerHTML = "";
+      priorityCard.hidden = true; priorityBreakdownEl.innerHTML = ""; priorityExcludedNote.hidden = true;
+      return;
+    }
+    errorBanner.hidden = true;
+    renderTimingNote(result);
+    renderStats(result);
+    renderLegend();
+    renderChart(result);
+    renderMipBreakdown(result);
+    renderPriorityBreakdown(result);
+  }
+
+  // ---------------- top-level controls ----------------
+  slotsInput.addEventListener("input", () => {
+    const v = Math.max(1, Math.round(parseFloat(slotsInput.value) || 1));
+    slots = v;
+    recomputeAndRenderChartAndStats();
+  });
+  costUnitInput.addEventListener("input", () => {
+    costUnit = costUnitInput.value || "units";
+    recomputeAndRenderChartAndStats();
+  });
+  cpToggle.addEventListener("change", () => {
+    if (cpToggle.checked){
+      if (!lastResult || !lastResult.chainJobIds) return;
+      chartContainer.querySelectorAll(".gantt-bar").forEach(b => {
+        const jid = b.getAttribute("data-job");
+        if (lastResult.chainJobIds.has(jid)) b.classList.add("chain");
+      });
+    } else {
+      chartContainer.querySelectorAll(".gantt-bar.chain").forEach(b => {
+        if (!selectedChainRoot) b.classList.remove("chain");
+      });
+      applyChainHighlight();
+    }
+  });
+  resetBtn.addEventListener("click", () => {
+    configs = clone(DEFAULT_CONFIGS);
+    sims = clone(DEFAULT_SIMS);
+    slots = DEFAULT_SLOTS; costUnit = DEFAULT_COST_UNIT;
+    slotsInput.value = DEFAULT_SLOTS; costUnitInput.value = DEFAULT_COST_UNIT;
+    cpToggle.checked = false; selectedChainRoot = null;
+    configSeq = configs.length; simSeq = sims.length;
+    applyAutoProgress(progressData);
+    render();
+  });
+  addConfigBtn.addEventListener("click", () => {
+    configSeq++;
+    configs.push({ id: uid("c", configSeq), name: "New configuration", costPerYear: null, throughput: null });
+    render();
+  });
+  addSimBtn.addEventListener("click", () => {
+    simSeq++;
+    sims.push({ id: uid("r", simSeq), name: "New simulation", dependsOn: [], years: 100, ensemble: null, configId: configs[0].id, priority: 1, status: "pending", yearsCompleted: 0, mip: "DECK", cmipPriority: "", amip: "" });
+    render();
+  });
+
+  // ---------------- spreadsheet export ----------------
+  function csvEscape(v){
+    const s = v === undefined || v === null ? "" : String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function csvRow(cells){ return cells.map(csvEscape).join(","); }
+
+  function buildExportCsv(){
+    const rowById = new Map(sims.map(r => [r.id, r]));
+    const lines = [];
+
+    lines.push(csvRow(["Model configurations"]));
+    lines.push(csvRow(["Configuration", `Cost / sim-yr (${costUnit})`, "Throughput (SYPD)"]));
+    configs.forEach(c => lines.push(csvRow([c.name, c.costPerYear == null ? "" : c.costPerYear, c.throughput == null ? "" : c.throughput])));
+    lines.push("");
+
+    lines.push(csvRow(["Simulation plan"]));
+    lines.push(csvRow([
+      "CMIP Simulation", "Dependency 1", "Dependency 2", "# Years", "Ens", "Configuration", "Priority",
+      "CMIP Priority", "AMIP", "Status", "Years Complete", "Members Running",
+    ]));
+    // Re-emit a blank line + label row ahead of each MIP group, same convention as the
+    // imported file used — but only when a row actually carries a MIP tag, so a plan with
+    // no MIP grouping (the tool's own default) doesn't grow a stray leading blank line.
+    let lastMip = null;
+    sims.forEach(r => {
+      const mip = r.mip || null;
+      if (mip && mip !== lastMip){ lines.push(""); lines.push(csvRow([mip])); }
+      lastMip = mip;
+      const deps = rowDeps(r).map(id => (rowById.get(id) || {}).name || "");
+      const cfg = configs.find(c => c.id === r.configId);
+      lines.push(csvRow([
+        r.name, deps[0] || "", deps[1] || "", r.years, r.ensemble == null ? "" : r.ensemble, cfg ? cfg.name : "", r.priority == null ? 1 : r.priority,
+        r.cmipPriority || "", r.amip || "",
+        STATUS_LABELS[r.status] || "Pending",
+        r.status === "in-progress" ? (r.yearsCompleted == null ? 0 : r.yearsCompleted) : "",
+        r.status === "in-progress" && r.membersRunning != null ? runningCount(r) : "",
+      ]));
+    });
+    lines.push("");
+
+    lines.push(csvRow(["Settings"]));
+    lines.push(csvRow(["Parallel slots", slots]));
+    lines.push(csvRow(["Cost unit label", costUnit]));
+    lines.push("");
+
+    const result = computeSchedule(configs, sims, slots);
+    lines.push(csvRow(["Computed schedule"]));
+    if (result.error){
+      lines.push(csvRow(["Error", result.error]));
+    } else {
+      lines.push(csvRow(["Fastest completion (days)", result.makespan.toFixed(2)]));
+      lines.push(csvRow(["Critical-path floor (days)", result.criticalPath.toFixed(2)]));
+      lines.push(csvRow([`Total compute cost (${costUnit})`, result.totalCost.toFixed(2)]));
+      const utilization = result.makespan > 0 ? (result.totalWork / (result.makespan * slots)) * 100 : 0;
+      lines.push(csvRow(["Slot utilization (%)", utilization.toFixed(1)]));
+
+      const mipBreakdown = computeMipBreakdown(result);
+      if (mipBreakdown.list.length > 1){
+        lines.push("");
+        lines.push(csvRow(["Cost by MIP"]));
+        lines.push(csvRow(["Resolution", "MIP", `Cost (${costUnit})`, "Runs", "% of total"]));
+        mipBreakdown.list.slice().sort((a, b) => a.res.localeCompare(b.res) || b.cost - a.cost).forEach(g => {
+          const pct = result.totalCost > 0 ? (g.cost / result.totalCost) * 100 : 0;
+          lines.push(csvRow([g.res, g.mip, g.cost.toFixed(2), g.runCount, pct.toFixed(1)]));
+        });
+      }
+
+      const priorityBreakdown = computePriorityBreakdown(result);
+      if (priorityBreakdown.list.length > 1 || priorityBreakdown.excludedCount){
+        lines.push("");
+        lines.push(csvRow(["Cost by Priority"]));
+        lines.push(csvRow(["Priority", `Cost (${costUnit})`, "Runs", "% of total"]));
+        priorityBreakdown.list.forEach(g => {
+          const pct = result.totalCost > 0 ? (g.cost / result.totalCost) * 100 : 0;
+          lines.push(csvRow([g.priority, g.cost.toFixed(2), g.runCount, pct.toFixed(1)]));
+        });
+        if (priorityBreakdown.excludedCount){
+          const excludedPct = result.totalCost > 0 ? (priorityBreakdown.excludedCost / result.totalCost) * 100 : 0;
+          lines.push(csvRow(["0 (excluded)", priorityBreakdown.excludedCost.toFixed(2), priorityBreakdown.excludedCount, excludedPct.toFixed(1)]));
+        }
+      }
+
+      lines.push("");
+      lines.push(csvRow(["Simulation", "Configuration", "Priority", "Status", "Slot", "Start (days)", "End (days)", "Duration (days)", `Cost (${costUnit})`]));
+      result.jobs.slice().sort((a, b) => a.start - b.start || a.machine - b.machine).forEach(j => {
+        const cfg = configs.find(c => c.id === j.cfgId);
+        lines.push(csvRow([
+          j.label, cfg ? cfg.name : "", j.rowPriority, j.pinned ? `In progress (${j.yearsCompleted.toFixed(1)}/${j.years} yr, ${j.progressPct.toFixed(1)}%)` : "Pending",
+          "Slot " + (j.machine + 1), j.start.toFixed(2), j.end.toFixed(2), j.duration.toFixed(2), j.cost.toFixed(2),
+        ]));
+      });
+    }
+    return lines.join("\r\n");
+  }
+
+  const downloadsCapPromise = (typeof window !== "undefined" && window.claude && typeof window.claude.use === "function")
+    ? window.claude.use("downloads") : Promise.resolve(null);
+
+  function showFileStatus(msg, isError){
+    fileStatus.textContent = msg;
+    fileStatus.classList.toggle("status-error", !!isError);
+    clearTimeout(fileStatus._hideTimer);
+    fileStatus._hideTimer = setTimeout(() => { fileStatus.textContent = ""; }, 6000);
+  }
+
+  // Plain Blob+anchor download — works when this page is opened as a standalone file
+  // (no window.claude), where there's no sandboxed iframe blocking it. Inside the hosted
+  // artifact frame that same click is blocked, which is exactly what the downloads
+  // capability above exists to bridge, so this is only reached outside that frame.
+  function triggerBrowserDownload(filename, data){
+    try {
+      const blob = new Blob([data], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      return true;
+    } catch (err){ return false; }
+  }
+
+  async function attemptSave(filename, data){
+    const downloads = await downloadsCapPromise;
+    if (!downloads){
+      if (triggerBrowserDownload(filename, data)) showFileStatus("Saved " + filename + ".");
+      else showFileStatus("Downloads aren't available in this view.", true);
+      return;
+    }
+    try {
+      await downloads.save({ filename, data });
+      showFileStatus("Saved " + filename + ".");
+    } catch (err){
+      const code = err && err.code;
+      if ((code === "extension_not_enabled" || code === "rejected_extension") && filename.endsWith(".csv")){
+        return attemptSave(filename.replace(/\.csv$/, ".txt"), data);
+      }
+      if (code === "declined"){ showFileStatus("Save cancelled."); return; }
+      if (code === "rate_limited"){ showFileStatus("Busy — try again in a moment.", true); return; }
+      showFileStatus("Couldn't save the file (" + (code || "error") + ").", true);
+    }
+  }
+
+  downloadBtn.addEventListener("click", () => {
+    showFileStatus("Preparing download…");
+    attemptSave("cmip7-run-plan.csv", buildExportCsv());
+  });
+
+  // ---------------- "set as default plan" ----------------
+  // Serializes a value as JS source (quoted keys are valid JS, not just JSON, so this
+  // reads back in fine even though it's not byte-identical to the original hand-written
+  // style). Field order is fixed explicitly so a stray transient property on a live row
+  // object (e.g. one left over from editing) never leaks into the regenerated defaults.
+  function literalizeConfigs(list){
+    return list.map(c => JSON.stringify({
+      id: c.id, name: c.name,
+      costPerYear: parseOptionalNumber(c.costPerYear),
+      throughput: parseOptionalNumber(c.throughput),
+    })).map(s => "    " + s + ",").join("\n");
+  }
+  function depsOfRow(r){
+    return Array.isArray(r.dependsOn) ? r.dependsOn : (r.dependsOn ? [r.dependsOn] : []);
+  }
+  function literalizeSims(list){
+    return list.map(r => JSON.stringify({
+      id: r.id, name: r.name, dependsOn: depsOfRow(r),
+      years: Number(r.years) || 0,
+      ensemble: normalizeEnsemble(r.ensemble),
+      configId: r.configId,
+      priority: normalizePriority(r.priority),
+      status: r.status || "pending",
+      yearsCompleted: Math.max(0, Number(r.yearsCompleted) || 0),
+      membersRunning: r.membersRunning == null || r.membersRunning === "" ? null : runningCount(r),
+      mip: r.mip || "", cmipPriority: r.cmipPriority || "", amip: r.amip || "",
+      experiment: r.experiment, resolution: r.resolution, startYear: r.startYear,
+    })).map(s => "    " + s + ",").join("\n");
+  }
+
+  // Splices a freshly built default-data block into a copy of the page's own pristine
+  // source, so the downloaded file is this same tool with the current plan baked in as
+  // what loads next time — no server or saved state required, just a file swap.
+  function buildDefaultedSource(){
+    const startMarker = "let DEFAULT_CONFIGS = [";
+    const endMarker = "let configs = clone(DEFAULT_CONFIGS);";
+    const startIdx = PAGE_SOURCE_TEMPLATE.indexOf(startMarker);
+    const endIdx = PAGE_SOURCE_TEMPLATE.indexOf(endMarker);
+    if (startIdx === -1 || endIdx === -1){
+      throw new Error("Couldn't locate the default-data block in this page's source.");
+    }
+    const block = "let DEFAULT_CONFIGS = [\n" + literalizeConfigs(configs) + "\n  ];\n"
+      + "  let DEFAULT_SIMS = [\n" + literalizeSims(sims) + "\n  ];\n"
+      + "  let DEFAULT_SLOTS = " + (Number(slots) || 5) + ";\n"
+      + "  let DEFAULT_COST_UNIT = " + JSON.stringify(costUnit || "core-hr") + ";\n"
+      + "  let DEFAULT_PROGRESS = " + JSON.stringify(DEFAULT_PROGRESS) + ";\n\n  ";
+    return PAGE_SOURCE_TEMPLATE.slice(0, startIdx) + block + PAGE_SOURCE_TEMPLATE.slice(endIdx);
+  }
+
+  setDefaultBtn.addEventListener("click", () => {
+    try {
+      showFileStatus("Preparing updated default file…");
+      attemptSave("noresm3_cmip7_scheduler.html", buildDefaultedSource());
+      // Mirror the change into this running session too, so "Reset to default plan"
+      // reflects the new default immediately rather than only after reopening the file.
+      DEFAULT_CONFIGS = clone(configs);
+      DEFAULT_SIMS = clone(sims);
+      DEFAULT_SLOTS = Number(slots) || 5;
+      DEFAULT_COST_UNIT = costUnit || "core-hr";
+    } catch (err){
+      showFileStatus("Couldn't build the default file.", true);
+    }
+  });
+
+  // ---------------- spreadsheet import ----------------
+  // Full RFC4180-ish parser (not a line-splitter) so a quoted field can contain
+  // commas, quotes, or embedded newlines — matches what buildExportCsv writes.
+  function parseCsv(text){
+    const rows = [];
+    let row = [], field = "", i = 0, inQuotes = false;
+    const n = text.length;
+    while (i < n){
+      const c = text[i];
+      if (inQuotes){
+        if (c === '"'){
+          if (text[i + 1] === '"'){ field += '"'; i += 2; continue; }
+          inQuotes = false; i++; continue;
+        }
+        field += c; i++; continue;
+      }
+      if (c === '"'){ inQuotes = true; i++; continue; }
+      if (c === ','){ row.push(field); field = ""; i++; continue; }
+      if (c === '\r'){ i++; continue; }
+      if (c === '\n'){ row.push(field); rows.push(row); row = []; field = ""; i++; continue; }
+      field += c; i++;
+    }
+    if (field.length || row.length){ row.push(field); rows.push(row); }
+    return rows;
+  }
+
+  // Parses the layout buildExportCsv() writes: stacked labeled sections separated by
+  // blank rows. The "Computed schedule" section is derived output, not input — skipped
+  // on import since it's recomputed live from the other three sections anyway.
+  function importFromCsv(text){
+    const rows = parseCsv(text);
+    let section = null;
+    const rawConfigs = [], rawSims = [];
+    let newSlots = null, newCostUnit = null;
+
+    // A re-saved (e.g. Excel/Sheets) CSV often pads every row to the same column count with
+    // trailing commas, so "only one cell" is not a reliable test for a section-header row —
+    // test "only the first cell has content" instead, ignoring how many empty cells trail it.
+    const isBlankRow = (row) => row.every(c => (c || "").trim() === "");
+    const soleLabelOf = (row) => {
+      const label = (row[0] || "").trim();
+      if (!label) return null;
+      for (let i = 1; i < row.length; i++){ if ((row[i] || "").trim() !== "") return null; }
+      return label;
+    };
+
+    // "None" shows up in some source sheets (mirroring this tool's own "None" dropdown option)
+    // as an explicit placeholder meaning "no dependency" — treat it the same as a blank cell
+    // rather than trying to resolve it as a simulation literally named "None".
+    const normalizeDepRef = (v) => {
+      const s = (v || "").trim();
+      return s.toLowerCase() === "none" ? "" : s;
+    };
+
+    // The sim header's columns are looked up by NAME, not fixed position — this tool's own
+    // export format has grown twice already (adding Status/Years Complete, then CMIP
+    // Priority/AMIP), and a source sheet may have yet another subset/order. Default to this
+    // tool's current column order so a header-less data row still parses reasonably.
+    let simCol = { name:0, dep1:1, dep2:2, years:3, ens:4, config:5, priority:6, cmipPriority:7, amip:8, status:9, yearsCompleted:10 };
+    const cellAt = (row, idx) => (idx == null ? undefined : row[idx]);
+
+    let currentMip = null;
+    for (const row of rows){
+      if (isBlankRow(row)) continue;
+      const label = (row[0] || "").trim();
+      const soleLabel = soleLabelOf(row);
+      if (soleLabel){
+        if (soleLabel === "Model configurations"){ section = "configs"; currentMip = null; continue; }
+        if (soleLabel === "Simulation plan"){ section = "sims"; currentMip = null; continue; }
+        if (soleLabel === "Settings"){ section = "settings"; currentMip = null; continue; }
+        if (soleLabel === "Computed schedule"){ section = "schedule"; continue; }
+        // Any other sole-label row inside the sim list is a MIP/group heading (e.g.
+        // "AerChemMIP") — tag it onto whatever simulation rows follow, not a section of its own.
+        if (section === "sims") currentMip = soleLabel;
+        continue;
+      }
+      if (section === "configs"){
+        if (label === "Configuration") continue;
+        rawConfigs.push({ name: row[0] || "", costPerYear: parseOptionalNumber(row[1]), throughput: parseOptionalNumber(row[2]) });
+      } else if (section === "sims"){
+        if (label === "CMIP Simulation"){
+          const byName = {};
+          row.forEach((cell, i) => { const n = (cell || "").trim(); if (n) byName[n] = i; });
+          simCol = {
+            name: byName["CMIP Simulation"] ?? 0, dep1: byName["Dependency 1"] ?? 1, dep2: byName["Dependency 2"] ?? 2,
+            years: byName["# Years"] ?? 3, ens: byName["Ens"] ?? 4, config: byName["Configuration"] ?? 5, priority: byName["Priority"] ?? 6,
+            // these four are optional additions across versions of this tool (or absent
+            // entirely on a hand-authored source sheet) — undefined here means "not present",
+            // which cellAt()/the defaults below treat as missing rather than misreading some
+            // other column's value under the wrong name.
+            cmipPriority: byName["CMIP Priority"], amip: byName["AMIP"], status: byName["Status"], yearsCompleted: byName["Years Complete"], membersRunning: byName["Members Running"],
+          };
+          continue;
+        }
+        if (!label) continue; // no simulation name — stray formatting residue, not real data
+        const simYears = parseFloat(cellAt(row, simCol.years)) || 0;
+        if (simYears <= 0){
+          // A name with no real year count isn't a simulation — some sheets leave stray values
+          // (e.g. a fill-down "1") in other cells of what's really a MIP heading row like this.
+          currentMip = label;
+          continue;
+        }
+        const rawStatus = cellAt(row, simCol.status), rawYearsCompleted = cellAt(row, simCol.yearsCompleted);
+        rawSims.push({
+          name: row[0] || "",
+          dep1: normalizeDepRef(cellAt(row, simCol.dep1)), dep2: normalizeDepRef(cellAt(row, simCol.dep2)),
+          years: simYears,
+          ensemble: normalizeEnsemble(cellAt(row, simCol.ens)),
+          membersRunning: simCol.membersRunning === undefined ? null : normalizeEnsemble(cellAt(row, simCol.membersRunning)),
+          configName: cellAt(row, simCol.config) || "",
+          priority: normalizePriority(cellAt(row, simCol.priority)),
+          // CMIP Priority / AMIP are carried through as-is for round-tripping — this tool
+          // doesn't use them for scheduling. Status / Years Complete are this tool's own
+          // additions, missing entirely on a source sheet, so default to pending/0.
+          cmipPriority: cellAt(row, simCol.cmipPriority) || "", amip: cellAt(row, simCol.amip) || "",
+          status: normalizeStatus(rawStatus),
+          yearsCompleted: rawYearsCompleted === undefined || rawYearsCompleted === "" ? 0 : Math.max(0, Math.min(simYears, parseFloat(rawYearsCompleted) || 0)),
+          mip: currentMip,
+        });
+      } else if (section === "settings"){
+        if (label === "Parallel slots") newSlots = Math.max(1, Math.round(parseFloat(row[1]) || 1));
+        else if (label === "Cost unit label") newCostUnit = row[1] || null;
+      }
+      // section === "schedule" (or null, before the first header) — ignored
+    }
+
+    if (!rawConfigs.length || !rawSims.length){
+      return { error: 'No "Model configurations" and "Simulation plan" sections found — is this a plan exported from this tool?' };
+    }
+
+    const configNameToId = new Map();
+    const importedConfigs = rawConfigs.map((c, i) => {
+      const id = "c" + (i + 1);
+      configNameToId.set(c.name, id);
+      return { id, name: c.name, costPerYear: c.costPerYear, throughput: c.throughput };
+    });
+
+    const simNameToId = new Map();
+    rawSims.forEach((r, i) => simNameToId.set(r.name, "r" + (i + 1)));
+
+    const warnings = [];
+    const nameCounts = new Map();
+    rawSims.forEach(r => nameCounts.set(r.name, (nameCounts.get(r.name) || 0) + 1));
+    nameCounts.forEach((count, name) => {
+      if (count > 1) warnings.push(`"${name}" appears ${count} times — dependencies referencing it resolve to the last occurrence.`);
+    });
+
+    const importedSims = rawSims.map((r, i) => {
+      const id = "r" + (i + 1);
+      if (r.dep1 && !simNameToId.has(r.dep1)) warnings.push(`"${r.name}" depends on unknown simulation "${r.dep1}" — ignored.`);
+      if (r.dep2 && !simNameToId.has(r.dep2)) warnings.push(`"${r.name}" depends on unknown simulation "${r.dep2}" — ignored.`);
+      if (!r.configName) warnings.push(`"${r.name}" has no configuration set — defaulted to ${importedConfigs[0].name}.`);
+      else if (!configNameToId.has(r.configName)) warnings.push(`"${r.name}" uses unknown configuration "${r.configName}" — defaulted to ${importedConfigs[0].name}.`);
+      const dependsOn = [r.dep1 ? simNameToId.get(r.dep1) : undefined, r.dep2 ? simNameToId.get(r.dep2) : undefined].filter(Boolean);
+      return {
+        id, name: r.name, dependsOn,
+        years: r.years, ensemble: normalizeEnsemble(r.ensemble),
+        configId: configNameToId.get(r.configName) || importedConfigs[0].id,
+        priority: normalizePriority(r.priority),
+        status: r.status, yearsCompleted: r.yearsCompleted, membersRunning: r.membersRunning,
+        mip: r.mip, cmipPriority: r.cmipPriority, amip: r.amip,
+      };
+    });
+
+    return { configs: importedConfigs, sims: importedSims, slots: newSlots, costUnit: newCostUnit, warnings };
+  }
+
+  function applyImport(parsed){
+    configs = parsed.configs;
+    sims = parsed.sims;
+    if (parsed.slots != null){ slots = parsed.slots; slotsInput.value = slots; }
+    if (parsed.costUnit != null){ costUnit = parsed.costUnit; costUnitInput.value = costUnit; }
+    configSeq = configs.length; simSeq = sims.length;
+    cpToggle.checked = false; selectedChainRoot = null;
+    render();
+    const summary = `Loaded ${sims.length} simulations across ${configs.length} configurations.`;
+    if (parsed.warnings.length){
+      console.warn("CSV import warnings:\n" + parsed.warnings.join("\n"));
+      showFileStatus(summary + ` (${parsed.warnings.length} warning${parsed.warnings.length > 1 ? "s" : ""} — see browser console.)`, true);
+    } else {
+      showFileStatus(summary);
+    }
+  }
+
+  uploadBtn.addEventListener("click", () => csvFileInput.click());
+  csvFileInput.addEventListener("change", async () => {
+    const file = csvFileInput.files && csvFileInput.files[0];
+    csvFileInput.value = ""; // allow re-selecting the same file later
+    if (!file) return;
+    showFileStatus("Reading " + file.name + "…");
+    try {
+      const text = await file.text();
+      const parsed = importFromCsv(text);
+      if (parsed.error){ showFileStatus(parsed.error, true); return; }
+      applyImport(parsed);
+    } catch (err){
+      showFileStatus("Couldn't read that file.", true);
+    }
+  });
+
+  // Sync the control inputs to the actual in-memory defaults rather than trusting their
+  // static HTML attributes to match — matters once a regenerated file can carry defaults
+  // other than slots=5/core-hr, which the markup below was never rewritten to reflect.
+  slotsInput.value = slots; costUnitInput.value = costUnit;
+
+  // ---------------- tabs ----------------
+  const TABS = ["tracker", "cost"];
+  // The workflow is a section of the tracker: #workflow, or #wf-<step> for one step,
+  // opens it on the tracker and scrolls to it.
+  const isWorkflow = id => id === "workflow" || id.startsWith("wf-");
+  function showWorkflow(id){
+    const details = el("workflow");
+    details.open = true;
+    document.querySelectorAll(".wf-steps > li.wf-hit").forEach(li => li.classList.remove("wf-hit"));
+    const target = (id !== "workflow" && el(id)) || details;
+    // A step inside a closed disclosure is shown by opening it, and any around it.
+    for (let d = target.closest("details"); d; d = d.parentElement && d.parentElement.closest("details")) d.open = true;
+    if (target.tagName === "DETAILS") target.open = true;
+    if (target !== details) target.classList.add("wf-hit");
+    target.scrollIntoView({ block: "start" });
+  }
+  function showTab(wanted){
+    const want = wanted || (location.hash || "").replace("#", "");
+    const tab = TABS.includes(want) ? want : "tracker";
+    TABS.forEach(name => { el("tab-" + name).hidden = name !== tab; });
+    costUnitInput.closest("label").hidden = tab !== "cost";
+    document.querySelectorAll(".tab-nav a").forEach(a => {
+      if (a.dataset.tab === tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+    if (isWorkflow(want)) showWorkflow(want);
+  }
+  window.addEventListener("hashchange", () => {
+    const want = (location.hash || "").replace("#", "");
+    showTab();
+    if (!isWorkflow(want)) window.scrollTo(0, 0);
+  });
+  // Links within the page are handled here, so they work even where the page can't change its URL.
+  document.addEventListener("click", e => {
+    const a = e.target.closest && e.target.closest('a[href^="#"]');
+    const id = a && a.getAttribute("href").slice(1);
+    if (!id || !(TABS.includes(id) || isWorkflow(id))) return;
+    e.preventDefault();
+    showTab(id);
+    if (!isWorkflow(id)) window.scrollTo(0, 0);
+    try { history.replaceState(null, "", "#" + id); } catch (err) { /* the URL can't change here */ }
+  });
+  showTab();
+
+  // ---------------- progress from NIRD ----------------
+  // workflow/nird_progress.py writes progress.json next to the page on NIRD: one entry per
+  // case issue, with its labels, the latest model date in its files and the sets of years
+  // cmip7-prep has done. A case belongs to the run whose experiment is one of its labels, at
+  // its resolution, and to the member its variant label (r1i1p1f1) names: cases of one
+  // member are one simulation continued in new cases. Years done and CMORized count from
+  // the run's start year.
+  const VARIANT = /^r\d+i\d+p\d+f\d+$/;
+
+  function memberProgress(variant, cases, start, length){
+    const m = { variant, years: 0 };
+    const dates = cases.map(c => c.modelDate).filter(Boolean).sort();
+    if (dates.length){
+      m.modelDate = dates[dates.length - 1];
+      const [y, mo, d] = m.modelDate.split("-").map(Number);
+      m.years = Math.max(0, Math.round((y + (mo - 1) / 12 + (d - 1) / 365 - start) * 100) / 100);
+    }
+    m.completed = cases.some(c => c.completed);
+    if (m.completed) m.years = length;
+    // A set of years counts once it has every cmor- step any of the member's sets has, so a
+    // set where one realm failed does not; the range ends at the first year missing.
+    const sets = cases.flatMap(c => c.cmor || []);
+    const expected = [...new Set(sets.flatMap(s => s.steps || []))];
+    if (expected.length){
+      const years = new Set();
+      sets.forEach(s => {
+        if (expected.every(k => (s.steps || []).includes(k))) for (let y = s.first; y <= s.last; y++) years.add(y);
+      });
+      let y = start;
+      while (years.has(y)) y++;
+      if (y > start){ m.cmorFrom = start; m.cmorTo = y - 1; m.cmorYears = y - start; }
+    }
+    return m;
+  }
+
+  // A run's progress: its members', and for the run as a whole the mean years done, the
+  // years every member has CMORized, and whether every planned member has finished.
+  function runProgress(row){
+    const start = Number(row.startYear) || 1, length = Number(row.years) || 0;
+    const byVariant = {};
+    row.cases.forEach(c => (byVariant[c.variant] = byVariant[c.variant] || []).push(c));
+    const members = Object.keys(byVariant).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+      .map(v => memberProgress(v, byVariant[v], start, length));
+    // Prepare is ticked by hand: the run scripts are not checked yet.
+    const p = { members, steps: {} };
+    if (members.some(m => m.modelDate || m.completed)){
+      p.yearsCompleted = Math.round(members.reduce((s, m) => s + m.years, 0) / members.length * 100) / 100;
+    }
+    if (members.length === 1) p.modelDate = members[0].modelDate;
+    const planned = ensembleCount(row);
+    p.completed = members.filter(m => m.completed).length >= planned;
+    if (members.every(m => Number.isFinite(m.cmorTo))){
+      p.cmorFrom = start;
+      p.cmorTo = Math.min(...members.map(m => m.cmorTo));
+      p.cmorYears = p.cmorTo - start + 1;
+      if (members.length >= planned && p.cmorYears >= (length || Infinity)) p.steps.cmoratm = true;
+    }
+    return p;
+  }
+
+  function applyAutoProgress(data){
+    if (!data || typeof data !== "object" || !Array.isArray(data.cases)) return;
+    progressData = data;
+    const unmatched = (data.skipped || []).map(s => `#${s.issue}, ${s.reason}`);
+    sims.forEach(r => { delete r.cases; delete r.owner; });
+    data.cases.forEach(c => {
+      const row = sims.find(r => r.resolution === c.resolution && (c.labels || []).includes(r.experiment));
+      c.variant = (c.labels || []).find(l => VARIANT.test(l));
+      if (!row) unmatched.push(`#${c.issue}, no label names an experiment in the plan at ${c.resolution}`);
+      else if (!c.variant) unmatched.push(`#${c.issue}, no variant label such as r1i1p1f1`);
+      else (row.cases = row.cases || []).push(c);
+    });
+    const runs = {};
+    sims.forEach(row => {
+      if (!row.cases) return;
+      row.owner = [...new Set(row.cases.map(c => c.owner))].join(", ");
+      runs[row.name] = runProgress(row);
+    });
+    autoProgress = { updated: data.updated, runs, unmatched };
+    Object.entries(runs).forEach(([name, p]) => {
+      const row = sims.find(r => r.name === name);
+      if (!row || !p) return;
+      if (p.completed === true) row.status = "completed";
+      if (Number.isFinite(p.yearsCompleted)){
+        row.yearsCompleted = Math.max(0, Math.min(Number(row.years) || 0, p.yearsCompleted));
+        if (row.status === "pending" && p.yearsCompleted > 0) row.status = "in-progress";
+      }
+      // Members with an issue are the ones going; the rest of the ensemble waits.
+      if (row.status === "in-progress") row.membersRunning = p.members.length;
+    });
+  }
+
+  applyAutoProgress(DEFAULT_PROGRESS);
+  render();
+  if (editsRestored) showFileStatus("Your edits from last time are back. Reset to default plan discards them.");
+  if (/^https?:$/.test(location.protocol)){
+    fetch("progress.json", { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data){ applyAutoProgress(data); render(); } })
+      .catch(() => {});
+  }
+})();
+</script></body></html>
