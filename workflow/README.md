@@ -111,10 +111,14 @@ python3 -I workflow/nird_progress.py \
   Model Cost (pe-hours per simulated year) and Model Throughput (simulated years
   per day) of every `noresm_timing.*` file there, one per job, gzipped or not. For
   each machine it averages the case's jobs there, weighting each job by the years
-  it simulated, and it records the machine of the latest job. The page combines a
-  configuration's cases the same way, separately for Olivia and Betzy, shows the
-  result in place of the value it was built with, and costs each run on the machine
-  its latest case ran on. Some cases keep their timing files one level down, in a
+  it simulated, and it records the machine of the latest job and each job's end
+  date, cost and throughput. The page costs each run on the machine its latest case
+  ran on, with the run's own timing there when it has any and its configuration's
+  otherwise; a configuration's value is the same mean over all its runs' cases, and
+  the value it was built with until it has one. Under Timings by experiment the page
+  lists the timing of each run with a case issue, a line for each machine (Olivia in
+  green, Betzy in orange), and a run's job count opens charts of its SYPD and cost
+  job by job. Some cases keep their timing files one level down, in a
   directory named after the case, so `--timing-dir` is given once for each layout;
   the first that exists is read.
 - `--pattern` sets which files count (default `*.cam.i.*.nc`).

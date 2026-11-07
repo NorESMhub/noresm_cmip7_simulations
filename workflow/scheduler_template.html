@@ -301,7 +301,7 @@
   .cost-table tr.ct-res th{ background: color-mix(in srgb, var(--series-7) 24%, transparent); color: var(--text-primary); font-size: 13.5px; font-weight: 700; padding-top: 9px; }
   .cost-table tr.ct-res th span{ font-weight: 500; color: var(--text-secondary); margin-left: 10px; }
   /* Resolution heading rows in the configuration table. */
-  #configTable tr.cfg-res th{
+  #expTimingTable tr.cfg-res th{
     background: var(--accent-wash); font-size: 13.5px; font-weight: 700; text-align: left;
     color: var(--res-colour, var(--text-primary));
     border-left: 4px solid var(--res-colour, var(--accent));
@@ -328,18 +328,50 @@
   .cost-table .ct-groupinfo{ margin-left: 10px; font-weight: 400; color: var(--text-secondary); }
   table.data-table.cost-table input.num{ width: 64px; min-width: 52px; }
   table.data-table.cost-table select{ width: auto; min-width: 190px; }
-  table.data-table#configTable input.num{ width: 110px; }
-  #configTable tr.cfg-machines th{ text-align: center; border-bottom: 1px solid var(--border); }
-  #configTable .cfg-machine-start{ border-left: 1px solid color-mix(in srgb, var(--text-primary) 30%, transparent); padding-left: 12px; }
-  #configTable .cfg-num{ text-align: center; }
+  #expTimingTable .cfg-machine-start{ border-left: 1px solid color-mix(in srgb, var(--text-primary) 30%, transparent); padding-left: 12px; }
+  #expTimingTable .cfg-num{ text-align: center; }
+  #expTimingTable td{ font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  #expTimingTable td.col-name{ font-family: inherit; }
+  #expTimingTable td.measured{ font-weight: 600; }
+  /* Olivia is green and Betzy orange, wherever a timing is shown by machine. */
+  :root{ --olivia: var(--series-6); --betzy: var(--series-2); }
+  #expTimingTable td.machine-olivia{ color: var(--olivia); }
+  #expTimingTable td.machine-betzy{ color: var(--betzy); }
+  .machine-tag{ display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-secondary); }
+  .machine-tag::before{ content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--olivia); }
+  .machine-tag.machine-betzy::before{ background: var(--betzy); border-radius: 1px; transform: rotate(45deg); width: 8px; height: 8px; }
+  #expTimingTable td.estimate{ color: var(--text-muted); }
+  #expTimingTable tr.cfg-res th{ text-align: left; }
+  .spark-btn{ display: inline-flex; align-items: center; gap: 6px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-raised); color: var(--text-primary); font: inherit; cursor: pointer; }
+  .spark-btn:hover{ border-color: var(--accent); }
+  .spark-btn svg{ display: block; }
+  .spark-btn .spark{ fill: none; stroke: var(--olivia); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  .timing-dialog{ width: min(680px, calc(100vw - 32px)); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px 10px; background: var(--surface-raised); color: var(--text-primary); }
+  .timing-dialog::backdrop{ background: rgba(0,0,0,.35); }
+  .timing-dialog-head{ display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .timing-dialog-head h3{ margin: 0; font-size: 15px; }
+  .timing-dialog .tchart{ position: relative; margin-top: 10px; }
+  .timing-dialog .tchart h4{ margin: 0 0 2px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+  .timing-dialog .tchart svg{ display: block; width: 100%; height: auto; overflow: visible; }
+  .timing-dialog .grid{ stroke: var(--border); stroke-width: 1; }
+  .timing-dialog .axis-label{ fill: var(--text-muted); font-size: 11px; }
+  .timing-dialog .series{ fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .spark-btn .spark.betzy{ stroke: var(--betzy); }
+  .timing-dialog .series.olivia{ stroke: var(--olivia); }
+  .timing-dialog .series.betzy{ stroke: var(--betzy); }
+  .timing-dialog .job{ stroke: var(--surface-raised); stroke-width: 2; }
+  .timing-dialog .job.olivia{ fill: var(--olivia); }
+  .timing-dialog .job.betzy{ fill: var(--betzy); }
+  .timing-dialog .mean{ stroke: var(--text-secondary); stroke-width: 1; stroke-dasharray: 4 3; }
+  .timing-dialog .mean-label{ fill: var(--text-secondary); font-size: 11px; }
+  .timing-dialog .hit{ fill: transparent; }
+  .exp-timing-tip{ position: absolute; pointer-events: none; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 12px; color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,.12); white-space: nowrap; z-index: 5; }
   .cost-table tr.ct-off input:disabled, .cost-table tr.ct-off select:disabled{ opacity: .55; }
   .cost-table tr.ct-offhead th{ background: var(--surface-2, var(--accent-wash)); text-align: left; font-weight: 600; }
   .cost-table tr.ct-offhead th span{ font-weight: 400; color: var(--text-muted); margin-left: 10px; font-size: 12px; }
   .cost-table .ct-offtoggle{ all: unset; cursor: pointer; color: var(--text-primary); font-weight: 600; }
   .cost-table .ct-offtoggle:focus-visible{ outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 3px; }
   input.num.needs-timing{ border-color: var(--accent); }
-  .measured-key{ color: var(--accent); font-weight: 600; }
-  table.data-table input.num.measured{ background: transparent; border-color: transparent; color: var(--accent); font-weight: 600; cursor: help; }
 
   /* ---------- editor tables ---------- */
   .editor-head{ display:flex; flex-direction: column; gap: 2px; }
@@ -709,28 +741,31 @@
   </div>
 
   <div class="tab-panel" id="tab-cost" hidden="">
-  <section class="card editor-card">
+  <section class="card editor-card" id="expTimingCard">
     <div class="editor-head">
-      <h2>Model configurations</h2>
-      <p class="editor-caption">Each configuration has a cost and throughput on Olivia and on Betzy, <span class="measured-key">measured</span> from the timing files of its runs on each machine: the mean over all their jobs, each weighted by the years it simulated. Hover a measured value for its jobs and cases. Where nothing has run on a machine yet, the value is from earlier timing runs; it can be changed here to try another, but changes are not saved. A run is costed on the machine its timing files name, and on Olivia until it has any. Throughput is in simulated years per day (SYPD); cost per simulated year is in the unit set above (timing files give pe-hours, i.e. core-hours).</p>
+      <h2>Timings by experiment</h2>
+      <p class="editor-caption">The runs with a case issue, with the cost and throughput measured from their cases' timing files on each machine, <span class="machine-tag">Olivia</span> in green and <span class="machine-tag machine-betzy">Betzy</span> in orange: the mean over their jobs, each weighted by the years it simulated. Click a run's job count to plot its SYPD and cost job by job. A run with no timing files on a machine yet shows its configuration's value in grey, and is costed with it.</p>
     </div>
     <div class="table-scroll">
-      <table class="data-table" id="configTable">
-        <thead><tr class="cfg-machines">
-          <th rowspan="2">Configuration</th>
-          <th colspan="2" class="cfg-machine-start">Olivia</th>
-          <th colspan="2" class="cfg-machine-start">Betzy</th>
-          <th rowspan="2" class="col-narrow"></th>
-        </tr><tr>
+      <table class="data-table" id="expTimingTable">
+        <thead><tr>
+          <th>Run</th>
+          <th>Machine</th>
           <th class="cfg-num cfg-machine-start">Cost / sim-yr</th>
           <th class="cfg-num">SYPD</th>
-          <th class="cfg-num cfg-machine-start">Cost / sim-yr</th>
-          <th class="cfg-num">SYPD</th>
+          <th class="cfg-num">Jobs</th>
         </tr></thead>
-        <tbody id="configTbody"></tbody>
+        <tbody id="expTimingTbody"></tbody>
       </table>
     </div>
-    <button id="addConfigBtn" class="btn btn-ghost btn-sm" type="button">+ Add configuration</button>
+    <dialog id="timingDialog" class="timing-dialog" aria-labelledby="timingDialogTitle">
+      <div class="timing-dialog-head">
+        <h3 id="timingDialogTitle"></h3>
+        <button type="button" class="btn btn-ghost btn-sm" id="timingDialogClose" aria-label="Close">×</button>
+      </div>
+      <p class="editor-caption" id="timingDialogNote"></p>
+      <div id="timingDialogCharts"></div>
+    </dialog>
   </section>
 
   <section class="stats-grid" id="statsGrid" aria-label="Summary"></section>
@@ -742,7 +777,7 @@
   <section class="card" id="costTableCard">
     <div class="editor-head">
       <h2>Cost table</h2>
-      <p class="editor-caption">Each run's core-hours and SYPD are on the machine it runs on: Betzy for a run whose timing files say so, Olivia otherwise. Click a MIP to open or close its runs. Edit Members, Years each and Configuration here, or untick a run to take it out of the plan, to see what it would cost; costs come from the Model configurations above and update straight away. Changes are not saved; the plan itself is set when the page is built. Unticked runs are listed at the bottom. It shows the full planned cost; progress is tracked on the Tracker page. Core-hours are members × years × cost per simulated year. Days per member is how long one member takes on its own.</p>
+      <p class="editor-caption">Each run's core-hours and SYPD are on the machine it runs on: Betzy for a run whose timing files say so, Olivia otherwise. Click a MIP to open or close its runs. Edit Members, Years each and Configuration here, or untick a run to take it out of the plan, to see what it would cost. A run with timing files of its own is costed with them; any other run with its configuration's value, the mean over that configuration's runs that have timing files, or an earlier timing if none has. Changes are not saved; the plan itself is set when the page is built. Unticked runs are listed at the bottom. It shows the full planned cost; progress is tracked on the Tracker page. Core-hours are members × years × cost per simulated year. Days per member is how long one member takes on its own.</p>
     </div>
     <div class="ct-toolbar">
       <button type="button" class="btn btn-ghost btn-sm" data-action="expand-all">Expand all</button>
@@ -952,9 +987,7 @@
   const priorityBreakdownEl = el("priorityBreakdown");
   const priorityExcludedNote = el("priorityExcludedNote");
   const cpToggle = el("criticalPathToggle");
-  const configTbody = el("configTbody");
   const simTbody = el("simTbody");
-  const addConfigBtn = el("addConfigBtn");
   const addSimBtn = el("addSimBtn");
   const tooltip = el("tooltip");
 
@@ -1193,8 +1226,11 @@
     { key: "betzy", label: "Betzy", cost: "betzyCostPerYear", sypd: "betzyThroughput" },
   ];
   const machineOf = row => MACHINES.find(m => m.key === (row && row.machine)) || MACHINES[0];
-  const costOn = (cfg, row) => cfg ? cfg[machineOf(row).cost] : null;
-  const sypdOn = (cfg, row) => cfg ? cfg[machineOf(row).sypd] : null;
+  // A run with timing files of its own on its machine is costed with them; any other run
+  // with its configuration's value there.
+  const ownTiming = (row, mc) => (row && row.measured && row.measured[mc.key]) || null;
+  const costOn = (cfg, row) => { const mc = machineOf(row), own = ownTiming(row, mc); return own ? own.cost : cfg ? cfg[mc.cost] : null; };
+  const sypdOn = (cfg, row) => { const mc = machineOf(row), own = ownTiming(row, mc); return own ? own.sypd : cfg ? cfg[mc.sypd] : null; };
   // A run can be scheduled once its configuration has a positive throughput on the run's
   // machine. Cost may still be blank; those runs schedule normally and add nothing to the
   // cost totals.
@@ -2050,7 +2086,7 @@
   function escapeAttr(s){ return String(s).replace(/"/g,"&quot;"); }
 
   function renderTables(){
-    renderConfigTable();
+    renderExpTimings();
     renderSimTable();
   }
 
@@ -2059,77 +2095,170 @@
     return m ? m[0] : "";
   }
 
-  // Configurations are listed by resolution, each under its own heading; those without
-  // a resolution in their name come last, under "Other".
-  function renderConfigTable(){
-    configTbody.innerHTML = "";
-    const resolutions = Array.from(new Set(configs.map(configResolution)))
-      .sort((a, b) => (a === "") - (b === "") || a.localeCompare(b));
-    resolutions.forEach(res => {
+  // ---------------- timings by experiment ----------------
+  // The runs with a case issue, by resolution, with their own measured timing on each
+  // machine or their configuration's value as an estimate.
+  const expTimingTbody = el("expTimingTbody");
+  const fmtRate = (v, digits) => v == null || !Number.isFinite(Number(v)) ? "–" : Number(v).toLocaleString("en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits });
+  function expTimingRows(){
+    const byRes = new Map();
+    sims.filter(r => Array.isArray(r.cases) && r.cases.length).forEach(r => {
+      const res = resolutionOf(r) || "Other";
+      if (!byRes.has(res)) byRes.set(res, []);
+      byRes.get(res).push(r);
+    });
+    return [...byRes.keys()].sort((a, b) => (a === "Other") - (b === "Other") || a.localeCompare(b))
+      .map(res => ({ res, rows: byRes.get(res) }));
+  }
+  function renderExpTimings(){
+    expTimingTbody.innerHTML = "";
+    const groups = expTimingRows();
+    const NCOLS = 5;
+    if (!groups.length){
+      expTimingTbody.innerHTML = `<tr><td colspan="${NCOLS}" class="estimate">No run has a case issue yet.</td></tr>`;
+      return;
+    }
+    groups.forEach(({ res, rows }) => {
       const head = document.createElement("tr");
       head.className = "cfg-res";
       if (RES_SERIES[res]) head.style.setProperty("--res-colour", `var(--series-${RES_SERIES[res]})`);
-      const th = document.createElement("th");
-      th.colSpan = 2 + 2 * MACHINES.length; th.textContent = res || "Other";
-      head.appendChild(th);
-      configTbody.appendChild(head);
-      configs.filter(cfg => configResolution(cfg) === res).forEach(renderConfigRow);
+      head.innerHTML = `<th colspan="${NCOLS}">${res}</th>`;
+      expTimingTbody.appendChild(head);
+      rows.forEach(r => {
+        const cfg = configs.find(c => c.id === r.configId) || configs[0];
+        // One line for each machine the run has timing files on; a run with none yet gets
+        // one line on its machine, with its configuration's value.
+        const measured = MACHINES.filter(mc => ownTiming(r, mc));
+        (measured.length ? measured : [machineOf(r)]).forEach((mc, k) => {
+          const own = ownTiming(r, mc);
+          const tr = document.createElement("tr");
+          const name = document.createElement("td");
+          name.className = "col-name";
+          name.textContent = k === 0 ? r.name : "";
+          tr.appendChild(name);
+          const machine = document.createElement("td");
+          machine.innerHTML = `<span class="machine-tag machine-${mc.key}">${mc.label}</span>`;
+          tr.appendChild(machine);
+          const cells = own
+            ? [fmtRate(own.cost, 0), fmtRate(own.sypd, 2), String(own.jobs)]
+            : [fmtRate(cfg && cfg[mc.cost], 0), fmtRate(cfg && cfg[mc.sypd], 2), ""];
+          cells.forEach((text, i) => {
+            const td = document.createElement("td");
+            td.className = "cfg-num" + (i === 0 ? " cfg-machine-start" : "") + (i < 2 ? (own ? ` measured machine-${mc.key}` : " estimate") : "");
+            if (i === 2 && own && own.runs.length) td.appendChild(sparkButton(r, mc, own));
+            else td.textContent = text;
+            if (i < 2) td.title = own
+              ? `${r.name} on ${mc.label}: ${own.jobs} job${own.jobs === 1 ? "" : "s"} of ${own.cases} case${own.cases === 1 ? "" : "s"}, ${own.years} simulated years`
+              : `No timing files of this run on ${mc.label} yet; the value of ${cfg ? cfg.name : "its configuration"}`;
+            tr.appendChild(td);
+          });
+          expTimingTbody.appendChild(tr);
+        });
+      });
     });
   }
 
-  function renderConfigRow(cfg){
-      const tr = document.createElement("tr");
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  function svgEl(tag, attrs){
+    const n = document.createElementNS(SVG_NS, tag);
+    Object.entries(attrs || {}).forEach(([k, v]) => n.setAttribute(k, v));
+    return n;
+  }
+  // The marker for a job: a circle on Olivia, a diamond on Betzy, so the machine does not
+  // rest on colour alone.
+  function jobMarker(machine, x, y){
+    return machine === "betzy"
+      ? svgEl("path", { d: `M${x} ${y - 6}L${x + 6} ${y}L${x} ${y + 6}L${x - 6} ${y}Z`, class: "job betzy" })
+      : svgEl("circle", { cx: x, cy: y, r: 5, class: "job olivia" });
+  }
+  // The Jobs cell of a measured run: its job count and a sparkline of its SYPD, which opens
+  // the run's timing charts.
+  function sparkButton(row, mc, own){
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "spark-btn";
+    btn.title = `Plot the SYPD and cost of each of ${row.name}'s jobs on ${mc.label}`;
+    btn.appendChild(document.createTextNode(String(own.jobs)));
+    const values = own.runs.map(j => Number(j[2]));
+    const w = 48, h = 16, lo = Math.min(...values), hi = Math.max(...values);
+    const svg = svgEl("svg", { width: w, height: h, viewBox: `0 0 ${w} ${h}`, "aria-hidden": "true" });
+    const px = i => values.length === 1 ? w / 2 : 2 + i / (values.length - 1) * (w - 4);
+    const py = v => hi === lo ? h / 2 : h - 2 - (v - lo) / (hi - lo) * (h - 4);
+    svg.appendChild(values.length === 1
+      ? svgEl("circle", { cx: w / 2, cy: h / 2, r: 2, fill: `var(--${mc.key})` })
+      : svgEl("polyline", { points: values.map((v, i) => `${px(i)},${py(v)}`).join(" "), class: `spark ${mc.key}` }));
+    btn.appendChild(svg);
+    btn.addEventListener("click", () => openTimingDialog(row, mc, own));
+    return btn;
+  }
 
-      const tdName = document.createElement("td"); tdName.className = "col-name";
-      const nameWrap = document.createElement("div"); nameWrap.className = "config-name-wrap";
-      const swatch = document.createElement("span");
-      swatch.className = "legend-swatch bar-cfg-" + colourGroupOf(cfg).series;
-      swatch.title = "Chart color for this configuration";
-      const nameInput = document.createElement("input");
-      nameInput.type = "text"; nameInput.value = cfg.name;
-      nameInput.addEventListener("input", () => { cfg.name = nameInput.value || cfg.name; renderLegend(); refreshDependentSelects(); recomputeAndRenderChartAndStats(); });
-      nameWrap.appendChild(swatch); nameWrap.appendChild(nameInput);
-      tdName.appendChild(nameWrap);
-
-      // A cost and a throughput for each machine; the values measured on NIRD can't be edited.
-      const cells = MACHINES.flatMap(mc => {
-        const m = cfg.measured && cfg.measured[mc.key];
-        const note = m ? `Measured on NIRD: ${m.jobs} job${m.jobs === 1 ? "" : "s"} of ${m.cases} case${m.cases === 1 ? "" : "s"} `
-          + `on ${mc.label}, ${m.years} simulated years. Built with ${m.built.cost ?? "no cost"} / ${m.built.sypd ?? "no throughput"}.` : "";
-        return [mc.cost, mc.sypd].map(field => {
-          const td = document.createElement("td");
-          td.className = field === mc.cost ? "cfg-num cfg-machine-start" : "cfg-num";
-          const input = document.createElement("input");
-          input.type = "number"; input.className = "num"; input.min = "0"; input.step = "any";
-          input.value = cfg[field] == null ? "" : cfg[field]; input.placeholder = "not known";
-          const flag = () => input.classList.toggle("needs-timing", field === mc.sypd ? !(Number(cfg[field]) > 0) : cfg[field] == null);
-          flag();
-          input.addEventListener("input", () => {
-            cfg[field] = parseOptionalNumber(input.value);
-            flag();
-            recomputeAndRenderChartAndStats();
-          });
-          if (m){ input.readOnly = true; input.classList.add("measured"); input.title = note; }
-          td.appendChild(input);
-          return td;
-        });
+  const timingDialog = el("timingDialog");
+  el("timingDialogClose").addEventListener("click", () => timingDialog.close());
+  timingDialog.addEventListener("click", e => { if (e.target === timingDialog) timingDialog.close(); });
+  function openTimingDialog(row, mc, own){
+    el("timingDialogTitle").textContent = `${row.name} on ${mc.label}`;
+    el("timingDialogNote").textContent = `${own.jobs} job${own.jobs === 1 ? "" : "s"} of ${own.cases} case${own.cases === 1 ? "" : "s"}, `
+      + `${own.years} simulated years, by the date each job ended. The dashed line is the mean, each job weighted by the years it simulated.`;
+    const charts = el("timingDialogCharts");
+    charts.innerHTML = "";
+    if (typeof timingDialog.showModal === "function") timingDialog.showModal(); else timingDialog.setAttribute("open", "");
+    charts.appendChild(jobChart(own, mc, 2, "Simulated years per day", own.sypd, 2));
+    charts.appendChild(jobChart(own, mc, 1, `Cost per simulated year (${costUnit})`, own.cost, 0));
+  }
+  // One measure of a run's jobs over time: a 2px line through each job, a dashed mean, and a
+  // tooltip on each job.
+  function jobChart(own, mc, index, title, mean, digits){
+    const wrap = document.createElement("div");
+    wrap.className = "tchart";
+    const h4 = document.createElement("h4");
+    h4.textContent = title;
+    wrap.appendChild(h4);
+    const jobs = own.runs.map(j => ({ t: new Date(j[0].replace(" ", "T")).getTime(), v: Number(j[index]), j }));
+    const values = jobs.map(p => p.v).concat(mean);
+    let lo = Math.min(...values), hi = Math.max(...values);
+    const pad = (hi - lo) * 0.15 || Math.abs(hi) * 0.05 || 1;
+    lo -= pad; hi += pad;
+    const t0 = Math.min(...jobs.map(p => p.t)), t1 = Math.max(...jobs.map(p => p.t));
+    const width = Math.max(wrap.clientWidth || 640, 320), height = 150;
+    const left = 52, right = 44, top = 8, bottom = 22;
+    const x = t => t1 === t0 ? left + (width - left - right) / 2 : left + (t - t0) / (t1 - t0) * (width - left - right);
+    const y = v => top + (hi - v) / (hi - lo) * (height - top - bottom);
+    const svg = svgEl("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": `${title} of each job` });
+    const step = (() => { const raw = (hi - lo) / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))); return [1, 2, 2.5, 5, 10].map(f => f * mag).find(s => raw <= s); })();
+    for (let v = Math.ceil(lo / step) * step; v <= hi; v += step){
+      svg.appendChild(svgEl("line", { x1: left, x2: width - right, y1: y(v), y2: y(v), class: "grid" }));
+      const t = svgEl("text", { x: left - 6, y: y(v) + 4, "text-anchor": "end", class: "axis-label" });
+      t.textContent = fmtRate(v, step < 1 ? 1 : 0);
+      svg.appendChild(t);
+    }
+    const fmtDay = ms => new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    [[t0, "start"], [t1, "end"]].filter((d, i) => i === 0 || t1 !== t0).forEach(([t, anchor]) => {
+      const lab = svgEl("text", { x: x(t), y: height - 6, "text-anchor": t1 === t0 ? "middle" : anchor, class: "axis-label" });
+      lab.textContent = fmtDay(t);
+      svg.appendChild(lab);
+    });
+    svg.appendChild(svgEl("line", { x1: left, x2: width - right, y1: y(mean), y2: y(mean), class: "mean" }));
+    const meanLabel = svgEl("text", { x: width - right + 4, y: y(mean) + 4, class: "mean-label" });
+    meanLabel.textContent = "mean";
+    svg.appendChild(meanLabel);
+    if (jobs.length > 1) svg.appendChild(svgEl("polyline", { points: jobs.map(p => `${x(p.t)},${y(p.v)}`).join(" "), class: `series ${mc.key}` }));
+    const tip = document.createElement("div");
+    tip.className = "exp-timing-tip"; tip.hidden = true;
+    jobs.forEach(p => {
+      svg.appendChild(jobMarker(mc.key, x(p.t), y(p.v)));
+      const hit = svgEl("circle", { cx: x(p.t), cy: y(p.v), r: 10, class: "hit" });
+      hit.addEventListener("mouseenter", () => {
+        tip.innerHTML = `Job ending ${p.j[0]}<br>${fmtRate(p.j[2], 2)} SYPD · ${fmtRate(p.j[1], 0)} ${costUnit} / sim-yr · ${fmtRate(p.j[3], 1)} years`;
+        tip.hidden = false;
+        const scale = (svg.getBoundingClientRect().width || width) / width;
+        tip.style.left = Math.min(width * scale - 250, Math.max(0, x(p.t) * scale + 10)) + "px";
+        tip.style.top = (y(p.v) * scale + 24) + "px";
       });
-
-      const tdDel = document.createElement("td"); tdDel.className = "col-narrow";
-      const delBtn = document.createElement("button");
-      delBtn.className = "row-del"; delBtn.type = "button"; delBtn.textContent = "×";
-      delBtn.title = "Delete configuration";
-      delBtn.disabled = configs.length <= 1;
-      delBtn.addEventListener("click", () => {
-        if (configs.length <= 1) return;
-        configs = configs.filter(c => c.id !== cfg.id);
-        sims.forEach(r => { if (r.configId === cfg.id) r.configId = configs[0].id; });
-        render();
-      });
-      tdDel.appendChild(delBtn);
-
-      tr.appendChild(tdName); cells.forEach(td => tr.appendChild(td)); tr.appendChild(tdDel);
-      configTbody.appendChild(tr);
+      hit.addEventListener("mouseleave", () => { tip.hidden = true; });
+      svg.appendChild(hit);
+    });
+    wrap.appendChild(svg);
+    wrap.appendChild(tip);
+    return wrap;
   }
 
   // Display order: the DECK first, then each MIP in alphabetical order, then the runs that
@@ -2530,11 +2659,6 @@
       applyChainHighlight();
     }
   });
-  addConfigBtn.addEventListener("click", () => {
-    configSeq++;
-    configs.push({ id: uid("c", configSeq), name: "New configuration", costPerYear: null, throughput: null, betzyCostPerYear: null, betzyThroughput: null });
-    render();
-  });
   addSimBtn.addEventListener("click", () => {
     simSeq++;
     sims.push({ id: uid("r", simSeq), name: "New simulation", dependsOn: [], years: 100, ensemble: null, configId: configs[0].id, priority: 1, status: "pending", yearsCompleted: 0, mip: "DECK", cmipPriority: "", amip: "" });
@@ -2862,7 +2986,29 @@
   // runs' cases there, the mean over all their jobs with each job weighted by the years it
   // simulated. A machine where none of its cases has run keeps the value the page was built
   // with.
+  // The mean of several per-machine timings (cases' or runs'), each job weighted by the
+  // years it simulated.
+  function combineTimings(list){
+    const years = list.reduce((s, t) => s + t.years, 0);
+    return {
+      cost: Math.round(list.reduce((s, t) => s + t.cost * t.years, 0) / years * 100) / 100,
+      sypd: Math.round(years / list.reduce((s, t) => s + t.years / t.sypd, 0) * 100) / 100,
+      years: Math.round(years * 10) / 10, cases: list.length,
+      jobs: list.reduce((s, t) => s + (t.jobs || 0), 0),
+      runs: list.flatMap(t => t.runs || []).sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+    };
+  }
+  const usableTiming = t => t && MACHINES.some(x => x.key === t.machine) && t.years > 0 && t.sypd > 0 && Number.isFinite(t.cost);
+
   function applyMeasuredTiming(){
+    // Each run's own timing on each machine, from its cases.
+    sims.forEach(row => {
+      delete row.measured;
+      const byMachine = {};
+      (row.cases || []).forEach(c => (Array.isArray(c.timing) ? c.timing : []).filter(usableTiming)
+        .forEach(t => (byMachine[t.machine] = byMachine[t.machine] || []).push(t)));
+      Object.entries(byMachine).forEach(([key, list]) => { (row.measured = row.measured || {})[key] = combineTimings(list); });
+    });
     configs.forEach(cfg => {
       Object.entries(cfg.measured || {}).forEach(([key, m]) => {
         const mc = MACHINES.find(x => x.key === key);
@@ -2882,14 +3028,12 @@
     groups.forEach(({ id, mc, list }) => {
       const cfg = configs.find(c => c.id === id);
       if (!cfg) return;
-      const years = list.reduce((s, t) => s + t.years, 0);
+      const m = combineTimings(list);
       (cfg.measured = cfg.measured || {})[mc.key] = {
-        built: { cost: cfg[mc.cost], sypd: cfg[mc.sypd] },
-        cases: list.length, years: Math.round(years * 10) / 10,
-        jobs: list.reduce((s, t) => s + (t.jobs || 0), 0),
+        built: { cost: cfg[mc.cost], sypd: cfg[mc.sypd] }, cases: m.cases, years: m.years, jobs: m.jobs,
       };
-      cfg[mc.cost] = Math.round(list.reduce((s, t) => s + t.cost * t.years, 0) / years * 100) / 100;
-      cfg[mc.sypd] = Math.round(years / list.reduce((s, t) => s + t.years / t.sypd, 0) * 100) / 100;
+      cfg[mc.cost] = m.cost;
+      cfg[mc.sypd] = m.sypd;
     });
   }
 

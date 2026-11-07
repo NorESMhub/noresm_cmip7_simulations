@@ -63,6 +63,7 @@ TIMING_LINES = {
     "days": re.compile(r"^\s*run length\s*:\s*([\d.]+)\s+days", re.M),
     "pes": re.compile(r"^\s*pe count for cost estimate\s*:\s*(\d+)", re.M),
     "machine": re.compile(r"^\s*Machine\s*:\s*(\S+)", re.M),
+    "date": re.compile(r"^\s*Curr Date\s*:\s*(.+?)\s*$", re.M),
 }
 
 
@@ -119,11 +120,13 @@ def cmor_sets(directory):
 
 
 def read_timing_file(path):
-    """{cost, sypd, days, pes, machine} from one timing file; None if it lacks cost or throughput."""
+    """{cost, sypd, days, pes, machine, date} from one timing file; None if it lacks cost or
+    throughput. The date is when the job ended (Curr Date), or the file's time without one."""
     opener = gzip.open if path.endswith(".gz") else open
     try:
         with opener(path, "rt", encoding="utf-8", errors="replace") as f:
             text = f.read()
+        mtime = os.path.getmtime(path)
     except OSError:
         return None
     found = {k: m.group(1) for k, r in TIMING_LINES.items() if (m := r.search(text))}
@@ -134,17 +137,22 @@ def read_timing_file(path):
         t["pes"] = int(found["pes"])
     if "machine" in found:
         t["machine"] = found["machine"]
+    try:
+        t["date"] = datetime.datetime.strptime(found.get("date", ""), "%a %b %d %H:%M:%S %Y")
+    except ValueError:
+        t["date"] = datetime.datetime.fromtimestamp(mtime)
     return t
 
 
 def case_timing(directory):
     """The case's cost and throughput on each machine it ran on, averaged over all its
     timing files there with each job weighted by the years it simulated: cost in pe-hours
-    per simulated year, throughput in simulated years per day. Returns ([{machine, jobs,
-    years, cost, sypd, pes}], the machine of its latest job), or (None, None) if there are
-    no readable timing files."""
+    per simulated year, throughput in simulated years per day. Each machine's entry also
+    lists its jobs, [end date, cost, throughput, years], for the page's plot of how the
+    timings vary. Returns ([{machine, jobs, years, cost, sypd, pes, runs}], the machine of
+    its latest job), or (None, None) if there are no readable timing files."""
     paths = glob.glob(os.path.join(glob.escape(directory), "noresm_timing.*"))
-    jobs = [t for path in sorted(paths, key=os.path.getmtime) if (t := read_timing_file(path))]
+    jobs = sorted((t for path in paths if (t := read_timing_file(path))), key=lambda t: t["date"])
     if not jobs:
         return None, None
     by_machine = {}
@@ -159,6 +167,8 @@ def case_timing(directory):
                  "sypd": round(total / sum(y / t["sypd"] for t, y in zip(mjobs, years)), 2)}
         if "pes" in mjobs[-1]:
             entry["pes"] = mjobs[-1]["pes"]
+        entry["runs"] = [[t["date"].strftime("%Y-%m-%d %H:%M"), t["cost"], t["sypd"], round(y, 2)]
+                         for t, y in zip(mjobs, years)]
         timing.append(entry)
     return timing, jobs[-1].get("machine", "unknown").lower()
 
