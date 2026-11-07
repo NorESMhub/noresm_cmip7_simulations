@@ -443,7 +443,8 @@
     cursor:pointer; font-size: 15px; line-height:1; padding: 4px 6px; border-radius: 6px;
   }
   .row-del:hover{ color: var(--danger); background: var(--danger-wash); }
-  #trackerStats{ grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  #trackerStats{ grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  @media (max-width: 1100px){ #trackerStats{ grid-template-columns: repeat(4, minmax(0, 1fr)); } }
   @media (max-width: 760px){ #trackerStats{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   #simTable td.col-name input{ min-width: 170px; }
   #simTable input.num{ width: 58px; min-width: 50px; }
@@ -500,6 +501,9 @@
   #simTable td.phase-start,
   #simTable th.step-h.phase-start,
   #simTable th.step-group{ border-left: 2px solid color-mix(in srgb, var(--text-muted) 60%, transparent); }
+  /* Within a phase, a line between groups of steps, such as each CMORization tool and its QA. */
+  #simTable td.split-start,
+  #simTable th.step-h.split-start{ border-left: 1px solid color-mix(in srgb, var(--text-muted) 60%, transparent); }
   .caption-list{ margin: 6px 0 0; padding-left: 20px; }
   .caption-list li{ margin: 2px 0; }
   .auto-note{ color: var(--text-muted); }
@@ -946,10 +950,10 @@
     { key: "prepare",   short: "Done",     name: "Case prepared: named, its GitHub issue and run script made", phase: "Prepare" },
     { key: "runqa",     short: "Done",       name: "QA checklist done", phase: "QA" },
     { key: "run",       short: "Run",        name: "Run: Status and Progress", phase: "Run", derived: true, cols: 2 },
-    { key: "cmorissue", short: "Issue",      name: "CMORization issue made", phase: "CMORize" },
-    { key: "cmoratm",   short: "cmip7prep",  name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", auto: true, range: true },
+    { key: "cmorissue", short: "Issues",     name: "CMORization issue made", phase: "CMORize" },
+    { key: "cmoratm",   short: "cmip7prep",  name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", auto: true, range: true, split: true },
     { key: "qaatm",     short: "QA",         name: "cmip7-prep output validated" },
-    { key: "cmorocn",   short: "cmor4cmip7", name: "Ocean and ocean biogeochemistry CMORized with cmor4cmip7" },
+    { key: "cmorocn",   short: "cmor4cmip7", name: "Ocean and ocean biogeochemistry CMORized with cmor4cmip7", split: true },
     { key: "qaocn",     short: "QA",         name: "cmor4cmip7 output QA done" },
     { key: "esgf",      short: "ESGF",       name: "Published on ESGF", phase: "Publish" },
   ];
@@ -1572,10 +1576,11 @@
     const count = f => active.filter(f).length;
     const tiles = [
       { label: "Runs in the plan", value: active.length, sub: `${active.reduce((n, r) => n + ensembleCount(r), 0)} members` },
-      { label: "Issue opened", value: count(issueOpened), sub: "no files on NIRD yet" },
+      { label: "Waiting to start", value: count(issueOpened), sub: "GitHub issue open, no files on NIRD yet" },
       { label: "In progress", value: count(r => r.status === "in-progress"), sub: "running now", hero: true },
       { label: "Completed", value: count(r => r.status === "completed"), sub: "run finished" },
-      { label: "CMORized", value: count(r => stepDone(r, "cmoratm") && stepDone(r, "cmorocn")), sub: "cmip7prep and cmor4cmip7 both done" },
+      { label: "CMORized with cmip7prep", value: count(r => stepDone(r, "cmoratm")), sub: "atmosphere, land, sea ice and land ice" },
+      { label: "CMORized with cmor4cmip7", value: count(r => stepDone(r, "cmorocn")), sub: "ocean and ocean biogeochemistry" },
       { label: "On ESGF", value: count(r => stepDone(r, "esgf")), sub: "published" },
     ];
     box.innerHTML = "";
@@ -2296,7 +2301,7 @@
           // The run itself: its Status and its Progress, read from NIRD.
           ? `<th class="step-h step-wide${s.phase ? " phase-start" : ""}" title="The run's status, determined automatically on NIRD"><a href="#wf-${s.key}">Status</a></th>`
             + `<th class="step-h step-wide" title="Years done, determined automatically on NIRD by the progress script">Progress<div class="th-note">automatic, from NIRD</div></th>`
-          : `<th class="step-h${s.phase ? " phase-start" : ""}" title="${s.name}${s.auto ? " (determined automatically on NIRD)" : ""}"><a href="#wf-${s.key}">${s.short}</a></th>`).join("")
+          : `<th class="step-h${s.phase ? " phase-start" : s.split ? " split-start" : ""}" title="${s.name}${s.auto ? " (determined automatically on NIRD)" : ""}"><a href="#wf-${s.key}">${s.short}</a></th>`).join("")
       + `</tr>`;
   }
   const SIM_NCOLS = 6 + WORKFLOW_STEPS.reduce((n, s) => n + (s.cols || 1), 0);
@@ -2441,7 +2446,7 @@
           return [tdStatus, tdProgress];
         }
         const td = document.createElement("td");
-        td.className = "step-c" + (step.phase ? " phase-start" : "");
+        td.className = "step-c" + (step.phase ? " phase-start" : step.split ? " split-start" : "");
         td.title = `${row.name}: ${step.name}`;
         if (step.range){
           const p = autoRun(row);
@@ -2490,7 +2495,7 @@
         progBar.classList.toggle("is-done", row.status === "completed");
         progText.textContent = row.status === "completed" ? "Done"
           : inProgress ? `of ${row.years} · ${pct.toFixed(0)}%`
-          : issueOpened(row) ? "Issue opened"
+          : issueOpened(row) ? "Waiting, no files on NIRD yet"
           : "Not started";
         const auto = autoProgress && autoProgress.runs && autoProgress.runs[row.name];
         if (auto && auto.modelDate && row.status !== "completed") progText.textContent += ` · at ${auto.modelDate}`;
@@ -2501,8 +2506,8 @@
         tr.classList.toggle("row-inprogress", row.status === "in-progress");
         tr.classList.toggle("row-opened", issueOpened(row));
         if (issueOpened(row)){
-          statusBadge.hidden = false; statusBadge.textContent = "issue"; statusBadge.className = "status-badge badge-opened";
-          statusBadge.title = "An issue is open for this run, but NIRD has no model files for it yet";
+          statusBadge.hidden = false; statusBadge.textContent = "waiting"; statusBadge.className = "status-badge badge-opened";
+          statusBadge.title = "This run has a GitHub issue, but NIRD has no model files for it yet";
         }
         else if (row.status === "completed"){ statusBadge.hidden = false; statusBadge.textContent = "✓"; statusBadge.className = "status-badge badge-completed"; statusBadge.title = "Completed — no cost remaining"; }
         else if (row.status === "in-progress"){
