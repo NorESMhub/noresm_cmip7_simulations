@@ -18,9 +18,13 @@ The tracker takes its cases from the issues in this repository, one per case:
 
 ## The run scripts
 
-Each case's run script is pushed straight to `scripts/` on the `CMIP7_Runscripts`
-branch, which needs write access to the repository.
+Each case's run script is pushed straight to its experiment's directory under
+`scripts/` on the `CMIP7_Runscripts` branch, which needs write access to the
+repository.
 
+- **Directory:** `scripts/<experiment>/`, named after the issue's experiment label,
+  e.g. `scripts/piControl/`. Every experiment label has one. A new label needs its
+  own directory, with an empty `.gitkeep` file so that git keeps it while it is empty.
 - **Name:** `<issue>.<compset>.<resolution>.<beta>.<date>.sh`, each part copied
   from the case name: `n1850GHGGaxg.LM.nor30b28.011.20261102` gets
   `011.n1850GHGGaxg.LM.b28.20261102.sh`.
@@ -28,19 +32,20 @@ branch, which needs write access to the repository.
 
   ```bash
   git switch CMIP7_Runscripts && git pull
-  cp /path/to/run_script.sh scripts/011.n1850GHGGaxg.LM.b28.20261102.sh
-  git add scripts/011.n1850GHGGaxg.LM.b28.20261102.sh
+  cp /path/to/run_script.sh scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
+  git add scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
   git commit -m "Run script for #11"
   git push
   ```
 
-  Without a clone, use **Add file → Upload files** in `scripts/` on GitHub and
-  choose **Commit directly to the CMIP7_Runscripts branch**.
+  Without a clone, open the experiment's directory under `scripts/` on GitHub, use
+  **Add file → Upload files** and choose **Commit directly to the CMIP7_Runscripts
+  branch**.
 - **Commit message:** `Run script for #11`, with the case's issue number. GitHub
   then shows the commit on the issue. Don't write `Closes #11` or `Fixes #11`:
   either closes the issue.
 - **Issue:** add a line with the script's link to the issue's description, e.g.
-  `Run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/011.n1850GHGGaxg.LM.b28.20261102.sh`.
+  `Run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh`.
 
 ## Continuations and members
 
