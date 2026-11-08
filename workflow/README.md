@@ -6,16 +6,21 @@ published at https://ns9560k.web.sigma2.no/datalake/diagnostics/noresm/cmip7_pla
 
 ## The page
 
-`build_page.sh` builds the page with the published plan. It runs
-`build_scheduler.py`, which fills `scheduler_template.html` in from
-`noresm3_experiments_decoded.csv` (the experiments) and its own `COSTS` table
-(each configuration's cost, throughput and compsets). To publish it, run on NIRD
-from this repository's clone:
+`build_page.sh` builds the page. It runs `build_scheduler.py` with the plan set
+in `build_page.sh`: the resolutions, members, years and slots. `build_scheduler.py`
+takes the experiments from `noresm3_experiments_decoded.csv`, gives each a
+configuration from its `COSTS` table, and writes them into
+`scheduler_template.html`. The page reads the runs' progress and timing from
+`progress.json` when it loads, so it needs rebuilding only when the plan or the
+template changes. To publish it, run on NIRD from this repository's clone:
 
 ```bash
 git pull
 workflow/build_page.sh /nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/index.html
 ```
+
+When a change to the page also changes what `progress.json` holds, run
+`nird_progress.py` first.
 
 Run without an argument, it writes `noresm3_cmip7_scheduler.html` in the current
 directory. A page opened as a local file can't fetch `progress.json`, so every run
@@ -25,12 +30,10 @@ shows as Pending; to see the progress, build a copy of it into the page:
 workflow/build_page.sh preview.html --progress progress.json
 ```
 
-The plan (resolutions, members, years, slots) is set in `build_page.sh`, and the
-page's layout, text and workflow in `scheduler_template.html`. A configuration's
-cost and throughput come from its cases' timing files, through `progress.json`;
-`COSTS` in `build_scheduler.py` holds the values from earlier timing runs, which
-the page uses for a configuration with nothing running yet, and which compsets
-belong to each configuration.
+The page's layout, text and workflow are in `scheduler_template.html`. A
+configuration's cost and throughput come from its cases' timing files, through
+`progress.json`; the values in `COSTS`, from earlier timing runs, are used only
+for a configuration with nothing running yet.
 
 ## The case issues
 
