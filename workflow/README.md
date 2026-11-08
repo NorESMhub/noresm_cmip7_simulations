@@ -48,8 +48,8 @@ The tracker takes its cases from the issues in this repository, one per case:
 - **`test`:** add this label to a case that is not a CMIP7 run, to leave it out.
 - **Step labels:** add a step's label when the step is done, and the tracker ticks
   its column after the next run of `nird_progress.py`. A run with several members
-  needs the label on an issue of each; until then the column shows how many have
-  it, e.g. `1/3`.
+  has a row for each, named by its variant, e.g. `1pctCO2 LM r1i1p1f1` to
+  `r3i1p1f1`, so each member's issue ticks its own row.
 
   | Label | Step |
   |---|---|
@@ -58,30 +58,48 @@ The tracker takes its cases from the issues in this repository, one per case:
   | `cmor4cmip7-qa` | CMORize: the cmor4cmip7 output is QA'd |
   | `esgf` | Publish: the data is on ESGF |
 
-- **Description:** a heading for the run script, the case it continues, if any,
-  and each tool's output root, with the link, issue or directory on the line after
-  it. Add each root as its tool starts on the case:
+- **Description:** a list with an entry for the run script, the case it
+  continues, if any, the CMOR data version and each tool's output root: the
+  label, a colon and the link, issue, version or directory, one entry a line.
+  Add the version before CMORization starts, and each root as its tool starts on
+  the simulation:
 
   ```
-  ### Run script
-  https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
-
-  ### Continues
-  #2
-
-  ### cmip7prep output root
-  /nird/datalake/NS9560K/noresm3/cases/<case>.cmor
-
-  ### cmor4cmip7 output root
-  /nird/datapeak/NS9034K/CMIP7
+  - run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
+  - continues: #2
+  - cmor data version: v20261028
+  - cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/<case>.cmor
+  - cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1
   ```
+
+  The script also reads an entry written as a `### label` heading with the value
+  on the next line.
+
+  The CMOR data version is the version directory, `vYYYYMMDD`, that both tools write
+  the case's years into. cmip7-prep's `--data-version` and cmor4cmip7's version
+  must be the same, so that every realm's files for those years are one edition
+  of the dataset. `nird_progress.py` records the version directories each tool's
+  files for the case are in, and the tracker marks a CMORize column with ⚠ when
+  they disagree: a case's cmip7-prep files in a version other than its issue's,
+  cmor4cmip7 files in a version no issue of the simulation gives, or years the
+  two tools wrote into different versions. Hovering the cell says which.
 
   The cmip7prep and cmor4cmip7 columns need no label: `nird_progress.py` reads
-  the years each tool has CMORized under its root. It reads cmip7-prep's
-  `completed_steps_*.json` files, and the time ranges in the names of cmor4cmip7's
-  files for the case, those whose name has its experiment and variant, e.g.
-  `_piControl_r1i1p1f1_`. A year counts once every variable has it. Without a
-  cmip7prep output root it uses `--cmor-dir`.
+  the years each tool has CMORized under its root. Every issue of a simulation
+  gets both roots:
+
+  - **cmip7prep:** the case's own directory, the one that holds cmip7-prep's
+    `completed_steps_*.json` files, so it differs from issue to issue. Only that
+    directory is read, not the ones below it. Without the entry the script uses
+    `--cmor-dir`, the case's `.cmor` directory.
+  - **cmor4cmip7:** the simulation's variant directory, without the version, so
+    that a later version is read too, and the same in each issue. Every directory
+    below it is read, and the years come from the time ranges in the names of the
+    files whose name has the issue's experiment and variant, e.g.
+    `_piControl_r1i1p1f1_`. A year counts once every variable has it, and the
+    tracker counts it once however many issues give the root. A root above the
+    model directory would mix the LM and MM files of the same experiment and
+    variant.
 
 ## The run scripts
 
@@ -111,16 +129,16 @@ repository.
 - **Commit message:** `Run script for #11`, with the case's issue number. GitHub
   then shows the commit on the issue. Don't write `Closes #11` or `Fixes #11`:
   either closes the issue.
-- **Issue:** add the script's link to the issue's description under the heading
-  `### Run script`, e.g.
-  `https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh`.
+- **Issue:** add the script's link to the issue's description as the entry
+  `- run script:`, e.g.
+  `- run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh`.
 
 ## Continuations and members
 
 A simulation continued in a new case gets a new issue with the same experiment and
-variant labels, and `#<earlier issue>` under the heading `### Continues` in its
+variant labels, and the entry `- continues: #<earlier issue>` in its
 description. The tracker reads the two as one member, taking its progress from the
-later model date; the heading is for readers, as the labels are enough for the
+later model date; the entry is for readers, as the labels are enough for the
 tracker. Another member of the ensemble gets its own variant, e.g.
 `r2i1p1f1`, and its own progress.
 

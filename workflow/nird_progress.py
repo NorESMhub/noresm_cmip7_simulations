@@ -20,8 +20,8 @@ For each case it records:
   - the years cmor4cmip7 has CMORized, from the time ranges in the names of the
     case's files under its output root, such as
     so_Omon_NorESM3_piControl_r1i1p1f1_gn_000101-001012.nc. A file is the case's
-    when its name has the issue's experiment and variant labels, so the root can
-    hold other runs too. A year counts once every variable has it;
+    when its name has the issue's experiment and variant labels. A year counts
+    once every variable has it;
   - its cost (pe-hours per simulated year) and throughput (simulated years per
     day) on each machine it ran on, from the Machine, Model Cost and Model
     Throughput lines of its timing files, noresm_timing.<case>.<job id>.<date>,
@@ -30,17 +30,22 @@ For each case it records:
 
 --dir gives each case's directory, --cmor-dir its cmip7-prep output directory
 and --timing-dir its timing directory, with {case} standing for the case name.
-The issue's description names each tool's output root under a heading of its
-own, with the directory on the line after it:
+The issue's description lists each tool's output root and the CMOR data version,
+one entry a line (a "### label" heading with the value on the next line is read
+too):
 
-  ### cmip7prep output root
-  /nird/datalake/NS9560K/noresm3/cases/<case>.cmor
+  - cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/<case>.cmor
+  - cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1
+  - cmor data version: v20261028
 
-  ### cmor4cmip7 output root
-  /nird/datapeak/NS9034K/CMIP7
-
-The cmip7prep root takes the place of --cmor-dir for that case; cmor4cmip7's output
-is only read when the issue names its root.
+The cmip7prep root is the case's directory holding the completed_steps files, and
+takes the place of --cmor-dir for that case. The cmor4cmip7 root is the
+simulation's variant directory, the same in each of its issues, every directory
+below which is read; its output is only read when the issue names its root.
+The CMOR data version is the version the case's years are CMORized into. For each tool the script
+records the version directories, vYYYYMMDD, its files for the case are in and
+the years in each, so the page can flag a version that differs from the issue's
+or between the two tools.
 Some cases keep their timing files one level down, in a directory named after
 the case, so --timing-dir is given once for each layout; the first that exists
 is read:
@@ -77,11 +82,21 @@ COMPLETED = re.compile(r"completed_steps_(\d+)-(\d+)\.json$")
 # A CMOR file's variable and the years of its time range, before .nc:
 # so_Omon_NorESM3_piControl_r1i1p1f1_gn_000101-001012.nc
 CMOR_FILE = re.compile(r"^(.+)_(\d{4})\d*-(\d{4})\d*\.nc$")
-# Headings of an issue's description followed by where each tool's CMORized output is:
-# "### cmip7prep output root", then the directory on the next line that isn't blank.
-OUTPUT_ROOTS = {tool: re.compile(r"^#{1,6}[ \t]*" + tool + r"[ \t]+output(?:[ \t]+root)?[ \t]*\r?\n\s*`?(/[^\s`]+)",
-                                 re.M | re.I)
+def entry(label, value):
+    """An entry of an issue's description: "- label: value" on one line, the label in bold or
+    not, or the label as a heading, "### label", with the value on the next line that isn't
+    blank."""
+    return re.compile(r"^[ \t]*(?:[-*+][ \t]+|#{1,6}[ \t]*)?(?:\*\*)?" + label
+                      + r"(?:\*\*)?[ \t]*:?[ \t]*(?:\*\*)?\s*`?(" + value + r")", re.M | re.I)
+
+
+# Where each tool's CMORized output is: "- cmip7prep output root: /nird/...".
+OUTPUT_ROOTS = {tool: entry(tool + r"[ \t]+output(?:[ \t]+root)?", r"/[^\s`]+")
                 for tool in ("cmip7prep", "cmor4cmip7")}
+# The version the case's years are CMORized into: "- cmor data version: v20261028".
+DATA_VERSION = entry(r"cmor[ \t]+data[ \t]+version", r"v\d{8}\b")
+# The version directory a CMOR file sits under: .../r1i1p1f1/v20261028/so_..._000101-001012.nc
+VERSION_DIR = re.compile(r"^v\d{8}$")
 VARIANT = re.compile(r"^r\d+i\d+p\d+f\d+$")
 # Lines of a timing file, one per job: noresm_timing.<case>.<job id>.<date>.
 TIMING_LINES = {
@@ -149,38 +164,60 @@ def cmor_sets(directory):
 _cmor_files = {}
 
 
+def file_version(dirpath):
+    """The version directory, vYYYYMMDD, nearest above a file; None if there is none."""
+    return next((p for p in reversed(dirpath.split(os.sep)) if VERSION_DIR.match(p)), None)
+
+
 def cmor_files(directory):
-    """The names of the CMOR files with a time range under the directory, read once per run."""
+    """(name match, version) of each CMOR file with a time range under the directory, read
+    once per run."""
     if directory not in _cmor_files:
-        _cmor_files[directory] = [m for _, _, names in os.walk(directory)
+        _cmor_files[directory] = [(m, file_version(d)) for d, _, names in os.walk(directory)
                                   for name in names if (m := CMOR_FILE.match(name))]
     return _cmor_files[directory]
 
 
-def cmor_file_years(directory, labels):
-    """[[first, last], ...]: the years every variable of the case has a file for under the
-    directory, from the time ranges in the CMOR file names. The case's files are the ones
-    whose name has one of its labels as the experiment, followed by its variant label, as
-    in so_Omon_NorESM3_piControl_r1i1p1f1_gn_000101-001012.nc. Files without a time range
-    (fixed fields) don't count."""
-    variant = next((l for l in labels if VARIANT.match(l)), None)
-    if not variant:
-        return []
-    keys = [f"_{l}_{variant}_" for l in labels if l != variant]
-    by_var = {}
-    for m in cmor_files(directory):
-        if any(k in m.group(0) for k in keys):
-            by_var.setdefault(m.group(1), set()).update(range(int(m.group(2)), int(m.group(3)) + 1))
-    if not by_var:
-        return []
-    years = sorted(set.intersection(*by_var.values()))
+def year_ranges(years):
+    """[[first, last], ...] for the runs of consecutive years."""
     ranges = []
-    for y in years:
+    for y in sorted(years):
         if ranges and y == ranges[-1][1] + 1:
             ranges[-1][1] = y
         else:
             ranges.append([y, y])
     return ranges
+
+
+def case_files(directory, labels):
+    """(name match, version) of the case's CMOR files under the directory: those whose name
+    has one of its labels as the experiment, followed by its variant label, as in
+    so_Omon_NorESM3_piControl_r1i1p1f1_gn_000101-001012.nc."""
+    variant = next((l for l in labels if VARIANT.match(l)), None)
+    if not variant:
+        return []
+    keys = [f"_{l}_{variant}_" for l in labels if l != variant]
+    return [(m, v) for m, v in cmor_files(directory) if any(k in m.group(0) for k in keys)]
+
+
+def cmor_file_years(directory, labels):
+    """[[first, last], ...]: the years every variable of the case has a file for under the
+    directory, from the time ranges in the CMOR file names. Files without a time range
+    (fixed fields) don't count."""
+    by_var = {}
+    for m, _ in case_files(directory, labels):
+        by_var.setdefault(m.group(1), set()).update(range(int(m.group(2)), int(m.group(3)) + 1))
+    return year_ranges(set.intersection(*by_var.values())) if by_var else []
+
+
+def cmor_versions(directory, labels):
+    """{version: [[first, last], ...]}: the years of the case's CMOR files under the
+    directory, by the version directory they are in."""
+    by_version = {}
+    for m, v in case_files(directory, labels):
+        if v:
+            by_version.setdefault(v, set()).update(range(int(m.group(2)), int(m.group(3)) + 1))
+    return {v: year_ranges(ys) for v, ys in sorted(by_version.items())}
 
 
 def read_timing_file(path):
@@ -282,17 +319,30 @@ def main():
         output = {tool: m.group(1) for tool, r in OUTPUT_ROOTS.items() if (m := r.search(body))}
         if output:
             case["cmorOutput"] = output
+        if m := DATA_VERSION.search(body):
+            case["dataVersion"] = m.group(1)
+            report += "; CMOR data version " + m.group(1)
+        versions = {}
         prep_dir = output.get("cmip7prep") or (a.cmor_dir.format(case=title) if a.cmor_dir else None)
         if prep_dir:
             sets = cmor_sets(prep_dir)
             if sets:
                 case["cmor"] = sets
                 report += "; cmip7prep " + ", ".join(f"{s['first']}-{s['last']}" for s in sets)
+            # cmip7-prep writes its CMOR files under cmor/ in its output directory.
+            prep_cmor = os.path.join(prep_dir, "cmor")
+            if v := cmor_versions(prep_cmor if os.path.isdir(prep_cmor) else prep_dir, labels):
+                versions["cmip7prep"] = v
         if "cmor4cmip7" in output:
             ranges = cmor_file_years(output["cmor4cmip7"], labels)
             if ranges:
                 case["cmor4cmip7"] = ranges
             report += "; cmor4cmip7 " + (", ".join(f"{f}-{l}" for f, l in ranges) or "nothing yet")
+            if v := cmor_versions(output["cmor4cmip7"], labels):
+                versions["cmor4cmip7"] = v
+        if versions:
+            case["cmorVersions"] = versions
+            report += "".join(f"; {tool} in " + ", ".join(v) for tool, v in versions.items())
         timing_dir = next((d for d in (t.format(case=title) for t in a.timing_dir) if os.path.isdir(d)), None)
         if timing_dir:
             timing, machine = case_timing(timing_dir)

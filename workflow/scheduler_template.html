@@ -383,8 +383,30 @@
     min-width: 620px;
     font-size: 13px;
   }
-  #simTable{ min-width: 990px; }
-  #simTable input.priority-input{ width: 56px; }
+  /* The simulations, one table for each group, with space between them. */
+  #simTables table{ min-width: 990px; table-layout: fixed; }
+  #simTables td, #simTables th{ overflow: hidden; text-overflow: ellipsis; }
+  #simTables .table-scroll + .table-scroll{ margin-top: 36px; }
+  #simTables .table-scroll{ scroll-margin-top: 12px; }
+  /* The index of the tables above them. */
+  .sim-index{ margin: 4px 0 20px; display: grid; gap: 6px; font-size: 13px; }
+  .sim-index-line{ display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+  .sim-index-res{ min-width: 30px; padding-left: 8px; font-weight: 700; color: var(--series-1); border-left: 4px solid var(--series-1); }
+  /* Each entry a light blue chip, in the blue of the tables' heading bars. */
+  .sim-index a{ display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12px; color: var(--text-primary); text-decoration: none; background: color-mix(in srgb, var(--series-1) 16%, transparent); }
+  .sim-index a:hover{ background: color-mix(in srgb, var(--series-1) 30%, transparent); }
+  .sim-index{ scroll-margin-top: 12px; }
+  .sim-index-hint{ margin: 0 0 2px; font-size: 12px; color: var(--text-secondary); }
+  #simTables .sim-index-up{ margin-left: 10px; font-size: 11px; font-weight: 500; color: var(--text-muted); text-decoration: none; }
+  #simTables .sim-index-up:hover{ color: var(--accent); text-decoration: underline; }
+  html{ scroll-behavior: smooth; }
+  /* Each table is framed: a line along the top of its heading bar and below its last row. */
+  #simTables thead tr.sim-group > th{ border-top: 2px solid var(--text-secondary); }
+  #simTables tbody tr:last-child > td{ border-bottom: 2px solid var(--text-secondary); }
+  /* The table's left and right edges, in the darker line that frames a run's members. */
+  #simTables tr > :first-child{ border-left: 2px solid var(--text-secondary); }
+  #simTables tr > :last-child{ border-right: 2px solid var(--text-secondary); }
+  #simTables input.priority-input{ width: 56px; }
   .sim-name-wrap{ display:flex; align-items:center; gap:6px; }
   .sim-name-wrap input{ flex:1 1 auto; }
   .status-badge{
@@ -413,8 +435,8 @@
   .progress-fill{ height: 100%; background: var(--accent); }
   .progress-bar.is-done .progress-fill{ background: var(--series-1); }
   .progress-text{ font-size: 12px; color: var(--text-secondary); }
-  #simTable .col-cmor{ text-align: center; }
-  #simTable .col-cmor input{ width: 16px; height: 16px; }
+  #simTables .col-cmor{ text-align: center; }
+  #simTables .col-cmor input{ width: 16px; height: 16px; }
   table.data-table th{
     text-align: left;
     font-size: 11.5px;
@@ -454,13 +476,21 @@
   }
   .row-del:hover{ color: var(--danger); background: var(--danger-wash); }
   /* The runs' state on the first row; CMORization and publication on the second. */
-  #trackerStats{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  #trackerStats .stat-tile.row-start{ grid-column-start: 1; }
+  /* Each resolution's tiles in one row. */
+  #trackerStats{ grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  @media (max-width: 1100px){ #trackerStats{ grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  #trackerStats .stat-heading{ grid-column: 1 / -1; margin: 10px 0 -2px; padding-left: 8px; font-size: 14px; font-weight: 700; color: var(--series-1); border-left: 4px solid var(--series-1); }
+  #trackerStats .stat-heading:first-child{ margin-top: 0; }
   @media (max-width: 760px){ #trackerStats{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  #simTable td.col-name input{ min-width: 170px; }
-  #simTable input.num{ width: 58px; min-width: 50px; }
-  #simTable td.col-owner{ font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; }
-  #simTable td.col-cases{ white-space: nowrap; }
+  #simTables td.col-name .sim-name{ min-width: 170px; white-space: nowrap; font-weight: 600; }
+  #simTables td.sim-unset{ color: var(--text-muted); font-style: italic; }
+  /* A run's member rows are framed together by a darker line above the first and below the last. */
+  #simTables tr.run-shade > td{ background: color-mix(in srgb, var(--text-muted) 8%, transparent); }
+  #simTables tr.member-first > td{ border-top: 2px solid var(--text-secondary, var(--text-muted)); }
+  #simTables tr.member-last > td{ border-bottom: 2px solid var(--text-secondary, var(--text-muted)); }
+  #simTables input.num{ width: 58px; min-width: 50px; }
+  #simTables td.col-owner{ font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; }
+  #simTables td.col-cases{ white-space: nowrap; }
   a.case-chip{ text-decoration: none; cursor: pointer; }
   a.case-chip:hover{ text-decoration: underline; }
   .case-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 6px; margin-right: 3px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); cursor: default; }
@@ -486,7 +516,7 @@
   .wf-more > summary{ cursor: pointer; padding: 5px 0; font-weight: 600; color: var(--accent); }
   .wf-more[open] > summary{ border-bottom: 1px solid var(--border); }
   .wf-decide{ margin-top: 5px; font-size: 13px; color: var(--text-secondary); }
-  .wf-alert{ color: var(--danger); font-weight: 700; }
+  .wf-alert, .wf-warn{ color: var(--danger); font-weight: 700; }
   .wf-note{ margin: 6px 0 0; font-size: 13px; color: var(--text-secondary); }
   .wf-pre{ margin: 4px 0 0; padding: 6px 8px; font-size: 12px; background: color-mix(in srgb, var(--text-muted) 10%, transparent); border-radius: 4px; overflow-x: auto; }
   .wf-decide ul{ margin: 3px 0 0; padding-left: 18px; }
@@ -494,39 +524,42 @@
   .wf-parts code{ overflow-wrap: anywhere; }
   .wf-tag{ display:inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 9px; margin-left: 6px; vertical-align: 1px; }
   .wf-label{ background: color-mix(in srgb, var(--text-muted) 18%, transparent); color: var(--text-secondary); }
-  #simTable th.step-h{ font-size: 11px; padding: 4px 3px; text-align: center; white-space: nowrap; }
-  #simTable th.step-h a{ color: inherit; text-decoration: none; display: inline-block; min-width: 18px; }
-  #simTable th.step-group{ text-align: center; font-size: 11px; color: var(--text-muted); padding: 4px; border-bottom: 1px solid var(--border); }
-  #simTable td.step-c{ text-align: center; padding: 3px; }
-  #simTable th.step-h.step-wide{ text-align: left; padding: 4px 8px; }
-  #simTable th.step-h.step-wide + th.step-h.step-wide{ border-left: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent); }
-  #simTable td.step-c input{ width: 15px; height: 15px; min-width: 0; }
-  #simTable td.step-c .step-mark{ font-size: 13px; color: var(--text-muted); }
-  #simTable td.step-c .step-mark.done{ color: var(--series-1); font-weight: 700; }
-  #simTable td.step-c .step-mark.running{ color: var(--accent); }
-  #simTable .th-note{ font-size: 10px; font-weight: 500; color: var(--series-1); white-space: nowrap; }
-  #simTable td.step-c .step-range{ font-size: 10px; white-space: nowrap; color: var(--accent); }
-  #simTable td.step-c .step-range.done{ color: var(--series-1); font-weight: 700; }
-  #simTable td.step-c.auto-done{ background: color-mix(in srgb, var(--series-1) 10%, transparent); }
-  #simTable thead th[rowspan]:not(:first-child):not(.col-narrow),
-  #simTable tbody td:not(:first-child):not(.step-c):not(.col-narrow):not(.phase-start){ border-left: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent); }
-  #simTable td.phase-start,
-  #simTable th.step-h.phase-start,
-  #simTable th.step-group{ border-left: 2px solid color-mix(in srgb, var(--text-muted) 60%, transparent); }
+  #simTables th.step-h{ font-size: 11px; padding: 4px 3px; text-align: center; white-space: nowrap; }
+  #simTables th.step-h a{ color: inherit; text-decoration: none; display: inline-block; min-width: 18px; }
+  #simTables th.step-group{ text-align: center; font-size: 11px; color: var(--text-muted); padding: 4px; border-bottom: 1px solid var(--border); }
+  #simTables td.step-c{ text-align: center; padding: 3px; }
+  #simTables th.step-h.step-wide{ text-align: left; padding: 4px 8px; }
+  #simTables th.step-h.step-wide + th.step-h.step-wide{ border-left: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent); }
+  #simTables td.step-c input{ width: 15px; height: 15px; min-width: 0; }
+  #simTables td.step-c .step-mark{ font-size: 13px; color: var(--text-muted); }
+  #simTables td.step-c .step-mark.done{ color: var(--series-1); font-weight: 700; }
+  #simTables td.step-c .step-mark.running{ color: var(--accent); }
+  #simTables .th-note{ font-size: 10px; font-weight: 500; color: var(--series-1); white-space: nowrap; }
+  #simTables td.step-c .step-range{ font-size: 10px; white-space: nowrap; color: var(--accent); }
+  #simTables td.step-c .step-range.done{ color: var(--series-1); font-weight: 700; }
+  #simTables td.step-c .step-warn{ margin-left: 3px; font-size: 11px; font-weight: 700; color: var(--danger); }
+  #simTables td.step-c.auto-done{ background: color-mix(in srgb, var(--series-1) 10%, transparent); }
+  #simTables thead th[rowspan]:not(:first-child):not(.col-narrow),
+  #simTables tbody td:not(:first-child):not(.step-c):not(.col-narrow):not(.phase-start){ border-left: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent); }
+  #simTables td.phase-start,
+  #simTables th.step-h.phase-start,
+  #simTables th.step-group{ border-left: 2px solid color-mix(in srgb, var(--text-muted) 60%, transparent); }
   /* Within a phase, a line between groups of steps, such as each CMORization tool and its QA. */
-  #simTable td.split-start,
-  #simTable th.step-h.split-start{ border-left: 1px solid color-mix(in srgb, var(--text-muted) 60%, transparent); }
+  #simTables td.split-start,
+  #simTables th.step-h.split-start{ border-left: 1px solid color-mix(in srgb, var(--text-muted) 60%, transparent); }
   .caption-list{ margin: 6px 0 0; padding-left: 20px; }
   .caption-list li{ margin: 2px 0; }
   .auto-note{ color: var(--text-muted); }
-  #simTable tr.sim-group th{ text-align: left; font-size: 13px; font-weight: 700; padding: 9px 10px 6px; color: var(--series-1); background: color-mix(in srgb, var(--series-1) 14%, transparent); border-left: 4px solid var(--series-1); }
-  #simTable tr.sim-group-off th{ color: var(--text-muted); background: color-mix(in srgb, var(--text-muted) 10%, transparent); border-left-color: var(--text-muted); }
-  #simTable tr.row-disabled{ opacity: 0.5; }
-  #simTable tr.row-disabled td.col-name input{ text-decoration: line-through; text-decoration-color: var(--text-muted); }
-  #simTable tr.row-completed{ opacity: 0.55; }
-  #simTable tr.row-completed td.col-name input{ font-style: italic; }
-  #simTable tr.row-inprogress td.col-name{ box-shadow: inset 2px 0 0 var(--accent); }
-  #simTable tr.row-opened td.col-name{ box-shadow: inset 2px 0 0 color-mix(in srgb, var(--accent) 40%, transparent); }
+  /* Each group's bar: its name, then the column headings. */
+  #simTables tr.sim-group th{ font-size: 11px; font-weight: 600; padding: 9px 6px 6px; color: var(--series-1); background: color-mix(in srgb, var(--series-1) 14%, transparent); white-space: nowrap; vertical-align: bottom; }
+  #simTables tr.sim-group th.sim-group-name{ text-align: left; font-size: 13px; font-weight: 700; padding-left: 10px; border-left: 4px solid var(--series-1); }
+  #simTables tr.sim-group th:not(.sim-group-name){ text-align: center; }
+  #simTables tr.sim-group-off th{ color: var(--text-muted); background: color-mix(in srgb, var(--text-muted) 10%, transparent); }
+  #simTables tr.sim-group-off th.sim-group-name{ border-left-color: var(--text-muted); }
+  #simTables tr.row-disabled{ opacity: 0.5; }
+  #simTables tr.row-disabled td.col-name .sim-name{ text-decoration: line-through; text-decoration-color: var(--text-muted); }
+  #simTables tr.row-completed{ opacity: 0.55; }
+  #simTables tr.row-completed td.col-name .sim-name{ font-style: italic; }
 
   /* ---------- svg chart ---------- */
   .gantt-bar{ cursor: pointer; }
@@ -620,7 +653,7 @@
       <ul class="editor-caption caption-list">
         <li><b>Status and Progress:</b> a run is In progress once its files reach NIRD, and Completed once its issue has the <code>completed</code> label.</li>
         <li><b>Issues:</b> the runs' GitHub issues in <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/issues" target="_blank" rel="noopener">NorESMhub/noresm_cmip7_simulations</a>, one per case; hover an issue for its case name, click it to open it. An issue shows up here once its title is the case name and its labels name the experiment and the variant (see <a href="#wf-issue">Prepare</a>).</li>
-        <li><b>Steps:</b> the columns follow the headings under <a href="#workflow">Workflow</a> below. A step shows ✓ once the case's issue has the step's label, e.g. <code>esgf</code>, and the progress script has run since. A run with several members needs the label on an issue of each; until then the column shows how many have it, e.g. <code>1/3</code>.</li>
+        <li><b>Steps:</b> the columns follow the headings under <a href="#workflow">Workflow</a> below. A step shows ✓ once the case's issue has the step's label, e.g. <code>esgf</code>, and the progress script has run since. A run with several members has a row for each, named by its variant, e.g. <code>1pctCO2 LM r1i1p1f1</code> to <code>r3i1p1f1</code>, framed together by a darker line, and each member's row shows its own issues and progress.</li>
         <li class="auto-note" id="autoNote"></li>
       </ul>
     </div>
@@ -654,23 +687,17 @@
                 <li><b><code>completed</code>:</b> add this label when the run has finished;</li>
                 <li><b><code>test</code>:</b> add this label to a case that is not a CMIP7 run, to leave it out;</li>
                 <li><b>step labels:</b> <code>run-qa</code>, <code>cmip7prep-qa</code>, <code>cmor4cmip7-qa</code> and <code>esgf</code>, each added when its step is done;</li>
-                <li><b>description:</b> a heading for each of the following, with the link, issue or directory on the line after it. Continues is only for a case that continues another, and each output root is added as its tool starts on the case:</li>
+                <li><b>description:</b> a list with an entry for each of the following, the label, a colon and the link, issue, version or directory, one entry a line. Continues is only for a case that continues another, the CMOR data version is added before CMORization starts, and each output root as its tool starts on the simulation:</li>
               </ul>
-              <pre class="wf-pre">### Run script
-https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
-
-### Continues
-#2
-
-### cmip7prep output root
-/nird/datalake/NS9560K/noresm3/cases/n1850GHGGaxg.LM.nor30b28.011.20261102.cmor
-
-### cmor4cmip7 output root
-/nird/datapeak/NS9034K/CMIP7</pre>
-              <p>The progress script reads the two output roots for the cmip7prep and cmor4cmip7 columns; Run script and Continues are for readers.</p>
+              <pre class="wf-pre">- run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
+- continues: #2
+- cmor data version: v20261028
+- cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/n1850GHGGaxg.LM.nor30b28.011.20261102.cmor
+- cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</pre>
+              <p>The progress script reads the two output roots and the CMOR data version for the cmip7prep and cmor4cmip7 columns; Run script and Continues are for readers. The CMOR data version is the version directory, <code>vYYYYMMDD</code>, that both tools write the case's years into: cmip7-prep's <code>--data-version</code> and cmor4cmip7's version must be the same, so that every realm's files for those years are one edition of the dataset. The tracker marks a CMORize column with <span class="wf-warn">⚠</span> when the version directories on NIRD disagree: a case's cmip7-prep files in a version other than its issue's, cmor4cmip7 files in a version no issue gives, or years the two tools wrote into different versions. Hovering the cell says which. Every issue of a simulation gets both roots, as <a href="#wf-cmoratm">cmip7-prep</a> and <a href="#wf-cmorocn">cmor4cmip7</a> under CMORize explain: the cmip7prep root is the case's own directory, so it differs from issue to issue, while the cmor4cmip7 root is the simulation's, the same in each.</p>
               <p id="wf-cases">Once the progress script has read an issue, the run shows it in the Issues column. The experiment label and the case name's resolution pick the run; the variant label picks the member.</p>
               <ul class="wf-parts">
-                <li><b>continuing a simulation in a new case:</b> give the new issue the same experiment and variant labels, and the earlier issue under the heading <code>### Continues</code> in its description, e.g. <code>#2</code>. The tracker reads the two as one simulation and takes its progress from the later model date, as with #2 and #11;</li>
+                <li><b>continuing a simulation in a new case:</b> give the new issue the same experiment and variant labels, and the earlier issue as the entry <code>- continues: #2</code> in its description. The tracker reads the two as one simulation and takes its progress from the later model date, as with #2 and #11;</li>
                 <li><b>another member of the ensemble:</b> give it its own variant, e.g. <code>r2i1p1f1</code>. The run's years done are the mean over its members.</li>
               </ul>
             </details>
@@ -682,7 +709,7 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
                 <li><b>name:</b> <code>issue.compset.resolution.beta.date.sh</code>, each part copied from the case name, e.g. <code>011.n1850GHGGaxg.LM.b28.20261102.sh</code> for <code>n1850GHGGaxg.LM.nor30b28.011.20261102</code>;</li>
                 <li><b>push:</b> in a clone of the repository, <code>git switch CMIP7_Runscripts</code> and <code>git pull</code>, copy the script into its experiment's directory under its name, then <code>git add</code>, <code>git commit</code> and <code>git push</code>. Without a clone, open the experiment's directory under <code>scripts/</code> on GitHub, use <b>Add file → Upload files</b> and choose <b>Commit directly to the CMIP7_Runscripts branch</b>;</li>
                 <li><b>commit message:</b> <code>Run script for #11</code>, with the case's issue number. GitHub then shows the commit on the issue. Don't write <code>Closes #11</code> or <code>Fixes #11</code>: either closes the issue;</li>
-                <li><b>issue:</b> add the script's link to the issue's description under the heading <code>### Run script</code>, e.g. <code>https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh</code>.</li>
+                <li><b>issue:</b> add the script's link to the issue's description as the entry <code>- run script:</code>, e.g. <code>- run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh</code>.</li>
               </ul>
             </details></li>
         </ul>
@@ -727,20 +754,20 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
         <ul class="wf-steps">
           <li id="wf-cmorissue"><div class="wf-title">Make the CMORization issue</div>
             <p>Once the simulation has finished, open an issue in <a href="https://github.com/NorESMhub/CMIP7_CMOR-Publish/issues" target="_blank" rel="noopener">NorESMhub/CMIP7_CMOR-Publish</a> from its template, which is like the CMIP6 one, and label it <code>cmorization</code>. The repository's other labels are <code>publication</code>, <code>archive</code>, <code>cmor_bug</code>, <code>publication_bug</code> and <code>retract</code>.</p>
-            <p>As each tool starts, add its output root to the description of the case's issue in noresm_cmip7_simulations, under a heading of its own:</p>
-            <pre class="wf-pre">### cmip7prep output root
-/nird/datalake/NS9560K/noresm3/cases/&lt;case&gt;.cmor
-
-### cmor4cmip7 output root
-/nird/datapeak/NS9034K/CMIP7</pre>
+            <p>Before either tool starts, add the CMOR data version to the description of the case's issue in noresm_cmip7_simulations, and as each tool starts, its output root, each as an entry of its own, as the two steps below explain. Both tools write the case's years into that version, cmip7-prep with <code>--data-version</code>:</p>
+            <pre class="wf-pre">- cmor data version: v20261028
+- cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/&lt;case&gt;.cmor
+- cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</pre>
             <p>The progress script reads each tool's progress there, and the tracker shows the roots when you hover the cmip7prep or cmor4cmip7 column.</p>
             <div class="wf-decide"><b>To decide:</b> how urgency is shown.</div></li>
           <li id="wf-cmoratm"><div class="wf-title">CMORize the atmosphere, land, sea ice and land ice using cmip7-prep</div>
-            <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K/CMIP7</code> with the cmor4cmip7 output. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>. Without a <code>cmip7prep output root</code> in the issue, the script looks in the case's <code>.cmor</code> directory.</p></li>
+            <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K</code> with the cmor4cmip7 output. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>.</p>
+            <p>The <code>cmip7prep output root</code> is the directory that holds those files: the script reads only that directory, not the ones below it. Each case has its own, with its own time series and logs, so every issue names its case's directory. Without the entry, the script looks in the case's <code>.cmor</code> directory.</p></li>
           <li id="wf-qaatm"><div class="wf-title">Validate the cmip7-prep output <span class="wf-tag wf-label">label: cmip7prep-qa</span></div>
             <p>The QA column after cmip7prep depends on the label <code>cmip7prep-qa</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the cmip7-prep output has been validated.</p></li>
           <li id="wf-cmorocn"><div class="wf-title">CMORize the ocean and ocean biogeochemistry using cmor4cmip7</div>
-            <p>The CMORized output goes in <code>/nird/datapeak/NS9034K/CMIP7</code>. The first 100 years of piControl's ocean are being CMORized there now. The progress script reads the time ranges in the names of the case's files under the issue's <code>cmor4cmip7 output root</code>, e.g. <code>_000101-001012.nc</code>, and the tracker shows the years every variable has, e.g. <code>1–10</code>. The case's files are the ones whose names have its experiment and variant, e.g. <code>_piControl_r1i1p1f1_</code>, so the root can hold other runs too.</p></li>
+            <p>The CMORized output goes in <code>/nird/datapeak/NS9034K/.CMIP7</code>, under the model, experiment, variant and version, e.g. <code>NorESM3-LM/piControl/r1i1p1f1/v20261028</code>. The first 100 years of piControl's ocean are being CMORized there now. The progress script reads the time ranges in the names of the files under the issue's <code>cmor4cmip7 output root</code>, e.g. <code>_000101-001012.nc</code>, and the tracker shows the years every variable has, e.g. <code>1–10</code>.</p>
+            <p>The <code>cmor4cmip7 output root</code> is the simulation's variant directory, e.g. <code>/nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</code>, without the version, so a later version is read too. The script reads every directory below it and takes the files whose names have the issue's experiment and variant, e.g. <code>_piControl_r1i1p1f1_</code>. These hold all the simulation's years, so every issue of the simulation gives the same root, and the tracker counts each year once. A root above the model directory would mix the LM and MM files of the same experiment and variant.</p></li>
           <li id="wf-qaocn"><div class="wf-title">QA the cmor4cmip7 output <span class="wf-tag wf-label">label: cmor4cmip7-qa</span></div>
             <p>The QA column after cmor4cmip7 depends on the label <code>cmor4cmip7-qa</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the cmor4cmip7 output has been QA'd.</p></li>
         </ul>
@@ -760,13 +787,7 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
         </ul>
       </div>
     </details>
-    <div class="table-scroll">
-      <table class="data-table" id="simTable">
-        <thead id="simThead"></thead>
-        <tbody id="simTbody"></tbody>
-      </table>
-    </div>
-    <button id="addSimBtn" class="btn btn-ghost btn-sm" type="button">+ Add simulation</button>
+    <div id="simTables"></div>
   </section>
   </div>
 
@@ -971,7 +992,7 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
   const ISSUES_REPO = "NorESMhub/noresm_cmip7_simulations";
   const issuesUrl = () => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/issues`;
   const WORKFLOW_STEPS = [
-    { key: "runqa",     short: "Done",       name: "QA checklist done", phase: "QA", label: "run-qa" },
+    { key: "runqa",     short: "QA",         name: "QA checklist done", phase: "QA", label: "run-qa" },
     { key: "run",       short: "Run",        name: "Run: Status and Progress", phase: "Run", derived: true, cols: 2 },
     { key: "cmoratm",   short: "cmip7prep",  name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", phase: "CMORize", auto: true, range: true },
     { key: "qaatm",     short: "QA",         name: "cmip7-prep output validated", label: "cmip7prep-qa" },
@@ -985,7 +1006,9 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
   // progressData is progress.json as read; autoProgress is what it says for each run, keyed by
   // run name: { yearsCompleted, modelDate, completed, cmor: { cmoratm, cmorocn: { from, to } }, steps }.
   let progressData = null, autoProgress = null;
-  const autoRun = row => (autoProgress && autoProgress.runs && autoProgress.runs[row.name]) || null;
+  // A member's row in the simulation table carries its own progress; a run's comes from autoProgress.
+  const autoRun = row => row.memberOf ? row.memberProgress
+    : (autoProgress && autoProgress.runs && autoProgress.runs[row.name]) || null;
   const autoSteps = row => (autoRun(row) && autoRun(row).steps) || {};
   // A run whose case issue is open but whose model files have not reached NIRD yet.
   const issueOpened = row => row.status === "pending" && Array.isArray(row.cases) && row.cases.length > 0;
@@ -1017,8 +1040,8 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
   const priorityBreakdownEl = el("priorityBreakdown");
   const priorityExcludedNote = el("priorityExcludedNote");
   const cpToggle = el("criticalPathToggle");
-  const simTbody = el("simTbody");
-  const addSimBtn = el("addSimBtn");
+  const simTables = el("simTables");
+  let simTbody = null; // the table body rows are being added to
   const tooltip = el("tooltip");
 
   // ---------------- scheduling engine ----------------
@@ -1594,26 +1617,38 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
 
   function renderTrackerStats(){
     const box = el("trackerStats");
-    const active = sims.filter(r => !isRowOff(r));
-    const count = f => active.filter(f).length;
-    const tiles = [
-      { label: "Runs in the plan", value: active.length, sub: `${active.reduce((n, r) => n + ensembleCount(r), 0)} members` },
-      { label: "Waiting to start", value: count(issueOpened), sub: "GitHub issue open, no files on NIRD yet" },
-      { label: "In progress", value: count(r => r.status === "in-progress"), sub: "running now", hero: true },
-      { label: "Completed", value: count(r => r.status === "completed"), sub: "run finished" },
-      { label: "CMORized with cmip7prep", value: count(r => stepDone(r, "cmoratm")), sub: "atmosphere, land, sea ice and land ice", rowStart: true },
-      { label: "CMORized with cmor4cmip7", value: count(r => stepDone(r, "cmorocn")), sub: "ocean and ocean biogeochemistry" },
-      { label: "On ESGF", value: count(r => stepDone(r, "esgf")), sub: "published" },
-    ];
     box.innerHTML = "";
-    tiles.forEach(t => {
-      const tile = document.createElement("div");
-      tile.className = "stat-tile" + (t.hero ? " hero" : "") + (t.rowStart ? " row-start" : "");
-      tile.innerHTML = `<div class="stat-label"></div><div class="stat-value tabular"></div><div class="stat-sub"></div>`;
-      tile.children[0].textContent = t.label;
-      tile.children[1].textContent = `${t.value}`;
-      tile.children[2].textContent = t.sub;
-      box.appendChild(tile);
+    // A set of tiles for each resolution, LM first. Every member is a run of its own, as in
+    // the simulation table.
+    const RES_ORDER = ["LM", "MM"];
+    const plan = sims.filter(r => !isRowOff(r));
+    const resolutions = [...new Set(plan.map(resolutionOf))]
+      .sort((a, b) => (RES_ORDER.indexOf(a) + 1 || 9) - (RES_ORDER.indexOf(b) + 1 || 9));
+    resolutions.forEach(res => {
+      const experiments = plan.filter(r => resolutionOf(r) === res);
+      const active = experiments.flatMap(memberViews);
+      const count = f => active.filter(f).length;
+      const heading = document.createElement("h3");
+      heading.className = "stat-heading";
+      heading.textContent = res || "Other";
+      box.appendChild(heading);
+      [
+        { label: "Experiments in the plan", value: experiments.length, sub: `${active.length} runs when counting each member` },
+        { label: "Waiting to start", value: count(issueOpened), sub: "GitHub issue open, no files on NIRD yet" },
+        { label: "In progress", value: count(r => r.status === "in-progress"), sub: "running now", hero: true },
+        { label: "Completed", value: count(r => r.status === "completed"), sub: "run finished" },
+        { label: "CMORized with cmip7prep", value: count(r => stepDone(r, "cmoratm")), sub: "atmosphere, land, sea ice and land ice" },
+        { label: "CMORized with cmor4cmip7", value: count(r => stepDone(r, "cmorocn")), sub: "ocean and ocean biogeochemistry" },
+        { label: "On ESGF", value: count(r => stepDone(r, "esgf")), sub: "published" },
+      ].forEach(t => {
+        const tile = document.createElement("div");
+        tile.className = "stat-tile" + (t.hero ? " hero" : "");
+        tile.innerHTML = `<div class="stat-label"></div><div class="stat-value tabular"></div><div class="stat-sub"></div>`;
+        tile.children[0].textContent = t.label;
+        tile.children[1].textContent = `${t.value}`;
+        tile.children[2].textContent = t.sub;
+        box.appendChild(tile);
+      });
     });
     const note = el("autoNote");
     if (note){
@@ -2292,61 +2327,144 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
     return wrap;
   }
 
-  // Display order: the DECK first, then each MIP in alphabetical order, then the runs that
-  // are off. Within a group, LM comes before MM, coupled runs come before
-  // atmosphere-only ones, and the sheet's order is kept otherwise, so a parent sits above
-  // the runs that branch from it.
+  // Display order: every LM group, then every MM group, then the runs that are off. At each
+  // resolution the DECK comes first, then each MIP in alphabetical order. Within a group, coupled runs come
+  // before atmosphere-only ones, and the sheet's order is kept otherwise, so a parent sits
+  // above the runs that branch from it.
   function simDisplayGroups(){
     const groups = new Map();
     const RES_RANK = { LM: 0, MM: 1 };
-    const resRank = row => { const r = resolutionOf(row); return (r in RES_RANK ? RES_RANK[r] : 9) * 2 + (row.amip === "Yes" ? 1 : 0); };
+    const resKey = row => { const r = resolutionOf(row); return r in RES_RANK ? `${RES_RANK[r]}${r}` : `9${r || ""}`; };
     sims.forEach((row, i) => {
-      const key = isRowOff(row) ? "￿" : (row.mip === "DECK" ? "" : (row.mip || "Other"));
+      const mip = isRowOff(row) ? "￿" : (row.mip === "DECK" ? "" : (row.mip || "Other"));
+      const key = mip === "￿" ? mip : `${resKey(row)}\u0000${mip}`;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push({ row, i });
     });
-    return [...groups.keys()].sort().map(key => ({
-      label: key === "" ? "DECK" : key === "￿" ? "Not in the plan for now" : key,
-      off: key === "￿",
-      rows: groups.get(key).sort((a, b) => resRank(a.row) - resRank(b.row) || a.i - b.i).map(x => x.row),
-    }));
-  }
-
-  function renderSimThead(){
-    const thead = el("simThead");
-    const phases = [];
-    WORKFLOW_STEPS.forEach(s => { if (s.phase) phases.push({ name: s.phase, n: 0 }); phases[phases.length - 1].n += s.cols || 1; });
-    thead.innerHTML =
-      `<tr><th rowspan="2">Simulation</th><th rowspan="2">Owner</th><th rowspan="2" title="The run's GitHub issues in NorESMhub/noresm_cmip7_simulations, one per case; hover for the case name">Issues</th><th rowspan="2">Members</th><th rowspan="2">Years</th>`
-      + phases.map(ph => `<th class="step-group" colspan="${ph.n}"><a href="#workflow">${ph.name}</a></th>`).join("")
-      + `<th rowspan="2" class="col-narrow"></th></tr><tr>`
-      + WORKFLOW_STEPS.map((s, i) => s.derived
-          // The run itself: its Status and its Progress, read from NIRD.
-          ? `<th class="step-h step-wide${s.phase ? " phase-start" : ""}" title="The run's status"><a href="#wf-${s.key}">Status</a></th>`
-            + `<th class="step-h step-wide" title="Years done">Progress</th>`
-          : `<th class="step-h${s.phase ? " phase-start" : s.split ? " split-start" : ""}" title="${s.name}${s.label ? ` (label: ${s.label})` : ""}"><a href="#wf-${s.key}">${s.short}</a></th>`).join("")
-      + `</tr>`;
-  }
-  const SIM_NCOLS = 6 + WORKFLOW_STEPS.reduce((n, s) => n + (s.cols || 1), 0);
-
-  function renderSimTable(){
-    renderSimThead();
-    simTbody.innerHTML = "";
-    simDisplayGroups().forEach(group => {
-      const head = document.createElement("tr");
-      head.className = "sim-group" + (group.off ? " sim-group-off" : "");
-      const th = document.createElement("th");
-      th.colSpan = SIM_NCOLS;
-      th.textContent = `${group.label} · ${group.rows.length} run${group.rows.length === 1 ? "" : "s"}`;
-      head.appendChild(th);
-      simTbody.appendChild(head);
-      group.rows.forEach(renderSimRow);
+    return [...groups.keys()].sort().map(key => {
+      const [res, mip] = key.split("\u0000");
+      return {
+        label: key === "￿" ? "Not in the plan for now" : `${mip === "" ? "DECK" : mip} ${res.slice(1)}`.trim(),
+        mip: key === "￿" ? "Not in the plan" : mip === "" ? "DECK" : mip,
+        res: key === "￿" ? "" : res.slice(1),
+        off: key === "￿",
+        rows: groups.get(key).sort((a, b) => (a.row.amip === "Yes") - (b.row.amip === "Yes") || a.i - b.i).map(x => x.row),
+      };
     });
   }
 
-  function renderSimRow(row){
+  // The column headings, repeated in each group's bar after the group's name; the table has
+  // no heading of its own.
+  function simColumnHeads(){
+    return `<th class="sim-col">Owner</th>`
+      + `<th class="sim-col" title="The run's GitHub issues in NorESMhub/noresm_cmip7_simulations, one per case; hover for the case name">Issues</th>`
+      + `<th class="sim-col n">Years</th>`
+      + WORKFLOW_STEPS.map(s => s.derived
+          // The run itself: its Status and its Progress, read from NIRD.
+          ? `<th class="step-h step-wide${s.phase ? " phase-start" : ""}" title="The run's status"><a href="#wf-${s.key}">Status</a></th>`
+            + `<th class="step-h step-wide" title="Years done">Progress</th>`
+          : `<th class="step-h${s.phase ? " phase-start" : s.split ? " split-start" : ""}" title="${s.name}${s.label ? ` (label: ${s.label})` : ""}"><a href="#wf-${s.key}">${s.short}</a></th>`).join("");
+  }
+
+  // Simulation, Owner, Issues, Years, then the step columns: QA, Status, Progress, cmip7prep,
+  // QA, cmor4cmip7, QA, ESGF.
+  const SIM_COL_WIDTHS = [19, 8, 9, 5, 4, 10, 17, 7, 4, 8, 4, 5];
+
+  function renderSimTable(){
+    simTables.innerHTML = "";
+    const groups = simDisplayGroups();
+    const groupId = g => "sims-" + g.label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    // An index of the tables, a line for each resolution, each entry a link to its table.
+    const index = document.createElement("nav");
+    index.className = "sim-index"; index.id = "sim-index"; index.setAttribute("aria-label", "Simulation tables");
+    const hint = document.createElement("p"); hint.className = "sim-index-hint";
+    hint.textContent = "Click any of the following to go to that table.";
+    index.appendChild(hint);
+    [...new Set(groups.map(g => g.res))].forEach(res => {
+      const line = document.createElement("div"); line.className = "sim-index-line";
+      const head = document.createElement("span"); head.className = "sim-index-res";
+      head.textContent = res || "Other";
+      line.appendChild(head);
+      groups.filter(g => g.res === res).forEach(g => {
+        const a = document.createElement("a");
+        a.href = "#" + groupId(g);
+        const runs = g.rows.reduce((n, r) => n + memberViews(r).length, 0);
+        a.textContent = g.mip; a.title = `${g.label} · ${runs} run${runs === 1 ? "" : "s"}`;
+        line.appendChild(a);
+      });
+      index.appendChild(line);
+    });
+    simTables.appendChild(index);
+    // The links scroll within the page, wherever it is served from.
+    simTables.onclick = e => {
+      const a = e.target.closest("a.sim-index-up, .sim-index a");
+      const target = a && document.getElementById(a.getAttribute("href").slice(1));
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    groups.forEach(group => {
+      const head = document.createElement("tr");
+      head.className = "sim-group" + (group.off ? " sim-group-off" : "");
+      const runs = group.rows.reduce((n, r) => n + memberViews(r).length, 0);
+      const name = document.createElement("th");
+      name.className = "sim-group-name";
+      name.textContent = `${group.label} · ${runs} run${runs === 1 ? "" : "s"}`;
+      // A link back up to the index.
+      const up = document.createElement("a");
+      up.className = "sim-index-up"; up.href = "#sim-index"; up.textContent = "↑ index"; up.title = "Back to the index of the tables";
+      name.appendChild(up);
+      head.appendChild(name);
+      head.insertAdjacentHTML("beforeend", simColumnHeads());
+      const wrap = document.createElement("div"); wrap.className = "table-scroll"; wrap.id = groupId(group);
+      const table = document.createElement("table"); table.className = "data-table sim-table";
+      // The same column widths in every table, so the columns line up from one to the next.
+      table.insertAdjacentHTML("afterbegin", "<colgroup>" + SIM_COL_WIDTHS.map(w => `<col style="width:${w}%">`).join("") + "</colgroup>");
+      const thead = document.createElement("thead");
+      simTbody = document.createElement("tbody");
+      thead.appendChild(head); table.appendChild(thead); table.appendChild(simTbody);
+      wrap.appendChild(table); simTables.appendChild(wrap);
+      // Every other run in a group is lightly shaded, so a run's member rows read as one block.
+      group.rows.forEach((row, n) => {
+        const views = memberViews(row);
+        views.forEach((v, i) => {
+          renderSimRow(v, views.length < 2 ? "" : i === 0 ? "member-first" : i === views.length - 1 ? "member-last" : "member-mid");
+          if (n % 2 === 0) simTbody.lastElementChild.classList.add("run-shade");
+        });
+      });
+    });
+  }
+
+  // A run with more than one member gets a row for each, named by its variant, from
+  // "1pctCO2 LM r1i1p1f1" to "r3i1p1f1", each with its own cases and progress. The planned
+  // members are r1i1p1f1 up to the ensemble size; a member whose issue gives another variant
+  // gets a row of its own too.
+  function memberViews(row){
+    const n = ensembleCount(row);
+    if (n < 2) return [row];
+    const run = autoRun(row);
+    const byVariant = new Map((run ? run.members : []).map(m => [m.variant, m]));
+    const variants = [...new Set(Array.from({ length: n }, (_, i) => `r${i + 1}i1p1f1`).concat([...byVariant.keys()]))]
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    return variants.map(variant => {
+      const m = byVariant.get(variant);
+      const cases = m ? (row.cases || []).filter(c => c.variant === variant) : [];
+      const p = cases.length ? runProgress({ ...row, ensemble: 1, cases }) : null;
+      const status = p && p.completed ? "completed" : p && p.yearsCompleted > 0 ? "in-progress" : "pending";
+      return {
+        ...row, memberOf: row, memberProgress: p, variant, hasIssue: !!m,
+        name: `${row.name} ${variant}`, ensemble: 1, membersRunning: 1, cases,
+        owner: [...new Set(cases.map(c => c.owner))].join(", "), status,
+        yearsCompleted: status === "completed" ? Number(row.years) || 0
+          : p ? Math.max(0, Math.min(Number(row.years) || 0, p.yearsCompleted || 0)) : 0,
+      };
+    });
+  }
+
+  function renderSimRow(row, memberClass){
     {
       const tr = document.createElement("tr");
+      if (memberClass) tr.classList.add("member-row", memberClass);
 
       if (row.status == null) row.status = "pending";
       if (row.yearsCompleted == null) row.yearsCompleted = 0;
@@ -2354,9 +2472,9 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
       const tdName = document.createElement("td"); tdName.className = "col-name";
       const nameWrap = document.createElement("div"); nameWrap.className = "sim-name-wrap";
       const statusBadge = document.createElement("span"); statusBadge.className = "status-badge";
-      const nameInput = document.createElement("input");
-      nameInput.type = "text"; nameInput.value = row.name;
-      nameInput.addEventListener("input", () => { row.name = nameInput.value || row.name; refreshDependentSelects(); recomputeAndRenderChartAndStats(); });
+      // The table is read-only: the plan comes from build_page.sh and the progress from NIRD.
+      const nameInput = document.createElement("span");
+      nameInput.className = "sim-name"; nameInput.textContent = row.name;
       nameWrap.appendChild(statusBadge); nameWrap.appendChild(nameInput);
       tdName.appendChild(nameWrap);
 
@@ -2376,25 +2494,9 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
       depSelect2.addEventListener("change", () => { row.dependsOn[1] = depSelect2.value; recomputeAndRenderChartAndStats(); });
       tdDep2.appendChild(depSelect2);
 
-      const tdYears = document.createElement("td");
-      const yearsInput = document.createElement("input");
-      yearsInput.type = "number"; yearsInput.className = "num"; yearsInput.min = "0"; yearsInput.step = "any"; yearsInput.value = row.years;
-      yearsInput.addEventListener("input", () => { row.years = parseFloat(yearsInput.value) || 0; updateStatusVisuals(); recomputeAndRenderChartAndStats(); });
-      tdYears.appendChild(yearsInput);
+      const tdYears = document.createElement("td"); tdYears.className = "n";
+      tdYears.textContent = row.years;
 
-      const tdEns = document.createElement("td");
-      const ensInput = document.createElement("input");
-      ensInput.type = "number"; ensInput.className = "num"; ensInput.min = "0"; ensInput.step = "1";
-      ensInput.value = row.ensemble == null ? "" : row.ensemble; ensInput.placeholder = "not set";
-      ensInput.classList.toggle("needs-timing", row.ensemble == null);
-      ensInput.title = "Blank means not decided yet and counts one member. 0 switches this run off, so it costs nothing. (Priority 0 does the same thing.)";
-      ensInput.addEventListener("input", () => {
-        row.ensemble = normalizeEnsemble(ensInput.value);
-        ensInput.classList.toggle("needs-timing", row.ensemble == null);
-        tr.classList.toggle("row-disabled", isRowOff(row));
-        recomputeAndRenderChartAndStats();
-      });
-      tdEns.appendChild(ensInput);
       if (isRowOff(row)) tr.classList.add("row-disabled");
 
       const tdCfg = document.createElement("td");
@@ -2470,8 +2572,23 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
           const tool = step.key === "cmoratm" ? "cmip7prep" : "cmor4cmip7";
           const dirs = p && p.members ? p.members.flatMap(x => x.outputs).filter(o => o[tool]).map(o => `#${o.issue}: ${o[tool]}`) : [];
           td.title += dirs.length ? "\nOutput root:\n" + dirs.join("\n")
-            : tool === "cmor4cmip7" ? `\nNo issue names its output yet: add the heading "### cmor4cmip7 output root" to the issue, with the directory under it.` : "";
-          td.appendChild(m); return td;
+            : tool === "cmor4cmip7" ? `\nNo issue names its output yet: add the entry "- cmor4cmip7 output root: <directory>" to the issue.` : "";
+          // The CMOR data version each issue gives, the versions the files are in, and what disagrees.
+          const members = p && p.members ? p.members : [];
+          const given = members.flatMap(x => x.dataVersions).map(d => `#${d.issue}: ${d.version}`);
+          if (given.length) td.title += "\nCMOR data version:\n" + given.join("\n");
+          const found = members.flatMap(x => Object.entries(x.versions[tool] || {})
+            .map(([v, ys]) => `${members.length > 1 ? x.variant + ": " : ""}${v}, years ${yearSpans(ys)}`));
+          if (found.length) td.title += "\nFiles in:\n" + found.join("\n");
+          const warnings = (p && p.versionWarnings && p.versionWarnings[step.key]) || [];
+          td.appendChild(m);
+          if (warnings.length){
+            const w = document.createElement("span");
+            w.className = "step-warn"; w.textContent = "⚠";
+            td.appendChild(w);
+            td.title += "\nVersion check:\n" + warnings.join("\n");
+          }
+          return td;
         }
         const m = document.createElement("span");
         const planned = ensembleCount(row);
@@ -2510,7 +2627,7 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
           : inProgress ? `${row.yearsCompleted} of ${row.years}`
           : issueOpened(row) ? "No files on NIRD yet"
           : "";
-        const auto = autoProgress && autoProgress.runs && autoProgress.runs[row.name];
+        const auto = autoRun(row);
         if (auto && auto.modelDate && row.status !== "completed") progText.textContent += ` · at ${auto.modelDate}`;
         if (inProgress && ensembleCount(row) > 1) progText.textContent += ` · ${runningCount(row)} of ${ensembleCount(row)} members going`;
         // Each member's own progress; the run's years done are their mean.
@@ -2527,18 +2644,6 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
       tdStatus.appendChild(statusWrap);
       updateStatusVisuals();
 
-      const tdDel = document.createElement("td"); tdDel.className = "col-narrow";
-      const delBtn = document.createElement("button");
-      delBtn.className = "row-del"; delBtn.type = "button"; delBtn.textContent = "×";
-      delBtn.title = "Delete simulation";
-      delBtn.addEventListener("click", () => {
-        sims = sims.filter(r => r.id !== row.id);
-        sims.forEach(r => { r.dependsOn = rowDeps(r).filter(d => d !== row.id); });
-        if (selectedChainRoot) selectedChainRoot = null;
-        render();
-      });
-      tdDel.appendChild(delBtn);
-
       // Owner and cases come from the case issues, through progress.json; each case links to its issue.
       const tdOwner = document.createElement("td"); tdOwner.className = "col-owner";
       tdOwner.textContent = row.owner || "";
@@ -2553,10 +2658,12 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
         chip.title = `${c.case}\n${c.variant} · ${c.version} · ${reached(c)} · ${c.owner}`;
         tdCases.appendChild(chip);
       });
-      if (row.cases && row.cases.length) nameInput.title = row.cases.map(c => `${c.case} (${reached(c)})`).join("\n");
-      tr.appendChild(tdName); tr.appendChild(tdOwner); tr.appendChild(tdCases); tr.appendChild(tdEns); tr.appendChild(tdYears);
+      // The name's hover gives a member's variant and the cases' names.
+      const nameHover = (row.memberOf ? [row.hasIssue ? `Member ${row.variant}` : `Member ${row.variant}: planned, no case issue yet`] : [])
+        .concat((row.cases || []).map(c => `${c.case} (${reached(c)})`));
+      if (nameHover.length) nameInput.title = nameHover.join("\n");
+      tr.appendChild(tdName); tr.appendChild(tdOwner); tr.appendChild(tdCases); tr.appendChild(tdYears);
       stepCells.flat().forEach(td => tr.appendChild(td));
-      tr.appendChild(tdDel);
       simTbody.appendChild(tr);
     }
   }
@@ -2596,7 +2703,7 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
   }
   function refreshDependentSelects(){
     // lightweight refresh of option labels without rebuilding whole rows (keeps focus stable)
-    simTbody.querySelectorAll("select:not(.cfg-select)").forEach(sel => {
+    simTables.querySelectorAll("select:not(.cfg-select)").forEach(sel => {
       const rid = sel.dataset.rowId;
       const row = sims.find(r => r.id === rid);
       if (!row) return;
@@ -2605,7 +2712,7 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
       buildDependsOnOptions(sel, row, slotIndex);
       sel.value = currentVal;
     });
-    simTbody.querySelectorAll("select.cfg-select").forEach(sel => {
+    simTables.querySelectorAll("select.cfg-select").forEach(sel => {
       const rid = sel.dataset.rowId;
       const row = sims.find(r => r.id === rid);
       if (!row) return;
@@ -2663,11 +2770,6 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
       });
       applyChainHighlight();
     }
-  });
-  addSimBtn.addEventListener("click", () => {
-    simSeq++;
-    sims.push({ id: uid("r", simSeq), name: "New simulation", dependsOn: [], years: 100, ensemble: null, configId: configs[0].id, priority: 1, status: "pending", yearsCompleted: 0, mip: "DECK", cmipPriority: "", amip: "" });
-    render();
   });
 
   function showFileStatus(msg, isError){
@@ -2964,7 +3066,58 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
     m.cmor.cmoratm = span(atm);
     m.cmor.cmorocn = span(ocn);
     m.outputs = cases.filter(c => c.cmorOutput).map(c => ({ issue: c.issue, ...c.cmorOutput }));
+    // The version directories each tool's files are in, year by year, and what disagrees: a
+    // version in a case's cmip7-prep directory other than its issue's, a cmor4cmip7 version
+    // no issue gives, and years the two tools wrote into different versions.
+    m.dataVersions = cases.filter(c => c.dataVersion).map(c => ({ issue: c.issue, version: c.dataVersion }));
+    const given = new Set(m.dataVersions.map(d => d.version));
+    const byYear = { cmip7prep: {}, cmor4cmip7: {} };
+    cases.forEach(c => Object.entries(c.cmorVersions || {}).forEach(([tool, vs]) =>
+      Object.entries(vs).forEach(([v, ranges]) => ranges.forEach(([a, b]) => {
+        for (let y = a; y <= b; y++) (byYear[tool][y] = byYear[tool][y] || new Set()).add(v);
+      }))));
+    m.versions = {};
+    Object.entries(byYear).forEach(([tool, years]) => {
+      const vs = {};
+      Object.entries(years).forEach(([y, set]) => set.forEach(v => (vs[v] = vs[v] || []).push(Number(y))));
+      m.versions[tool] = vs;
+    });
+    const warn = { cmoratm: [], cmorocn: [] };
+    cases.forEach(c => {
+      const vs = Object.keys((c.cmorVersions || {}).cmip7prep || {});
+      if (!vs.length) return;
+      if (!c.dataVersion) warn.cmoratm.push(`#${c.issue} gives no CMOR data version; its cmip7-prep files are in ${vs.join(", ")}`);
+      else {
+        const other = vs.filter(v => v !== c.dataVersion);
+        if (other.length) warn.cmoratm.push(`#${c.issue}: cmip7-prep files in ${other.join(", ")}, but the issue gives ${c.dataVersion}`);
+      }
+    });
+    Object.entries(m.versions.cmor4cmip7).forEach(([v, ys]) => {
+      if (!given.has(v)) warn.cmorocn.push(`cmor4cmip7 files in ${v} (years ${yearSpans(ys)}), which no issue gives as its CMOR data version`);
+    });
+    const clash = {};
+    Object.entries(byYear.cmip7prep).forEach(([y, a]) => {
+      const b = byYear.cmor4cmip7[y];
+      if (!b) return;
+      const ka = [...a].sort().join(", "), kb = [...b].sort().join(", ");
+      if (ka !== kb) (clash[`cmip7-prep in ${ka}, cmor4cmip7 in ${kb}`] = clash[`cmip7-prep in ${ka}, cmor4cmip7 in ${kb}`] || []).push(Number(y));
+    });
+    Object.entries(clash).forEach(([k, ys]) => {
+      const msg = `years ${yearSpans(ys)}: ${k}`;
+      warn.cmoratm.push(msg); warn.cmorocn.push(msg);
+    });
+    m.versionWarnings = warn;
     return m;
+  }
+
+  // "1–50, 61" for a list of years.
+  function yearSpans(years){
+    const out = [];
+    [...years].sort((a, b) => a - b).forEach(y => {
+      const last = out[out.length - 1];
+      if (last && y === last[1] + 1) last[1] = y; else out.push([y, y]);
+    });
+    return out.map(([a, b]) => a === b ? `${a}` : `${a}–${b}`).join(", ");
   }
 
   // A run's progress: its members', and for the run as a whole the mean years done, the
@@ -2997,6 +3150,10 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
       const r = { from: start, to: Math.min(...members.map(m => m.cmor[key].to)) };
       p.cmor[key] = r;
       if (members.length >= planned && r.to - start + 1 >= (length || Infinity)) p.steps[key] = true;
+    });
+    p.versionWarnings = {};
+    ["cmoratm", "cmorocn"].forEach(key => {
+      p.versionWarnings[key] = members.flatMap(m => m.versionWarnings[key].map(w => members.length > 1 ? `${m.variant}: ${w}` : w));
     });
     return p;
   }
