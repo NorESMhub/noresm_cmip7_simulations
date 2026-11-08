@@ -19,12 +19,12 @@ Usage (build_page.sh runs it with the published plan):
   python3 -I workflow/build_scheduler.py --experiments workflow/noresm3_experiments_decoded.csv \\
       --template workflow/scheduler_template.html \\
       --out noresm3_cmip7_scheduler.html \\
-      --plan "ne16:DECK,Fast Track" --plan "ne30:DECK,ScenarioMIP"
+      --plan "LM:DECK,Fast Track" --plan "MM:DECK,ScenarioMIP"
 
 --ensemble N gives every run N members instead of the sheet's Ensemble Members;
 --members piControl=1 sets one experiment's members and wins over --ensemble.
 --years piControl=600 sets one experiment's years per member.
---running "historical ne16=1" marks one member of a run as already going;
+--running "historical LM=1" marks one member of a run as already going;
 progress (years done) is then entered on the page.
 The runs' cases and progress come from progress.json, which
 nird_progress.py, next to this script, writes on NIRD from the case
@@ -66,27 +66,27 @@ def read_experiments(path):
 # can also carry betzyCostPerYear and betzyThroughput. The page replaces these
 # with the values measured from the cases' timing files on NIRD, machine by machine.
 COSTS = [
-    # N1850GhgGaxg piControl ne16 timing file (2048 PEs, 2036 active; 256 tasks per node)
-    {"name": "NorESM3 ne16", "resolution": "ne16", "costPerYear": 2564.96, "throughput": 19.16,
+    # N1850GhgGaxg piControl LM timing file (2048 PEs, 2036 active; 256 tasks per node)
+    {"name": "NorESM3 LM", "resolution": "LM", "costPerYear": 2564.96, "throughput": 19.16,
      "compsets": "N1850GhgGaxg NHistGhgGaxg N2xCO2GhgGaxg N0p5xCO2GhgGaxg N1PctCO2BgcGhgGaxg N1PctCO2RadGhgGaxg"},
-    # N1PctCO2GhgGaxg 1pctCO2 ne16 timing file
-    {"name": "NorESM3 1pctCO2 ne16", "resolution": "ne16", "costPerYear": 2606.78, "throughput": 18.86,
+    # N1PctCO2GhgGaxg 1pctCO2 LM timing file
+    {"name": "NorESM3 1pctCO2 LM", "resolution": "LM", "costPerYear": 2606.78, "throughput": 18.86,
      "compsets": "N1PctCO2GhgGaxg"},
-    # N4xCO2GhgGaxg abrupt-4xCO2 ne16 timing file
-    {"name": "NorESM3 4xCO2 ne16", "resolution": "ne16", "costPerYear": 2429.92, "throughput": 20.23,
+    # N4xCO2GhgGaxg abrupt-4xCO2 LM timing file
+    {"name": "NorESM3 4xCO2 LM", "resolution": "LM", "costPerYear": 2429.92, "throughput": 20.23,
      "compsets": "N4xCO2GhgGaxg"},
-    # piControl ne30 timing file (older code)
-    {"name": "NorESM3 ne30", "resolution": "ne30", "costPerYear": 5246.17, "throughput": 10.54,
+    # piControl MM timing file (older code)
+    {"name": "NorESM3 MM", "resolution": "MM", "costPerYear": 5246.17, "throughput": 10.54,
      "compsets": ""},
-    # esm-piControl ne16 timing file (13.295 s per model day)
-    {"name": "NorESM3 ESM ne16", "resolution": "ne16", "costPerYear": 2760.72, "throughput": 17.80,
+    # esm-piControl LM timing file (13.295 s per model day)
+    {"name": "NorESM3 ESM LM", "resolution": "LM", "costPerYear": 2760.72, "throughput": 17.80,
      "compsets": "N1850EsmGhgGaxg NHistEsmGhgGaxg N7*EsmGhgGaxg N10EsmGhgGaxg N10CdrEsmGhgGaxg N10ZecEsmGhgGaxg"},
-    {"name": "NorESM3 ESM ne30", "resolution": "ne30", "costPerYear": None, "throughput": None,
+    {"name": "NorESM3 ESM MM", "resolution": "MM", "costPerYear": None, "throughput": None,
      "compsets": ""},
-    # amip ne16 timing file
-    {"name": "NorESM3 AMIP ne16", "resolution": "ne16", "costPerYear": 1360.06, "throughput": 27.10,
+    # amip LM timing file
+    {"name": "NorESM3 AMIP LM", "resolution": "LM", "costPerYear": 1360.06, "throughput": 27.10,
      "compsets": "NF1850GhgAnthro NF4xCO2Ghg NFAMIPp4k NFAMIPpiF"},
-    {"name": "NorESM3 AMIP ne30", "resolution": "ne30", "costPerYear": None, "throughput": None,
+    {"name": "NorESM3 AMIP MM", "resolution": "MM", "costPerYear": None, "throughput": None,
      "compsets": ""},
 ]
 
@@ -212,7 +212,7 @@ def main():
     p.add_argument("--template", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--plan", action="append", required=True, metavar="RES:SELECTOR",
-                   help='resolution and the tiers or activities to run at it, e.g. "ne30:DECK,ScenarioMIP"; repeatable')
+                   help='resolution and the tiers or activities to run at it, e.g. "MM:DECK,ScenarioMIP"; repeatable')
     p.add_argument("--slots", type=int, default=5)
     p.add_argument("--ensemble", type=int, help="ensemble members for every run, replacing the sheet's column")
     p.add_argument("--members", action="append", default=[], metavar="EXP=N",
@@ -220,7 +220,7 @@ def main():
     p.add_argument("--years", action="append", default=[], metavar="EXP=N",
                    help="years per member for one experiment at every resolution, e.g. piControl=600; repeatable")
     p.add_argument("--running", action="append", default=[], metavar="NAME=N",
-                   help='members of a run already going, e.g. "historical ne16=1"; repeatable')
+                   help='members of a run already going, e.g. "historical LM=1"; repeatable')
     p.add_argument("--progress", help="a progress.json to build into the page; see the docstring")
     p.add_argument("--defer", action="append", default=[], metavar="SELECTOR",
                    help="tier, activity or experiment_id to keep in the plan but not schedule yet "
@@ -245,7 +245,7 @@ def main():
         name, _, n = spec.partition("=")
         name = name.strip()
         if name not in by_name:
-            sys.exit(f"--running {name!r}: no such run (names look like 'historical ne16')")
+            sys.exit(f"--running {name!r}: no such run (names look like 'historical LM')")
         by_name[name]["status"] = "in-progress"
         by_name[name]["membersRunning"] = int(n or 1)
     progress = None

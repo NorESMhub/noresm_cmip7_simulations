@@ -18,7 +18,7 @@ out=${1:-noresm3_cmip7_scheduler.html}
 python3 -I "$here/build_scheduler.py" \
     --experiments "$here/noresm3_experiments_decoded.csv" \
     --template "$here/scheduler_template.html" \
-    --plan "ne16:DECK,Fast Track" --plan "ne30:DECK,ScenarioMIP" \
+    --plan "LM:DECK,Fast Track" --plan "MM:DECK,ScenarioMIP" \
     --ensemble 3 \
     --members piControl=1 --members esm-piControl=1 \
     --members esm-flat10=1 --members esm-flat10-zec=1 --members esm-flat10-cdr=1 \

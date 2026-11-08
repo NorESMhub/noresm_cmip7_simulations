@@ -69,7 +69,7 @@ import urllib.request
 REPO = "NorESMhub/noresm_cmip7_simulations"
 # compset.resolution.version...: n1850GHGGaxg.LM.nor30b28.011.20261102
 TITLE = re.compile(r"^[A-Za-z0-9-]+\.(LM|MM)\.nor30(b\d+)\.")
-RESOLUTION = {"LM": "ne16", "MM": "ne30"}
+RESOLUTION = {"LM": "LM", "MM": "MM"}
 # YYYY-MM, YYYY-MM-DD or YYYY-MM-DD-SSSSS just before .nc
 DATE = re.compile(r"\.(\d{4})-(\d{2})(?:-(\d{2})(?:-\d{5})?)?\.nc$")
 # cmip7-prep's record of the steps that finished for one set of years.
@@ -303,7 +303,7 @@ def main():
         cases.append(case)
         print(f"#{num} {title} [{', '.join(labels) or 'no labels'}]: {report}")
 
-    data = {"updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+    data = {"updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), "repo": a.repo,
             "cases": cases, "skipped": skipped}
     tmp = a.out + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:

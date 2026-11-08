@@ -37,7 +37,7 @@ belong to each configuration.
 The tracker takes its cases from the issues in this repository, one per case:
 
 - **Title:** the case name and nothing else, e.g.
-  `nHistEsmGHGGaxg.LM.nor30b28.008.20261029`. `LM` is ne16 and `MM` is ne30.
+  `nHistEsmGHGGaxg.LM.nor30b28.008.20261029`. `LM` is ne16pg3_tn14 and `MM` is ne30pg3_tn14; the tracker names runs by them, e.g. `esm-hist LM`.
 - **Experiment label:** the CMIP7 experiment, e.g. `esm-hist`, spelt as in the tracker.
 - **Variant label:** the ensemble member, e.g. `r1i1p1f1`.
 - **Assignee:** whoever runs it; the issue's author if nobody is assigned.

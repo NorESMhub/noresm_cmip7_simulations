@@ -392,11 +392,22 @@
     padding: 1px 5px; border-radius: 999px; line-height: 1.5; white-space: nowrap;
   }
   .status-badge.badge-completed{ background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--text-secondary); }
-  .status-badge.badge-inprogress{ background: var(--accent-wash); color: var(--accent); }
-  .status-badge.badge-opened{ background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
   .status-cell{ display:flex; align-items:center; gap:5px; }
   .status-cell .status-text{ min-width: 84px; font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
-  tr.row-inprogress .status-cell .status-text{ color: var(--text-primary); font-weight: 600; }
+  /* In progress is green and Waiting yellow, as pills so the text stays readable. */
+  .status-cell .status-text.is-inprogress,
+  .status-cell .status-text.is-waiting{ min-width: 0; padding: 1px 8px; border-radius: 9px; font-weight: 600; }
+  .status-cell .status-text.is-inprogress{ background: color-mix(in srgb, var(--series-6) 18%, transparent); color: color-mix(in srgb, var(--series-6) 80%, var(--text-primary)); }
+  /* An in-progress run's share of years done, as a ring with the percentage inside. */
+  .status-pct{ position: relative; width: 30px; height: 30px; flex: none; display: inline-grid; place-items: center;
+    font-size: 9.5px; font-weight: 700; font-variant-numeric: tabular-nums;
+    color: color-mix(in srgb, var(--series-6) 80%, var(--text-primary)); }
+  .status-pct[hidden]{ display: none; }
+  .status-pct::before{ content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: conic-gradient(var(--series-6) calc(var(--p, 0) * 1%), color-mix(in srgb, var(--series-6) 18%, transparent) 0);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); }
+  .status-cell .status-text.is-waiting{ background: color-mix(in srgb, var(--series-4) 28%, transparent); color: color-mix(in srgb, var(--series-4) 45%, var(--text-primary)); }
   .progress-cell{ display:flex; align-items:center; gap:6px; white-space:nowrap; }
   .progress-bar{ width: 56px; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--text-muted) 22%, transparent); overflow: hidden; flex: none; }
   .progress-fill{ height: 100%; background: var(--accent); }
@@ -849,12 +860,12 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
 
   // ---------------- default data (the tool's own default plan) ----------------
   let DEFAULT_CONFIGS = [
-    {"id":"c1","name":"NorESM3 ne16","costPerYear":2564.96,"throughput":19.16},
-    {"id":"c7","name":"NorESM3 ne30","costPerYear":null,"throughput":null},
-    {"id":"c4","name":"NorESM3 ESM ne16","costPerYear":2760.72,"throughput":17.8},
-    {"id":"c8","name":"NorESM3 ESM ne30","costPerYear":null,"throughput":null},
-    {"id":"c2","name":"NorESM3 AMIP ne16","costPerYear":null,"throughput":null},
-    {"id":"c9","name":"NorESM3 AMIP ne30","costPerYear":null,"throughput":null},
+    {"id":"c1","name":"NorESM3 LM","costPerYear":2564.96,"throughput":19.16},
+    {"id":"c7","name":"NorESM3 MM","costPerYear":null,"throughput":null},
+    {"id":"c4","name":"NorESM3 ESM LM","costPerYear":2760.72,"throughput":17.8},
+    {"id":"c8","name":"NorESM3 ESM MM","costPerYear":null,"throughput":null},
+    {"id":"c2","name":"NorESM3 AMIP LM","costPerYear":null,"throughput":null},
+    {"id":"c9","name":"NorESM3 AMIP MM","costPerYear":null,"throughput":null},
     {"id":"c3","name":"NorESM3 ocean-only","costPerYear":null,"throughput":null},
     {"id":"c5","name":"NorESM3 land-only","costPerYear":null,"throughput":null},
     {"id":"c6","name":"NorESM3 DCPP","costPerYear":null,"throughput":null},
@@ -956,8 +967,9 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
   // the Status, and cmoratm and cmorocn the years cmip7-prep and cmor4cmip7 have done on
   // NIRD. Every other step is done once each member of the run has a case issue with the
   // step's label.
+  // The issues link to the repository progress.json was read from, NorESMhub's by default.
   const ISSUES_REPO = "NorESMhub/noresm_cmip7_simulations";
-  const ISSUES_URL = `https://github.com/${ISSUES_REPO}/issues`;
+  const issuesUrl = () => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/issues`;
   const WORKFLOW_STEPS = [
     { key: "runqa",     short: "Done",       name: "QA checklist done", phase: "QA", label: "run-qa" },
     { key: "run",       short: "Run",        name: "Run: Status and Progress", phase: "Run", derived: true, cols: 2 },
@@ -1670,7 +1682,7 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
   // nothing, an in-progress run only its remaining cost — so every group total, and their
   // sum, always matches "Total/remaining compute cost" exactly.
   // Groups by resolution and MIP. The resolution is read from the configuration name
-  // ("NorESM3 ESM ne30" -> "ne30"); a configuration without one groups under "".
+  // ("NorESM3 ESM MM" -> "MM"); a configuration without one groups under "".
   function computeMipBreakdown(result){
     const rowMap = jobRowLookup();
     const groups = new Map();
@@ -1690,10 +1702,10 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
     return { list: Array.from(groups.values()).sort((a, b) => b.cost - a.cost) };
   }
   // Colour of each resolution in Cost by MIP: the series its coupled runs use in the chart.
-  const RES_SERIES = { "ne16": 1, "ne30": 7 };
+  const RES_SERIES = { "LM": 1, "MM": 7 };
   function resolutionOf(row){
     const cfg = configs.find(c => c.id === row.configId) || configs[0];
-    const m = cfg && /\bne\d+\b/.exec(cfg.name || "");
+    const m = cfg && /\b(LM|MM)\b/.exec(cfg.name || "");
     return m ? m[0] : "";
   }
 
@@ -1841,15 +1853,15 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
 
   // Bars are coloured by model type and resolution, not by configuration, so the
   // per-experiment timings of one model (piControl, 1pctCO2, 4xCO2, ...) share a colour.
-  // Each type has a pair of related hues: the first for ne16, the second for ne30.
+  // Each type has a pair of related hues: the first for LM, the second for MM.
   const TYPE_SERIES = { "Coupled": [1, 7], "ESM": [2, 8], "AMIP": [3, 6] };
   function colourGroupOf(cfg){
     const name = (cfg && cfg.name) || "";
     const type = /\bAMIP\b/.test(name) ? "AMIP" : /\bESM\b/.test(name) ? "ESM" : "Coupled";
-    const m = /\bne(\d+)\b/.exec(name);
+    const m = /\b(LM|MM)\b/.exec(name);
     const res = m ? m[0] : "";
     const pair = TYPE_SERIES[type];
-    const series = res === "ne30" ? pair[1] : res === "ne16" || !res ? pair[0] : 4 + (Number(m[1]) % 2);
+    const series = res === "MM" ? pair[1] : pair[0];
     return { key: type + " " + res, label: res ? `${type} ${res}` : type, series };
   }
   function seriesOf(cfgId){
@@ -2281,12 +2293,13 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
   }
 
   // Display order: the DECK first, then each MIP in alphabetical order, then the runs that
-  // are off. Within a group, ne16 comes before ne30, coupled runs come before
+  // are off. Within a group, LM comes before MM, coupled runs come before
   // atmosphere-only ones, and the sheet's order is kept otherwise, so a parent sits above
   // the runs that branch from it.
   function simDisplayGroups(){
     const groups = new Map();
-    const resRank = row => { const r = resolutionOf(row); return (r ? Number(r.slice(2)) : 1e6) * 2 + (row.amip === "Yes" ? 1 : 0); };
+    const RES_RANK = { LM: 0, MM: 1 };
+    const resRank = row => { const r = resolutionOf(row); return (r in RES_RANK ? RES_RANK[r] : 9) * 2 + (row.amip === "Yes" ? 1 : 0); };
     sims.forEach((row, i) => {
       const key = isRowOff(row) ? "￿" : (row.mip === "DECK" ? "" : (row.mip || "Other"));
       if (!groups.has(key)) groups.set(key, []);
@@ -2408,6 +2421,7 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
       const statusWrap = document.createElement("div"); statusWrap.className = "status-cell";
       // Status and Progress show what progress.json says; nothing here is edited by hand.
       const statusText = document.createElement("span"); statusText.className = "status-text";
+      const statusPct = document.createElement("span"); statusPct.className = "status-pct";
       function computedPct(){
         const yrs = Math.max(0, Number(row.years) || 0);
         const done = Math.min(yrs, Math.max(0, Number(row.yearsCompleted) || 0));
@@ -2478,14 +2492,24 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
 
       function updateStatusVisuals(){
         const inProgress = row.status === "in-progress";
-        statusText.textContent = STATUS_LABELS[row.status] || row.status;
+        statusText.textContent = issueOpened(row) ? "Waiting"
+          : STATUS_LABELS[row.status] || row.status;
+        statusPct.hidden = !inProgress;
+        statusPct.textContent = inProgress ? computedPct().toFixed(0) + "%" : "";
+        statusPct.style.setProperty("--p", inProgress ? computedPct().toFixed(1) : 0);
+        statusPct.title = inProgress ? `${row.yearsCompleted} of ${row.years} years done` : "";
+        statusText.className = "status-text" + (issueOpened(row) ? " is-waiting" : inProgress ? " is-inprogress" : "");
+        statusText.title = issueOpened(row) ? "This run has a GitHub issue, but NIRD has no model files for it yet"
+          : inProgress ? `${row.yearsCompleted} of ${row.years} years done; ${runningCount(row)} of ${ensembleCount(row)} member${ensembleCount(row) === 1 ? "" : "s"} running` : "";
         const pct = row.status === "completed" ? 100 : inProgress ? computedPct() : 0;
         progFill.style.width = pct + "%";
+        // A run nobody has started on has nothing to show.
+        progBar.hidden = row.status === "pending" && !issueOpened(row);
         progBar.classList.toggle("is-done", row.status === "completed");
         progText.textContent = row.status === "completed" ? "Done"
-          : inProgress ? `${row.yearsCompleted} of ${row.years} · ${pct.toFixed(0)}%`
-          : issueOpened(row) ? "Waiting, no files on NIRD yet"
-          : "Not started";
+          : inProgress ? `${row.yearsCompleted} of ${row.years}`
+          : issueOpened(row) ? "No files on NIRD yet"
+          : "";
         const auto = autoProgress && autoProgress.runs && autoProgress.runs[row.name];
         if (auto && auto.modelDate && row.status !== "completed") progText.textContent += ` · at ${auto.modelDate}`;
         if (inProgress && ensembleCount(row) > 1) progText.textContent += ` · ${runningCount(row)} of ${ensembleCount(row)} members going`;
@@ -2495,18 +2519,11 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
         tr.classList.toggle("row-completed", row.status === "completed");
         tr.classList.toggle("row-inprogress", row.status === "in-progress");
         tr.classList.toggle("row-opened", issueOpened(row));
-        if (issueOpened(row)){
-          statusBadge.hidden = false; statusBadge.textContent = "waiting"; statusBadge.className = "status-badge badge-opened";
-          statusBadge.title = "This run has a GitHub issue, but NIRD has no model files for it yet";
-        }
-        else if (row.status === "completed"){ statusBadge.hidden = false; statusBadge.textContent = "✓"; statusBadge.className = "status-badge badge-completed"; statusBadge.title = "Completed — no cost remaining"; }
-        else if (row.status === "in-progress"){
-          statusBadge.hidden = false; statusBadge.textContent = computedPct().toFixed(0) + "%"; statusBadge.className = "status-badge badge-inprogress";
-          statusBadge.title = `${runningCount(row)} of ${ensembleCount(row)} member${ensembleCount(row) === 1 ? "" : "s"} running; ${row.yearsCompleted} of ${row.years} years done`;
-        }
+        if (row.status === "completed"){ statusBadge.hidden = false; statusBadge.textContent = "✓"; statusBadge.className = "status-badge badge-completed"; statusBadge.title = "Completed — no cost remaining"; }
         else { statusBadge.hidden = true; }
       }
       statusWrap.appendChild(statusText);
+      statusWrap.appendChild(statusPct);
       tdStatus.appendChild(statusWrap);
       updateStatusVisuals();
 
@@ -2531,7 +2548,7 @@ https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scri
       const manyMembers = new Set((row.cases || []).map(c => c.variant)).size > 1;
       (row.cases || []).forEach(c => {
         const chip = document.createElement("a"); chip.className = "case-chip";
-        chip.href = `${ISSUES_URL}/${c.issue}`; chip.target = "_blank"; chip.rel = "noopener";
+        chip.href = `${issuesUrl()}/${c.issue}`; chip.target = "_blank"; chip.rel = "noopener";
         chip.textContent = "#" + String(c.issue).padStart(3, "0") + (manyMembers ? " " + c.variant.split("i")[0] : "");
         chip.title = `${c.case}\n${c.variant} · ${c.version} · ${reached(c)} · ${c.owner}`;
         tdCases.appendChild(chip);
