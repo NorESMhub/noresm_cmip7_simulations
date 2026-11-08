@@ -43,6 +43,42 @@ The tracker takes its cases from the issues in this repository, one per case:
 - **Assignee:** whoever runs it; the issue's author if nobody is assigned.
 - **`completed`:** add this label when the run has finished.
 - **`test`:** add this label to a case that is not a CMIP7 run, to leave it out.
+- **Step labels:** add a step's label when the step is done, and the tracker ticks
+  its column after the next run of `nird_progress.py`. A run with several members
+  needs the label on an issue of each; until then the column shows how many have
+  it, e.g. `1/3`.
+
+  | Label | Step |
+  |---|---|
+  | `run-qa` | QA: the run's QA checklist is done |
+  | `cmip7prep-qa` | CMORize: the cmip7-prep output is validated |
+  | `cmor4cmip7-qa` | CMORize: the cmor4cmip7 output is QA'd |
+  | `esgf` | Publish: the data is on ESGF |
+
+- **Description:** a heading for the run script, the case it continues, if any,
+  and each tool's output root, with the link, issue or directory on the line after
+  it. Add each root as its tool starts on the case:
+
+  ```
+  ### Run script
+  https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
+
+  ### Continues
+  #2
+
+  ### cmip7prep output root
+  /nird/datalake/NS9560K/noresm3/cases/<case>.cmor
+
+  ### cmor4cmip7 output root
+  /nird/datapeak/NS9034K/CMIP7
+  ```
+
+  The cmip7prep and cmor4cmip7 columns need no label: `nird_progress.py` reads
+  the years each tool has CMORized under its root. It reads cmip7-prep's
+  `completed_steps_*.json` files, and the time ranges in the names of cmor4cmip7's
+  files for the case, those whose name has its experiment and variant, e.g.
+  `_piControl_r1i1p1f1_`. A year counts once every variable has it. Without a
+  cmip7prep output root it uses `--cmor-dir`.
 
 ## The run scripts
 
@@ -72,14 +108,17 @@ repository.
 - **Commit message:** `Run script for #11`, with the case's issue number. GitHub
   then shows the commit on the issue. Don't write `Closes #11` or `Fixes #11`:
   either closes the issue.
-- **Issue:** add a line with the script's link to the issue's description, e.g.
-  `Run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh`.
+- **Issue:** add the script's link to the issue's description under the heading
+  `### Run script`, e.g.
+  `https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh`.
 
 ## Continuations and members
 
 A simulation continued in a new case gets a new issue with the same experiment and
-variant labels; the tracker reads the two as one member, taking its progress from
-the later model date. Another member of the ensemble gets its own variant, e.g.
+variant labels, and `#<earlier issue>` under the heading `### Continues` in its
+description. The tracker reads the two as one member, taking its progress from the
+later model date; the heading is for readers, as the labels are enough for the
+tracker. Another member of the ensemble gets its own variant, e.g.
 `r2i1p1f1`, and its own progress.
 
 ## `nird_progress.py`
@@ -103,7 +142,8 @@ python3 -I workflow/nird_progress.py \
 ```
 
 - `--dir` is each case's directory, with `{case}` standing for the case name.
-- `--cmor-dir` is each case's cmip7-prep output directory. The script reads the
+- `--cmor-dir` is each case's cmip7-prep output directory, for a case whose issue
+  has no cmip7prep output root. The script reads the
   `completed_steps_<first>-<last>.json` files cmip7-prep writes there. A set of
   years counts once it has every `cmor-` step any of the run's sets has, so a set
   where one realm failed does not count; the range ends at the first year missing.

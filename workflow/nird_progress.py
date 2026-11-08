@@ -6,7 +6,9 @@ case name, such as
 and whose labels include the CMIP7 experiment (esm-hist). The script lists the
 issues, reads each case's directories on NIRD, and writes one entry per case;
 the page groups the cases into its runs by experiment label and resolution.
-An issue labelled "test" is left out, and "completed" marks a finished run.
+An issue labelled "test" is left out, and "completed" marks a finished run. Every
+case's labels are written out, so the page can tick the workflow steps whose label
+(cmor4cmip7, esgf, ...) the issue has.
 
 For each case it records:
   - the latest model date in its file names, such as
@@ -15,6 +17,11 @@ For each case it records:
   - the sets of years cmip7-prep has run over. cmip7-prep writes
     completed_steps_<first>-<last>.json in its output directory for each set,
     listing the steps that finished (cmor-atm-mon, ...);
+  - the years cmor4cmip7 has CMORized, from the time ranges in the names of the
+    case's files under its output root, such as
+    so_Omon_NorESM3_piControl_r1i1p1f1_gn_000101-001012.nc. A file is the case's
+    when its name has the issue's experiment and variant labels, so the root can
+    hold other runs too. A year counts once every variable has it;
   - its cost (pe-hours per simulated year) and throughput (simulated years per
     day) on each machine it ran on, from the Machine, Model Cost and Model
     Throughput lines of its timing files, noresm_timing.<case>.<job id>.<date>,
@@ -23,6 +30,17 @@ For each case it records:
 
 --dir gives each case's directory, --cmor-dir its cmip7-prep output directory
 and --timing-dir its timing directory, with {case} standing for the case name.
+The issue's description names each tool's output root under a heading of its
+own, with the directory on the line after it:
+
+  ### cmip7prep output root
+  /nird/datalake/NS9560K/noresm3/cases/<case>.cmor
+
+  ### cmor4cmip7 output root
+  /nird/datapeak/NS9034K/CMIP7
+
+The cmip7prep root takes the place of --cmor-dir for that case; cmor4cmip7's output
+is only read when the issue names its root.
 Some cases keep their timing files one level down, in a directory named after
 the case, so --timing-dir is given once for each layout; the first that exists
 is read:
@@ -56,6 +74,15 @@ RESOLUTION = {"LM": "ne16", "MM": "ne30"}
 DATE = re.compile(r"\.(\d{4})-(\d{2})(?:-(\d{2})(?:-\d{5})?)?\.nc$")
 # cmip7-prep's record of the steps that finished for one set of years.
 COMPLETED = re.compile(r"completed_steps_(\d+)-(\d+)\.json$")
+# A CMOR file's variable and the years of its time range, before .nc:
+# so_Omon_NorESM3_piControl_r1i1p1f1_gn_000101-001012.nc
+CMOR_FILE = re.compile(r"^(.+)_(\d{4})\d*-(\d{4})\d*\.nc$")
+# Headings of an issue's description followed by where each tool's CMORized output is:
+# "### cmip7prep output root", then the directory on the next line that isn't blank.
+OUTPUT_ROOTS = {tool: re.compile(r"^#{1,6}[ \t]*" + tool + r"[ \t]+output(?:[ \t]+root)?[ \t]*\r?\n\s*`?(/[^\s`]+)",
+                                 re.M | re.I)
+                for tool in ("cmip7prep", "cmor4cmip7")}
+VARIANT = re.compile(r"^r\d+i\d+p\d+f\d+$")
 # Lines of a timing file, one per job: noresm_timing.<case>.<job id>.<date>.
 TIMING_LINES = {
     "cost": re.compile(r"^\s*Model Cost:\s*([\d.]+)\s+pe-hrs/simulated_year", re.M),
@@ -119,6 +146,43 @@ def cmor_sets(directory):
     return sorted(sets, key=lambda s: s["first"])
 
 
+_cmor_files = {}
+
+
+def cmor_files(directory):
+    """The names of the CMOR files with a time range under the directory, read once per run."""
+    if directory not in _cmor_files:
+        _cmor_files[directory] = [m for _, _, names in os.walk(directory)
+                                  for name in names if (m := CMOR_FILE.match(name))]
+    return _cmor_files[directory]
+
+
+def cmor_file_years(directory, labels):
+    """[[first, last], ...]: the years every variable of the case has a file for under the
+    directory, from the time ranges in the CMOR file names. The case's files are the ones
+    whose name has one of its labels as the experiment, followed by its variant label, as
+    in so_Omon_NorESM3_piControl_r1i1p1f1_gn_000101-001012.nc. Files without a time range
+    (fixed fields) don't count."""
+    variant = next((l for l in labels if VARIANT.match(l)), None)
+    if not variant:
+        return []
+    keys = [f"_{l}_{variant}_" for l in labels if l != variant]
+    by_var = {}
+    for m in cmor_files(directory):
+        if any(k in m.group(0) for k in keys):
+            by_var.setdefault(m.group(1), set()).update(range(int(m.group(2)), int(m.group(3)) + 1))
+    if not by_var:
+        return []
+    years = sorted(set.intersection(*by_var.values()))
+    ranges = []
+    for y in years:
+        if ranges and y == ranges[-1][1] + 1:
+            ranges[-1][1] = y
+        else:
+            ranges.append([y, y])
+    return ranges
+
+
 def read_timing_file(path):
     """{cost, sypd, days, pes, machine, date} from one timing file; None if it lacks cost or
     throughput. The date is when the job ended (Curr Date), or the file's time without one."""
@@ -177,7 +241,8 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("out", help="where to write progress.json")
     p.add_argument("--dir", required=True, help='each case\'s directory, e.g. "/archive/{case}/atm/hist"')
-    p.add_argument("--cmor-dir", help='each case\'s cmip7-prep output directory, e.g. "/cases/{case}.cmor"')
+    p.add_argument("--cmor-dir", help='each case\'s cmip7-prep output directory, e.g. "/cases/{case}.cmor", '
+                                      'for a case whose issue names no cmip7prep output root')
     p.add_argument("--timing-dir", action="append", default=[],
                    help='each case\'s timing directory, e.g. "/cases/{case}/timing"; give it more than '
                         'once for cases laid out differently, and the first that exists is read')
@@ -213,11 +278,21 @@ def main():
             report = f"at {case['modelDate']}"
         else:
             report = "no directory" if last is False else "no dated files"
-        if a.cmor_dir:
-            sets = cmor_sets(a.cmor_dir.format(case=title))
+        body = issue.get("body") or ""
+        output = {tool: m.group(1) for tool, r in OUTPUT_ROOTS.items() if (m := r.search(body))}
+        if output:
+            case["cmorOutput"] = output
+        prep_dir = output.get("cmip7prep") or (a.cmor_dir.format(case=title) if a.cmor_dir else None)
+        if prep_dir:
+            sets = cmor_sets(prep_dir)
             if sets:
                 case["cmor"] = sets
-                report += "; CMORized " + ", ".join(f"{s['first']}-{s['last']}" for s in sets)
+                report += "; cmip7prep " + ", ".join(f"{s['first']}-{s['last']}" for s in sets)
+        if "cmor4cmip7" in output:
+            ranges = cmor_file_years(output["cmor4cmip7"], labels)
+            if ranges:
+                case["cmor4cmip7"] = ranges
+            report += "; cmor4cmip7 " + (", ".join(f"{f}-{l}" for f, l in ranges) or "nothing yet")
         timing_dir = next((d for d in (t.format(case=title) for t in a.timing_dir) if os.path.isdir(d)), None)
         if timing_dir:
             timing, machine = case_timing(timing_dir)

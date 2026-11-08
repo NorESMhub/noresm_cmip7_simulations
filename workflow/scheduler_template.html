@@ -395,10 +395,9 @@
   .status-badge.badge-inprogress{ background: var(--accent-wash); color: var(--accent); }
   .status-badge.badge-opened{ background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
   .status-cell{ display:flex; align-items:center; gap:5px; }
-  .status-cell .status-select{ min-width: 104px; flex: 1 1 auto; }
-  .status-cell .status-select{ min-width: 118px; }
+  .status-cell .status-text{ min-width: 84px; font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+  tr.row-inprogress .status-cell .status-text{ color: var(--text-primary); font-weight: 600; }
   .progress-cell{ display:flex; align-items:center; gap:6px; white-space:nowrap; }
-  table.data-table .progress-cell input.status-progress{ width: 54px; min-width: 54px; flex: none; text-align:right; }
   .progress-bar{ width: 56px; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--text-muted) 22%, transparent); overflow: hidden; flex: none; }
   .progress-fill{ height: 100%; background: var(--accent); }
   .progress-bar.is-done .progress-fill{ background: var(--series-1); }
@@ -443,8 +442,9 @@
     cursor:pointer; font-size: 15px; line-height:1; padding: 4px 6px; border-radius: 6px;
   }
   .row-del:hover{ color: var(--danger); background: var(--danger-wash); }
-  #trackerStats{ grid-template-columns: repeat(7, minmax(0, 1fr)); }
-  @media (max-width: 1100px){ #trackerStats{ grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  /* The runs' state on the first row; CMORization and publication on the second. */
+  #trackerStats{ grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  #trackerStats .stat-tile.row-start{ grid-column-start: 1; }
   @media (max-width: 760px){ #trackerStats{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   #simTable td.col-name input{ min-width: 170px; }
   #simTable input.num{ width: 58px; min-width: 50px; }
@@ -475,13 +475,14 @@
   .wf-more > summary{ cursor: pointer; padding: 5px 0; font-weight: 600; color: var(--accent); }
   .wf-more[open] > summary{ border-bottom: 1px solid var(--border); }
   .wf-decide{ margin-top: 5px; font-size: 13px; color: var(--text-secondary); }
+  .wf-alert{ color: var(--danger); font-weight: 700; }
   .wf-note{ margin: 6px 0 0; font-size: 13px; color: var(--text-secondary); }
+  .wf-pre{ margin: 4px 0 0; padding: 6px 8px; font-size: 12px; background: color-mix(in srgb, var(--text-muted) 10%, transparent); border-radius: 4px; overflow-x: auto; }
   .wf-decide ul{ margin: 3px 0 0; padding-left: 18px; }
   .wf-parts{ margin: 3px 0 0; padding-left: 18px; font-size: 13px; color: var(--text-secondary); }
   .wf-parts code{ overflow-wrap: anywhere; }
   .wf-tag{ display:inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 9px; margin-left: 6px; vertical-align: 1px; }
-  .wf-auto{ background: color-mix(in srgb, var(--series-1) 18%, transparent); color: var(--series-1); }
-  .wf-manual{ background: color-mix(in srgb, var(--text-muted) 18%, transparent); color: var(--text-secondary); }
+  .wf-label{ background: color-mix(in srgb, var(--text-muted) 18%, transparent); color: var(--text-secondary); }
   #simTable th.step-h{ font-size: 11px; padding: 4px 3px; text-align: center; white-space: nowrap; }
   #simTable th.step-h a{ color: inherit; text-decoration: none; display: inline-block; min-width: 18px; }
   #simTable th.step-group{ text-align: center; font-size: 11px; color: var(--text-muted); padding: 4px; border-bottom: 1px solid var(--border); }
@@ -606,24 +607,22 @@
     <div class="editor-head">
       <h2>Simulation tracker</h2>
       <ul class="editor-caption caption-list">
-        <li><b>Status and Progress:</b> read automatically. A run is In progress once its files reach NIRD, and Completed once its issue has the <code>completed</code> label.</li>
+        <li><b>Status and Progress:</b> a run is In progress once its files reach NIRD, and Completed once its issue has the <code>completed</code> label.</li>
         <li><b>Issues:</b> the runs' GitHub issues in <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/issues" target="_blank" rel="noopener">NorESMhub/noresm_cmip7_simulations</a>, one per case; hover an issue for its case name, click it to open it. An issue shows up here once its title is the case name and its labels name the experiment and the variant (see <a href="#wf-issue">Prepare</a>).</li>
-        <li><b>Check boxes:</b> the columns follow the headings under <a href="#workflow">Workflow</a> below. A box ticked here is not saved: it is gone when the page is reloaded, and other people don't see it.</li>
+        <li><b>Steps:</b> the columns follow the headings under <a href="#workflow">Workflow</a> below. A step shows ✓ once the case's issue has the step's label, e.g. <code>esgf</code>, and the progress script has run since. A run with several members needs the label on an issue of each; until then the column shows how many have it, e.g. <code>1/3</code>.</li>
         <li class="auto-note" id="autoNote"></li>
       </ul>
     </div>
     <details class="wf-details" id="workflow" open>
       <summary class="wf-head">Workflow: what every run goes through</summary>
-      <p class="wf-intro">The tracker has a column for each step below, under the same headings, as well as the run's Status and Progress. Status, Progress and cmip7prep are <span class="wf-tag wf-auto">determined automatically on NIRD</span>: nobody fills them in, because the progress script reads how far the run and cmip7-prep have got. The others are <span class="wf-tag wf-manual">check box</span> steps ticked by hand. Under each step, <b>To decide</b> lists what the group still has to agree on.</p>
+      <p class="wf-intro">The tracker has a column for each step below from QA on, under the same headings, as well as the run's Status and Progress. The progress script fills them all in: Status, Progress, cmip7prep and cmor4cmip7 from the files on NIRD, and the other steps from a <span class="wf-tag wf-label">label</span> on the case's GitHub issue, named next to each step. <span class="wf-alert">Under each step, To decide lists what the group still has to agree on.</span></p>
 
       <div class="wf-phase">
         <h3>Prepare</h3>
         <ul class="wf-steps">
           <li id="wf-prepare">
-            <p>Tick the Prepare column once all three are done.</p>
-            <p id="wf-casename"><b>1. Determine the case name.</b></p>
-            <details class="wf-more">
-              <summary>How a case is named</summary>
+            <details class="wf-more" id="wf-casename">
+              <summary>Determine the case name</summary>
               <p>A case is named <code>compset.resolution.version.issue.date</code>, for example <code>n1850Gaxg.LM.nor30b22.502.20260801</code>:</p>
               <ul class="wf-parts">
               <li><b>compset:</b> see column M of the <a href="https://docs.google.com/spreadsheets/d/1qps0xZDkEy1M3GZgjt9mAqAFj2NUK_xd/edit?gid=13331701#gid=13331701" target="_blank" rel="noopener">NorESM3 CMIP7 experiments spreadsheet</a>;</li>
@@ -633,9 +632,8 @@
               <li><b>date:</b> the date the case is made, as YYYYMMDD.</li>
               </ul>
             </details>
-            <p id="wf-issue"><b>2. Make the experiment's GitHub issue.</b></p>
-            <details class="wf-more">
-              <summary>What the issue needs</summary>
+            <details class="wf-more" id="wf-issue">
+              <summary>Make the experiment's GitHub issue</summary>
               <p>Issues go in <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/issues" target="_blank" rel="noopener">NorESMhub/noresm_cmip7_simulations</a>, one per case. The tracker is filled in from them, so:</p>
               <ul class="wf-parts">
                 <li><b>title:</b> the <a href="#wf-casename">case name</a> and nothing else;</li>
@@ -643,28 +641,37 @@
                 <li><b>variant label:</b> the ensemble member, e.g. <code>r1i1p1f1</code>;</li>
                 <li><b>assignee:</b> whoever runs it, shown as the run's owner;</li>
                 <li><b><code>completed</code>:</b> add this label when the run has finished;</li>
-                <li><b><code>test</code>:</b> add this label to a case that is not a CMIP7 run, to leave it out.</li>
+                <li><b><code>test</code>:</b> add this label to a case that is not a CMIP7 run, to leave it out;</li>
+                <li><b>step labels:</b> <code>run-qa</code>, <code>cmip7prep-qa</code>, <code>cmor4cmip7-qa</code> and <code>esgf</code>, each added when its step is done;</li>
+                <li><b>description:</b> a heading for each of the following, with the link, issue or directory on the line after it. Continues is only for a case that continues another, and each output root is added as its tool starts on the case:</li>
               </ul>
-            </details>
-            <details class="wf-more" id="wf-cases">
-              <summary>How the tracker reads the issues</summary>
-              <p>Once the progress script has read an issue, the run shows it in the Issues column. The experiment label and the case name's resolution pick the run; the variant label picks the member.</p>
+              <pre class="wf-pre">### Run script
+https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
+
+### Continues
+#2
+
+### cmip7prep output root
+/nird/datalake/NS9560K/noresm3/cases/n1850GHGGaxg.LM.nor30b28.011.20261102.cmor
+
+### cmor4cmip7 output root
+/nird/datapeak/NS9034K/CMIP7</pre>
+              <p>The progress script reads the two output roots for the cmip7prep and cmor4cmip7 columns; Run script and Continues are for readers.</p>
+              <p id="wf-cases">Once the progress script has read an issue, the run shows it in the Issues column. The experiment label and the case name's resolution pick the run; the variant label picks the member.</p>
               <ul class="wf-parts">
-                <li><b>continuing a simulation in a new case:</b> give the new issue the same experiment and variant labels. The tracker reads the two as one simulation and takes its progress from the later model date, as with #2 and #11;</li>
-                <li><b>another member of the ensemble:</b> give it its own variant, e.g. <code>r2i1p1f1</code>. The run's years done are the mean over its members;</li>
-                <li><b>a case that is not a CMIP7 run:</b> label it <code>test</code>, and the tracker leaves it out.</li>
+                <li><b>continuing a simulation in a new case:</b> give the new issue the same experiment and variant labels, and the earlier issue under the heading <code>### Continues</code> in its description, e.g. <code>#2</code>. The tracker reads the two as one simulation and takes its progress from the later model date, as with #2 and #11;</li>
+                <li><b>another member of the ensemble:</b> give it its own variant, e.g. <code>r2i1p1f1</code>. The run's years done are the mean over its members.</li>
               </ul>
             </details>
-            <p id="wf-script"><b>3. Add the run script.</b></p>
-            <details class="wf-more">
-              <summary>How the run script is added</summary>
+            <details class="wf-more" id="wf-script">
+              <summary>Archive the run script</summary>
               <p>Push the case's run script straight to its experiment's directory under <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/tree/CMIP7_Runscripts/scripts" target="_blank" rel="noopener"><code>scripts/</code></a> on the <code>CMIP7_Runscripts</code> branch; this needs write access to the repository.</p>
               <ul class="wf-parts">
                 <li><b>directory:</b> <code>scripts/&lt;experiment&gt;/</code>, named after the issue's experiment label, e.g. <code>scripts/piControl/</code>. Every experiment label has one; a new label needs its own directory, with an empty <code>.gitkeep</code> file so that git keeps it while it is empty;</li>
                 <li><b>name:</b> <code>issue.compset.resolution.beta.date.sh</code>, each part copied from the case name, e.g. <code>011.n1850GHGGaxg.LM.b28.20261102.sh</code> for <code>n1850GHGGaxg.LM.nor30b28.011.20261102</code>;</li>
                 <li><b>push:</b> in a clone of the repository, <code>git switch CMIP7_Runscripts</code> and <code>git pull</code>, copy the script into its experiment's directory under its name, then <code>git add</code>, <code>git commit</code> and <code>git push</code>. Without a clone, open the experiment's directory under <code>scripts/</code> on GitHub, use <b>Add file → Upload files</b> and choose <b>Commit directly to the CMIP7_Runscripts branch</b>;</li>
                 <li><b>commit message:</b> <code>Run script for #11</code>, with the case's issue number. GitHub then shows the commit on the issue. Don't write <code>Closes #11</code> or <code>Fixes #11</code>: either closes the issue;</li>
-                <li><b>issue:</b> add a line with the script's link to the issue's description, e.g. <code>Run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh</code>.</li>
+                <li><b>issue:</b> add the script's link to the issue's description under the heading <code>### Run script</code>, e.g. <code>https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh</code>.</li>
               </ul>
             </details></li>
         </ul>
@@ -674,21 +681,11 @@
         <h3>QA</h3>
         <ul class="wf-steps">
           <li id="wf-runqa">
+            <p>The QA column depends on the label <code>run-qa</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the run's QA is done.</p>
             <details class="wf-more" id="wf-case">
-              <summary>Create and build the case on Betzy or Olivia</summary>
-              <p>On Olivia, cases go in <code>/cluster/projects/nn9560k/$USER</code>, each in a directory named after the case: <code>/cluster/projects/nn9560k/$USER/&lt;case&gt;</code>.</p>
-              <div class="wf-decide"><b>To decide:</b>
-                <ul>
-                  <li>where cases go on Betzy;</li>
-                  <li>ARCHIVE_CASE_FOLDER;</li>
-                  <li>a template build script;</li>
-                  <li>whether runs start as hybrid or branch runs.</li>
-                </ul></div>
-            </details>
-            <details class="wf-more">
-              <summary>QA the run <span class="wf-tag wf-manual">check box</span></summary>
-              <p>Go through the QA checklist, then tick the box.</p>
-              <div class="wf-decide"><b>To decide:</b> the checklist of items to check.</div>
+              <summary>QA the run <span class="wf-tag wf-label">label: run-qa</span></summary>
+              <p>Create and build the case. On Olivia and Betzy, cases go in <code>/cluster/projects/nn9560k/$USER</code>, each in a directory named after the case: <code>/cluster/projects/nn9560k/$USER/&lt;case&gt;</code>.</p>
+              <p>Go through the QA checklist, then add the label <code>run-qa</code> to the issue.</p>
             </details></li>
         </ul>
       </div>
@@ -697,7 +694,7 @@
         <h3>Run</h3>
         <ul class="wf-steps">
           <li id="wf-runstep">
-            <p>The run is tracked automatically: the progress script reads its Status and Progress on NIRD.</p>
+            <p>The progress script reads the run's Status and Progress on NIRD.</p>
             <details class="wf-more" id="wf-run">
               <summary>How the run is done and tracked</summary>
               <p>Set the run's priority and coordinate it with the other runs. Copy the output to NIRD by hand with rsync while the run is going. The progress script reads the years done from the atmosphere history files copied there, and the tracker shows them in the Progress column and sets the Status to In progress. To set it to Completed, add the <code>completed</code> label to its issue.</p>
@@ -715,17 +712,26 @@
       <div class="wf-phase">
         <h3>CMORize</h3>
         <details class="wf-more">
-        <summary>The CMORization steps</summary>
+        <summary>The CMORization steps <span class="wf-tag wf-label">label: cmip7prep-qa</span><span class="wf-tag wf-label">label: cmor4cmip7-qa</span></summary>
         <ul class="wf-steps">
-          <li id="wf-cmorissue"><div class="wf-title">Make the CMORization issue <span class="wf-tag wf-manual">check box</span></div>
+          <li id="wf-cmorissue"><div class="wf-title">Make the CMORization issue</div>
             <p>Once the simulation has finished, open an issue in <a href="https://github.com/NorESMhub/CMIP7_CMOR-Publish/issues" target="_blank" rel="noopener">NorESMhub/CMIP7_CMOR-Publish</a> from its template, which is like the CMIP6 one, and label it <code>cmorization</code>. The repository's other labels are <code>publication</code>, <code>archive</code>, <code>cmor_bug</code>, <code>publication_bug</code> and <code>retract</code>.</p>
+            <p>As each tool starts, add its output root to the description of the case's issue in noresm_cmip7_simulations, under a heading of its own:</p>
+            <pre class="wf-pre">### cmip7prep output root
+/nird/datalake/NS9560K/noresm3/cases/&lt;case&gt;.cmor
+
+### cmor4cmip7 output root
+/nird/datapeak/NS9034K/CMIP7</pre>
+            <p>The progress script reads each tool's progress there, and the tracker shows the roots when you hover the cmip7prep or cmor4cmip7 column.</p>
             <div class="wf-decide"><b>To decide:</b> how urgency is shown.</div></li>
-          <li id="wf-cmoratm"><div class="wf-title">CMORize the atmosphere, land, sea ice and land ice using cmip7-prep <span class="wf-tag wf-auto">determined automatically on NIRD</span></div>
-            <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K/CMIP7</code> with the cmor4cmip7 output. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>.</p></li>
-          <li id="wf-qaatm"><div class="wf-title">Validate the cmip7-prep output <span class="wf-tag wf-manual">check box</span></div></li>
-          <li id="wf-cmorocn"><div class="wf-title">CMORize the ocean and ocean biogeochemistry using cmor4cmip7 <span class="wf-tag wf-manual">check box</span></div>
-            <p>The CMORized output goes in <code>/nird/datapeak/NS9034K/CMIP7</code>. The first 100 years of piControl's ocean are being CMORized there now.</p></li>
-          <li id="wf-qaocn"><div class="wf-title">QA the cmor4cmip7 output <span class="wf-tag wf-manual">check box</span></div></li>
+          <li id="wf-cmoratm"><div class="wf-title">CMORize the atmosphere, land, sea ice and land ice using cmip7-prep</div>
+            <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K/CMIP7</code> with the cmor4cmip7 output. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>. Without a <code>cmip7prep output root</code> in the issue, the script looks in the case's <code>.cmor</code> directory.</p></li>
+          <li id="wf-qaatm"><div class="wf-title">Validate the cmip7-prep output <span class="wf-tag wf-label">label: cmip7prep-qa</span></div>
+            <p>The QA column after cmip7prep depends on the label <code>cmip7prep-qa</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the cmip7-prep output has been validated.</p></li>
+          <li id="wf-cmorocn"><div class="wf-title">CMORize the ocean and ocean biogeochemistry using cmor4cmip7</div>
+            <p>The CMORized output goes in <code>/nird/datapeak/NS9034K/CMIP7</code>. The first 100 years of piControl's ocean are being CMORized there now. The progress script reads the time ranges in the names of the case's files under the issue's <code>cmor4cmip7 output root</code>, e.g. <code>_000101-001012.nc</code>, and the tracker shows the years every variable has, e.g. <code>1–10</code>. The case's files are the ones whose names have its experiment and variant, e.g. <code>_piControl_r1i1p1f1_</code>, so the root can hold other runs too.</p></li>
+          <li id="wf-qaocn"><div class="wf-title">QA the cmor4cmip7 output <span class="wf-tag wf-label">label: cmor4cmip7-qa</span></div>
+            <p>The QA column after cmor4cmip7 depends on the label <code>cmor4cmip7-qa</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the cmor4cmip7 output has been QA'd.</p></li>
         </ul>
         <p class="wf-note">cmip7-prep and cmor4cmip7 lay out their output differently. That doesn't matter for publication: esg-prep links both into the structure ESGF needs. The CMORization and publication workflow, and the esg-prep command, will be added here as they are settled.</p>
         </details>
@@ -734,7 +740,12 @@
       <div class="wf-phase">
         <h3>Publish</h3>
         <ul class="wf-steps">
-          <li id="wf-esgf"><div class="wf-title">Publish the data on ESGF <span class="wf-tag wf-manual">check box</span></div></li>
+          <li id="wf-esgf">
+            <details class="wf-more">
+              <summary>Publish the data on ESGF <span class="wf-tag wf-label">label: esgf</span></summary>
+              <p>The ESGF column depends on the label <code>esgf</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the data is published.</p>
+              <div class="wf-decide"><b>TODO:</b> what publishing involves.</div>
+            </details></li>
         </ul>
       </div>
     </details>
@@ -942,26 +953,25 @@
   try { localStorage.removeItem("noresm3-cmip7-cost-plan:v2"); } catch (err){}
 
   // The workflow every run goes through; the tracker has one column per step. Run follows
-  // the Status. Steps marked auto are filled in from progress.json when the NIRD progress
-  // script has written one next to the page; until then they are ticked by hand.
+  // the Status, and cmoratm and cmorocn the years cmip7-prep and cmor4cmip7 have done on
+  // NIRD. Every other step is done once each member of the run has a case issue with the
+  // step's label.
   const ISSUES_REPO = "NorESMhub/noresm_cmip7_simulations";
   const ISSUES_URL = `https://github.com/${ISSUES_REPO}/issues`;
   const WORKFLOW_STEPS = [
-    { key: "prepare",   short: "Done",     name: "Case prepared: named, its GitHub issue and run script made", phase: "Prepare" },
-    { key: "runqa",     short: "Done",       name: "QA checklist done", phase: "QA" },
+    { key: "runqa",     short: "Done",       name: "QA checklist done", phase: "QA", label: "run-qa" },
     { key: "run",       short: "Run",        name: "Run: Status and Progress", phase: "Run", derived: true, cols: 2 },
-    { key: "cmorissue", short: "Issues",     name: "CMORization issue made", phase: "CMORize" },
-    { key: "cmoratm",   short: "cmip7prep",  name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", auto: true, range: true, split: true },
-    { key: "qaatm",     short: "QA",         name: "cmip7-prep output validated" },
-    { key: "cmorocn",   short: "cmor4cmip7", name: "Ocean and ocean biogeochemistry CMORized with cmor4cmip7", split: true },
-    { key: "qaocn",     short: "QA",         name: "cmor4cmip7 output QA done" },
-    { key: "esgf",      short: "ESGF",       name: "Published on ESGF", phase: "Publish" },
+    { key: "cmoratm",   short: "cmip7prep",  name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", phase: "CMORize", auto: true, range: true },
+    { key: "qaatm",     short: "QA",         name: "cmip7-prep output validated", label: "cmip7prep-qa" },
+    { key: "cmorocn",   short: "cmor4cmip7", name: "Ocean and ocean biogeochemistry CMORized with cmor4cmip7", split: true, auto: true, range: true },
+    { key: "qaocn",     short: "QA",         name: "cmor4cmip7 output QA done", label: "cmor4cmip7-qa" },
+    { key: "esgf",      short: "ESGF",       name: "Published on ESGF", phase: "Publish", label: "esgf" },
   ];
   const stepDone = (row, key) => key === "run" ? row.status === "completed"
     : (autoSteps(row)[key] === true || (Array.isArray(row.steps)
-      && (row.steps.includes(key) || (key === "prepare" && row.steps.includes("case")))));
+      && row.steps.includes(key)));
   // progressData is progress.json as read; autoProgress is what it says for each run, keyed by
-  // run name: { yearsCompleted, modelDate, completed, cmorFrom, cmorTo, cmorYears, steps }.
+  // run name: { yearsCompleted, modelDate, completed, cmor: { cmoratm, cmorocn: { from, to } }, steps }.
   let progressData = null, autoProgress = null;
   const autoRun = row => (autoProgress && autoProgress.runs && autoProgress.runs[row.name]) || null;
   const autoSteps = row => (autoRun(row) && autoRun(row).steps) || {};
@@ -1579,14 +1589,14 @@
       { label: "Waiting to start", value: count(issueOpened), sub: "GitHub issue open, no files on NIRD yet" },
       { label: "In progress", value: count(r => r.status === "in-progress"), sub: "running now", hero: true },
       { label: "Completed", value: count(r => r.status === "completed"), sub: "run finished" },
-      { label: "CMORized with cmip7prep", value: count(r => stepDone(r, "cmoratm")), sub: "atmosphere, land, sea ice and land ice" },
+      { label: "CMORized with cmip7prep", value: count(r => stepDone(r, "cmoratm")), sub: "atmosphere, land, sea ice and land ice", rowStart: true },
       { label: "CMORized with cmor4cmip7", value: count(r => stepDone(r, "cmorocn")), sub: "ocean and ocean biogeochemistry" },
       { label: "On ESGF", value: count(r => stepDone(r, "esgf")), sub: "published" },
     ];
     box.innerHTML = "";
     tiles.forEach(t => {
       const tile = document.createElement("div");
-      tile.className = "stat-tile" + (t.hero ? " hero" : "");
+      tile.className = "stat-tile" + (t.hero ? " hero" : "") + (t.rowStart ? " row-start" : "");
       tile.innerHTML = `<div class="stat-label"></div><div class="stat-value tabular"></div><div class="stat-sub"></div>`;
       tile.children[0].textContent = t.label;
       tile.children[1].textContent = `${t.value}`;
@@ -2299,9 +2309,9 @@
       + `<th rowspan="2" class="col-narrow"></th></tr><tr>`
       + WORKFLOW_STEPS.map((s, i) => s.derived
           // The run itself: its Status and its Progress, read from NIRD.
-          ? `<th class="step-h step-wide${s.phase ? " phase-start" : ""}" title="The run's status, determined automatically on NIRD"><a href="#wf-${s.key}">Status</a></th>`
-            + `<th class="step-h step-wide" title="Years done, determined automatically on NIRD by the progress script">Progress<div class="th-note">automatic, from NIRD</div></th>`
-          : `<th class="step-h${s.phase ? " phase-start" : s.split ? " split-start" : ""}" title="${s.name}${s.auto ? " (determined automatically on NIRD)" : ""}"><a href="#wf-${s.key}">${s.short}</a></th>`).join("")
+          ? `<th class="step-h step-wide${s.phase ? " phase-start" : ""}" title="The run's status"><a href="#wf-${s.key}">Status</a></th>`
+            + `<th class="step-h step-wide" title="Years done">Progress</th>`
+          : `<th class="step-h${s.phase ? " phase-start" : s.split ? " split-start" : ""}" title="${s.name}${s.label ? ` (label: ${s.label})` : ""}"><a href="#wf-${s.key}">${s.short}</a></th>`).join("")
       + `</tr>`;
   }
   const SIM_NCOLS = 6 + WORKFLOW_STEPS.reduce((n, s) => n + (s.cols || 1), 0);
@@ -2396,50 +2406,26 @@
 
       const tdStatus = document.createElement("td");
       const statusWrap = document.createElement("div"); statusWrap.className = "status-cell";
-      const statusSelect = document.createElement("select"); statusSelect.className = "status-select";
-      [["pending","Pending"],["in-progress","In progress"],["completed","Completed"]].forEach(([val, text]) => {
-        const opt = document.createElement("option"); opt.value = val; opt.textContent = text;
-        if (row.status === val) opt.selected = true;
-        statusSelect.appendChild(opt);
-      });
-      // Progress is entered in years completed — the unit a NorESM run is actually tracked in
-      // (e.g. the model year on a restart file) — not a percentage, which is easy to misread
-      // ("10" meant as 10 years out of 1000 is NOT the same as 10%).
-      const progressInput = document.createElement("input");
-      progressInput.type = "number"; progressInput.className = "status-progress"; progressInput.min = "0"; progressInput.step = "any";
-      progressInput.value = row.yearsCompleted; progressInput.placeholder = "yrs";
-      progressInput.title = "Years of this run already completed — not a percentage.";
+      // Status and Progress show what progress.json says; nothing here is edited by hand.
+      const statusText = document.createElement("span"); statusText.className = "status-text";
       function computedPct(){
         const yrs = Math.max(0, Number(row.years) || 0);
         const done = Math.min(yrs, Math.max(0, Number(row.yearsCompleted) || 0));
         return yrs > 0 ? (done / yrs) * 100 : 0;
       }
-      const runningInput = document.createElement("input");
-      runningInput.type = "number"; runningInput.className = "status-progress"; runningInput.min = "0"; runningInput.step = "1";
-      runningInput.value = row.membersRunning == null ? "" : row.membersRunning;
-      runningInput.placeholder = "all";
-      runningInput.title = "Members of this run already going. Blank means all of them; the rest wait in the queue.";
-      runningInput.addEventListener("input", () => {
-        row.membersRunning = runningInput.value.trim() === "" ? null : Math.max(0, Math.round(Number(runningInput.value) || 0));
-        updateStatusVisuals();
-        recomputeAndRenderChartAndStats();
-      });
-      // Progress column: years done (typed while In progress), a bar, and "N of M years · P%".
+      // Progress column: a bar, "N of M · P% · at <model date>", and the members going.
       const tdProgress = document.createElement("td");
       const progWrap = document.createElement("div"); progWrap.className = "progress-cell";
       const progBar = document.createElement("div"); progBar.className = "progress-bar";
       const progFill = document.createElement("div"); progFill.className = "progress-fill";
       progBar.appendChild(progFill);
       const progText = document.createElement("span"); progText.className = "progress-text";
-      const runningLabel = document.createElement("span"); runningLabel.className = "progress-text";
-      runningLabel.textContent = "running";
-      progWrap.appendChild(progressInput); progWrap.appendChild(progBar); progWrap.appendChild(progText);
-      progWrap.appendChild(runningInput); progWrap.appendChild(runningLabel);
+      progWrap.appendChild(progBar); progWrap.appendChild(progText);
       tdProgress.appendChild(progWrap);
 
       // One cell per workflow step: the run step is the Status and Progress cells; a range
-      // step shows the years progress.json reports; an automatic step read from progress.json
-      // shows a fixed tick; every other step is a check box.
+      // step shows the years progress.json reports; a labelled step shows a tick once every
+      // member's issue has its label, and how many members have it until then.
       const stepCells = WORKFLOW_STEPS.map(step => {
         if (step.derived){
           if (step.phase) tdStatus.classList.add("phase-start");
@@ -2451,54 +2437,58 @@
         if (step.range){
           const p = autoRun(row);
           const m = document.createElement("span");
-          if (p && Number.isFinite(p.cmorFrom) && Number.isFinite(p.cmorTo)){
+          const r = p && p.cmor && p.cmor[step.key];
+          const memberYears = x => x.cmor[step.key] ? `${x.cmor[step.key].from}–${x.cmor[step.key].to}` : "nothing yet";
+          if (r){
             const done = autoSteps(row)[step.key] === true;
             m.className = "step-range" + (done ? " done" : "");
-            m.textContent = `${p.cmorFrom}–${p.cmorTo}`;
-            td.title += `: years ${p.cmorFrom}–${p.cmorTo} done` + (p.members.length > 1
-              ? " by every member\n" + p.members.map(m => `${m.variant}: ${m.cmorFrom}–${m.cmorTo}`).join("\n") : "");
+            m.textContent = `${r.from}–${r.to}`;
+            td.title += `: years ${r.from}–${r.to} done` + (p.members.length > 1
+              ? " by every member\n" + p.members.map(x => `${x.variant}: ${memberYears(x)}`).join("\n") : "");
             if (done) td.classList.add("auto-done");
           } else {
             m.className = "step-mark"; m.textContent = "·";
-            const some = p && p.members ? p.members.filter(x => Number.isFinite(x.cmorTo)) : [];
-            td.title += some.length ? ": not every member CMORized yet\n" + some.map(x => `${x.variant}: ${x.cmorFrom}–${x.cmorTo}`).join("\n")
+            const some = p && p.members ? p.members.filter(x => x.cmor[step.key]) : [];
+            td.title += some.length ? ": not every member CMORized yet\n" + p.members.map(x => `${x.variant}: ${memberYears(x)}`).join("\n")
               : ": nothing CMORized yet";
           }
+          // Where the output is, as the case issues give it.
+          const tool = step.key === "cmoratm" ? "cmip7prep" : "cmor4cmip7";
+          const dirs = p && p.members ? p.members.flatMap(x => x.outputs).filter(o => o[tool]).map(o => `#${o.issue}: ${o[tool]}`) : [];
+          td.title += dirs.length ? "\nOutput root:\n" + dirs.join("\n")
+            : tool === "cmor4cmip7" ? `\nNo issue names its output yet: add the heading "### cmor4cmip7 output root" to the issue, with the directory under it.` : "";
           td.appendChild(m); return td;
         }
-        if (autoSteps(row)[step.key] === true){
+        const m = document.createElement("span");
+        const planned = ensembleCount(row);
+        const n = (autoRun(row) && autoRun(row).labelled && autoRun(row).labelled[step.key]) || 0;
+        if (stepDone(row, step.key)){
           td.classList.add("auto-done");
-          td.title += " (from NIRD)";
-          const m = document.createElement("span"); m.className = "step-mark done"; m.textContent = "✓";
-          td.appendChild(m); return td;
+          m.className = "step-mark done"; m.textContent = "✓";
+          td.title += step.label ? `: labelled ${step.label}` : "";
+        } else if (n > 0){
+          m.className = "step-mark running"; m.textContent = `${n}/${planned}`;
+          td.title += `: ${n} of ${planned} members labelled ${step.label}`;
+        } else {
+          m.className = "step-mark"; m.textContent = "·";
+          if (step.label) td.title += `: add the label ${step.label} to the case's issue when this is done`;
         }
-        const box = document.createElement("input");
-        box.type = "checkbox"; box.checked = stepDone(row, step.key);
-        box.setAttribute("aria-label", `${row.name}: ${step.name}`);
-        box.addEventListener("change", () => {
-          const set = new Set(Array.isArray(row.steps) ? row.steps : []);
-          if (box.checked) set.add(step.key); else set.delete(step.key);
-          row.steps = WORKFLOW_STEPS.map(s => s.key).filter(k => set.has(k));
-          recomputeAndRenderChartAndStats();
-        });
-        td.appendChild(box); return td;
+        td.appendChild(m); return td;
       });
 
       function updateStatusVisuals(){
         const inProgress = row.status === "in-progress";
-        progressInput.style.display = inProgress ? "" : "none";
-        const multi = inProgress && ensembleCount(row) > 1;
-        runningInput.style.display = multi ? "" : "none";
-        runningLabel.style.display = multi ? "" : "none";
+        statusText.textContent = STATUS_LABELS[row.status] || row.status;
         const pct = row.status === "completed" ? 100 : inProgress ? computedPct() : 0;
         progFill.style.width = pct + "%";
         progBar.classList.toggle("is-done", row.status === "completed");
         progText.textContent = row.status === "completed" ? "Done"
-          : inProgress ? `of ${row.years} · ${pct.toFixed(0)}%`
+          : inProgress ? `${row.yearsCompleted} of ${row.years} · ${pct.toFixed(0)}%`
           : issueOpened(row) ? "Waiting, no files on NIRD yet"
           : "Not started";
         const auto = autoProgress && autoProgress.runs && autoProgress.runs[row.name];
         if (auto && auto.modelDate && row.status !== "completed") progText.textContent += ` · at ${auto.modelDate}`;
+        if (inProgress && ensembleCount(row) > 1) progText.textContent += ` · ${runningCount(row)} of ${ensembleCount(row)} members going`;
         // Each member's own progress; the run's years done are their mean.
         progText.title = auto && auto.members ? "Read from NIRD:\n" + auto.members.map(m =>
           `${m.variant}: ${m.completed ? "completed" : m.modelDate ? `${m.years} years, at ${m.modelDate}` : "no files yet"}`).join("\n") : "";
@@ -2516,18 +2506,7 @@
         }
         else { statusBadge.hidden = true; }
       }
-      statusSelect.addEventListener("change", () => { row.status = statusSelect.value; updateStatusVisuals(); recomputeAndRenderChartAndStats(); });
-      progressInput.addEventListener("input", () => {
-        // clamp what's USED immediately (so the chart/stats are always correct), but don't
-        // rewrite the field's text while the user may still be mid-keystroke — only reflect
-        // the clamp back into the field on blur, below.
-        const cap = Math.max(0, Number(row.years) || 0);
-        row.yearsCompleted = Math.max(0, Math.min(cap, parseFloat(progressInput.value) || 0));
-        updateStatusVisuals();
-        recomputeAndRenderChartAndStats();
-      });
-      progressInput.addEventListener("blur", () => { progressInput.value = row.yearsCompleted; });
-      statusWrap.appendChild(statusSelect);
+      statusWrap.appendChild(statusText);
       tdStatus.appendChild(statusWrap);
       updateStatusVisuals();
 
@@ -2949,20 +2928,25 @@
       m.years = Math.max(0, Math.round((y + (mo - 1) / 12 + (d - 1) / 365 - start) * 100) / 100);
     }
     m.completed = cases.some(c => c.completed);
+    m.labels = [...new Set(cases.flatMap(c => c.labels || []))];
     if (m.completed) m.years = length;
-    // A set of years counts once it has every cmor- step any of the member's sets has, so a
-    // set where one realm failed does not; the range ends at the first year missing.
+    // The years each tool has CMORized, from the run's start year to the first one missing.
+    // A cmip7-prep set of years counts once it has every cmor- step any of the member's sets
+    // has, so a set where one realm failed does not. cmor4cmip7's years are the ones every
+    // variable has a file for.
+    const span = years => { let y = start; while (years.has(y)) y++; return y > start ? { from: start, to: y - 1 } : null; };
+    m.cmor = {};
     const sets = cases.flatMap(c => c.cmor || []);
     const expected = [...new Set(sets.flatMap(s => s.steps || []))];
-    if (expected.length){
-      const years = new Set();
-      sets.forEach(s => {
-        if (expected.every(k => (s.steps || []).includes(k))) for (let y = s.first; y <= s.last; y++) years.add(y);
-      });
-      let y = start;
-      while (years.has(y)) y++;
-      if (y > start){ m.cmorFrom = start; m.cmorTo = y - 1; m.cmorYears = y - start; }
-    }
+    const atm = new Set();
+    if (expected.length) sets.forEach(s => {
+      if (expected.every(k => (s.steps || []).includes(k))) for (let y = s.first; y <= s.last; y++) atm.add(y);
+    });
+    const ocn = new Set();
+    cases.forEach(c => (c.cmor4cmip7 || []).forEach(([a, b]) => { for (let y = a; y <= b; y++) ocn.add(y); }));
+    m.cmor.cmoratm = span(atm);
+    m.cmor.cmorocn = span(ocn);
+    m.outputs = cases.filter(c => c.cmorOutput).map(c => ({ issue: c.issue, ...c.cmorOutput }));
     return m;
   }
 
@@ -2974,20 +2958,29 @@
     row.cases.forEach(c => (byVariant[c.variant] = byVariant[c.variant] || []).push(c));
     const members = Object.keys(byVariant).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
       .map(v => memberProgress(v, byVariant[v], start, length));
-    // Prepare is ticked by hand: the run scripts are not checked yet.
     const p = { members, steps: {} };
     if (members.some(m => m.modelDate || m.completed)){
       p.yearsCompleted = Math.round(members.reduce((s, m) => s + m.years, 0) / members.length * 100) / 100;
     }
     if (members.length === 1) p.modelDate = members[0].modelDate;
     const planned = ensembleCount(row);
+    // A labelled step is done once every planned member has a case issue with its label.
+    p.labelled = {};
+    WORKFLOW_STEPS.filter(s => s.label).forEach(s => {
+      const n = members.filter(m => m.labels.includes(s.label)).length;
+      p.labelled[s.key] = n;
+      if (n >= planned) p.steps[s.key] = true;
+    });
     p.completed = members.filter(m => m.completed).length >= planned;
-    if (members.every(m => Number.isFinite(m.cmorTo))){
-      p.cmorFrom = start;
-      p.cmorTo = Math.min(...members.map(m => m.cmorTo));
-      p.cmorYears = p.cmorTo - start + 1;
-      if (members.length >= planned && p.cmorYears >= (length || Infinity)) p.steps.cmoratm = true;
-    }
+    // A tool's years for the run are the ones every member has done; its step is done once
+    // they cover the run and every planned member has an issue.
+    p.cmor = {};
+    ["cmoratm", "cmorocn"].forEach(key => {
+      if (!members.every(m => m.cmor[key])) return;
+      const r = { from: start, to: Math.min(...members.map(m => m.cmor[key].to)) };
+      p.cmor[key] = r;
+      if (members.length >= planned && r.to - start + 1 >= (length || Infinity)) p.steps[key] = true;
+    });
     return p;
   }
 
