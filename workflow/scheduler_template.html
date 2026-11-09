@@ -435,6 +435,9 @@
   .progress-fill{ height: 100%; background: var(--accent); }
   .progress-bar.is-done .progress-fill{ background: var(--series-1); }
   .progress-text{ font-size: 12px; color: var(--text-secondary); }
+  /* In the fixed-width tables the progress text wraps instead of being cut off. */
+  #simTables .progress-cell{ white-space: normal; }
+  #simTables .progress-bar{ flex: none; }
   #simTables .col-cmor{ text-align: center; }
   #simTables .col-cmor input{ width: 16px; height: 16px; }
   table.data-table th{
@@ -482,17 +485,24 @@
   #trackerStats .stat-heading{ grid-column: 1 / -1; margin: 10px 0 -2px; padding-left: 8px; font-size: 14px; font-weight: 700; color: var(--series-1); border-left: 4px solid var(--series-1); }
   #trackerStats .stat-heading:first-child{ margin-top: 0; }
   @media (max-width: 760px){ #trackerStats{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  #simTables td.col-name .sim-name{ min-width: 170px; white-space: nowrap; font-weight: 600; }
+  #simTables td.col-name .sim-name{ font-weight: 600; }
   #simTables td.sim-unset{ color: var(--text-muted); font-style: italic; }
   /* A run's member rows are framed together by a darker line above the first and below the last. */
   #simTables tr.run-shade > td{ background: color-mix(in srgb, var(--text-muted) 8%, transparent); }
   #simTables tr.member-first > td{ border-top: 2px solid var(--text-secondary, var(--text-muted)); }
   #simTables tr.member-last > td{ border-bottom: 2px solid var(--text-secondary, var(--text-muted)); }
+  /* A run with one member is framed the same way. */
+  #simTables tr.member-single > td{ border-top: 2px solid var(--text-secondary); border-bottom: 2px solid var(--text-secondary); }
   #simTables input.num{ width: 58px; min-width: 50px; }
   #simTables td.col-owner{ font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; }
-  #simTables td.col-cases{ white-space: nowrap; }
+  /* A run with several cases wraps its issue and script chips onto a second line. */
+  #simTables td.col-cases{ white-space: normal; line-height: 1.9; }
+  #simTables td.col-cases .case-pair{ white-space: nowrap; }
   a.case-chip{ text-decoration: none; cursor: pointer; }
   a.case-chip:hover{ text-decoration: underline; }
+  /* A case's run script, a small orange chip after its issue. */
+  a.script-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 1px 5px; margin-right: 5px; border-radius: 8px; background: color-mix(in srgb, var(--series-2) 18%, transparent); color: var(--text-primary); text-decoration: none; }
+  a.script-chip:hover{ text-decoration: underline; }
   .case-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 6px; margin-right: 3px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); cursor: default; }
   .tab-nav{ display:flex; gap:4px; margin: 4px 0 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .tab-nav a{ padding: 9px 16px; font-weight: 600; font-size: 14px; color: var(--text-secondary); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
@@ -674,7 +684,7 @@
               </ul></li>
             <li><b>the entries in the description of the case's GitHub issue:</b> a list, one entry a line, as <code class="wf-entry">- entry: value</code>. The script reads the CMORization entries; the others are for readers (see <a href="#wf-issue">Make the experiment's GitHub issue</a>):
               <ul>
-                <li><code class="wf-entry">- run script:</code> the link to the case's archived run script, for readers;</li>
+                <li><code class="wf-entry">- run script:</code> the path of the case's run script below <code>scripts/</code>, e.g. <code>DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh</code>, or <code>TBD</code>. The tracker links it after the case's issue, as <a class="script-chip">sh</a>;</li>
                 <li><code class="wf-entry">- continues:</code> the issue of the case this one continues, e.g. <code>#1</code>, or <code>none</code>, for readers;</li>
                 <li><code class="wf-entry">- cmor data version:</code> the version both tools write the case's years into, e.g. <code>v20261028</code>, or <code>TBD</code> until it is set, checked against the version directories on NIRD;</li>
                 <li><code class="wf-entry">- cmip7prep output root:</code> the case's own cmip7-prep output directory, or <code>TBD</code> until it is set, read for the cmip7prep column;</li>
@@ -716,13 +726,13 @@
                 <li><b>step labels:</b> <code class="wf-labelname">run-qa</code>, <code class="wf-labelname">cmip7prep-qa</code>, <code class="wf-labelname">cmor4cmip7-qa</code> and <code class="wf-labelname">esgf</code>, each added when its step is done;</li>
                 <li><b>description:</b> a list of entries, one a line, each written as <code class="wf-entry">- entry: value</code>, as in the example below. Add each entry when it applies:
                   <ul>
-                    <li><code class="wf-entry">- run script:</code> once the case's run script is archived;</li>
+                    <li><code class="wf-entry">- run script:</code> <code>TBD</code> until the case's run script is archived, then its path below <code>scripts/</code> (see <a href="#wf-script">Archive the run script</a>);</li>
                     <li><code class="wf-entry">- continues:</code> the issue of the case this one continues, e.g. <code>#2</code>, or <code>none</code> for a case that starts a simulation;</li>
                     <li><code class="wf-entry">- cmor data version:</code> <code>TBD</code> until it is decided, which is before CMORization starts;</li>
                     <li><code class="wf-entry">- cmip7prep output root:</code> and <code class="wf-entry">- cmor4cmip7 output root:</code> <code>TBD</code> until each tool starts on the simulation, then its directory. The progress script reads <code>TBD</code> as not set.</li>
                   </ul></li>
               </ul>
-              <pre class="wf-pre wf-pre-entries">- run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
+              <pre class="wf-pre wf-pre-entries">- run script: DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
 - continues: #2
 - cmor data version: v20261028
 - cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/n1850GHGGaxg.LM.nor30b28.011.20261102.cmor
@@ -739,13 +749,27 @@
             </details>
             <details class="wf-more" id="wf-script">
               <summary>Archive the run script</summary>
-              <p>Push the case's run script straight to its experiment's directory under <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/tree/CMIP7_Runscripts/scripts" target="_blank" rel="noopener"><code>scripts/</code></a> on the <code>CMIP7_Runscripts</code> branch; this needs write access to the repository.</p>
+              <p>Push the case's run script straight to its directory under <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/tree/CMIP7_Runscripts/scripts" target="_blank" rel="noopener"><code>scripts/</code></a> on the <code>CMIP7_Runscripts</code> branch; this needs write access to the repository.</p>
               <ul class="wf-parts">
-                <li><b>directory:</b> <code>scripts/&lt;experiment&gt;/</code>, named after the issue's experiment label, e.g. <code>scripts/piControl/</code>. Every experiment label has one; a new label needs its own directory, with an empty <code>.gitkeep</code> file so that git keeps it while it is empty;</li>
-                <li><b>name:</b> <code>issue.compset.resolution.beta.date.sh</code>, each part copied from the case name, e.g. <code>011.n1850GHGGaxg.LM.b28.20261102.sh</code> for <code>n1850GHGGaxg.LM.nor30b28.011.20261102</code>;</li>
-                <li><b>push:</b> in a clone of the repository, <code>git switch CMIP7_Runscripts</code> and <code>git pull</code>, copy the script into its experiment's directory under its name, then <code>git add</code>, <code>git commit</code> and <code>git push</code>. Without a clone, open the experiment's directory under <code>scripts/</code> on GitHub, use <b>Add file → Upload files</b> and choose <b>Commit directly to the CMIP7_Runscripts branch</b>;</li>
-                <li><b>commit message:</b> <code>Run script for #11</code>, with the case's issue number. GitHub then shows the commit on the issue. Don't write <code>Closes #11</code> or <code>Fixes #11</code>: either closes the issue;</li>
-                <li><b>issue:</b> add the script's link to the issue's description as the entry <code class="wf-entry">- run script:</code>, e.g. <code class="wf-entry">- run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh</code>.</li>
+                <li><b>directory:</b> <code>scripts/&lt;MIP&gt;/&lt;experiment&gt;/</code>. A case that is not a CMIP7 run, whose issue has the <code class="wf-labelname">test</code> label, goes in <code>scripts/test/</code>;</li>
+                <li><b>name:</b> <code>issue.compset.resolution.beta.date.sh</code>
+                  <ul>
+                    <li>each part copied from the case name, e.g. <code>011.n1850GHGGaxg.LM.b28.20261102.sh</code> for <code>n1850GHGGaxg.LM.nor30b28.011.20261102</code>;</li>
+                  </ul></li>
+                <li><b>push:</b> in a clone of the repository,
+                  <ul>
+                    <li><code>git switch CMIP7_Runscripts</code> and <code>git pull</code>;</li>
+                    <li>copy the script into its directory under its name;</li>
+                    <li><code>git add</code> the script;</li>
+                    <li><code>git commit</code> with the message:
+                      <ul>
+                        <li><code>Run script for #&lt;case issue&gt;</code>, e.g. <code>Run script for #11</code>. Naming the issue makes GitHub list the commit on it. Don't use <code>Closes #11</code> or <code>Fixes #11</code>, as those close the issue;</li>
+                      </ul></li>
+                    <li><code>git push</code>;</li>
+                  </ul></li>
+                <li><b>issue:</b> in the issue's description, replace <code>TBD</code> after <code class="wf-entry">- run script:</code> with the script's path below <code>scripts/</code>, the same path you gave <code>git add</code> without the <code>scripts/</code>:
+                  <pre class="wf-pre wf-pre-entries">- run script: DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh</pre>
+                  The tracker builds the link to the script on GitHub and shows it after the case's issue, as <a class="script-chip">sh</a>.</li>
               </ul>
             </details></li>
         </ul>
@@ -1027,6 +1051,9 @@
   // The issues link to the repository progress.json was read from, NorESMhub's by default.
   const ISSUES_REPO = "NorESMhub/noresm_cmip7_simulations";
   const issuesUrl = () => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/issues`;
+  // The run scripts are under scripts/ on this branch; an issue gives a script's path below it.
+  const RUNSCRIPTS_BRANCH = "CMIP7_Runscripts";
+  const runScriptUrl = path => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/blob/${RUNSCRIPTS_BRANCH}/scripts/${path}`;
   const WORKFLOW_STEPS = [
     { key: "runqa",     short: "QA",         name: "QA checklist done", phase: "QA", label: "run-qa" },
     { key: "run",       short: "Run",        name: "Run: Status and Progress", phase: "Run", derived: true, cols: 2 },
@@ -2404,7 +2431,7 @@
 
   // Simulation, Owner, Issues, Years, then the step columns: QA, Status, Progress, cmip7prep,
   // QA, cmor4cmip7, QA, ESGF.
-  const SIM_COL_WIDTHS = [19, 8, 9, 5, 4, 10, 17, 7, 4, 8, 4, 5];
+  const SIM_COL_WIDTHS = [19, 7, 10, 5, 4, 12, 16, 7, 4, 8, 4, 4];
 
   function renderSimTable(){
     simTables.innerHTML = "";
@@ -2464,7 +2491,7 @@
       group.rows.forEach((row, n) => {
         const views = memberViews(row);
         views.forEach((v, i) => {
-          renderSimRow(v, views.length < 2 ? "" : i === 0 ? "member-first" : i === views.length - 1 ? "member-last" : "member-mid");
+          renderSimRow(v, views.length < 2 ? "member-single" : i === 0 ? "member-first" : i === views.length - 1 ? "member-last" : "member-mid");
           if (n % 2 === 0) simTbody.lastElementChild.classList.add("run-shade");
         });
       });
@@ -2692,7 +2719,17 @@
         chip.href = `${issuesUrl()}/${c.issue}`; chip.target = "_blank"; chip.rel = "noopener";
         chip.textContent = "#" + String(c.issue).padStart(3, "0") + (manyMembers ? " " + c.variant.split("i")[0] : "");
         chip.title = `${c.case}\n${c.variant} · ${c.version} · ${reached(c)} · ${c.owner}`;
-        tdCases.appendChild(chip);
+        // An issue and its run script stay together on one line.
+        const pair = document.createElement("span"); pair.className = "case-pair";
+        pair.appendChild(chip);
+        // The case's run script, from the path its issue gives.
+        if (c.runScript){
+          const sh = document.createElement("a"); sh.className = "script-chip";
+          sh.href = runScriptUrl(c.runScript); sh.target = "_blank"; sh.rel = "noopener";
+          sh.textContent = "sh"; sh.title = `Run script for #${c.issue}: scripts/${c.runScript}`;
+          pair.appendChild(sh);
+        }
+        tdCases.appendChild(pair);
       });
       // The name's hover gives a member's variant and the cases' names.
       const nameHover = (row.memberOf ? [row.hasIssue ? `Member ${row.variant}` : `Member ${row.variant}: planned, no case issue yet`] : [])

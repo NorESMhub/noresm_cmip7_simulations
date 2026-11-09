@@ -95,6 +95,9 @@ OUTPUT_ROOTS = {tool: entry(tool + r"[ \t]+output(?:[ \t]+root)?", r"/[^\s`]+")
                 for tool in ("cmip7prep", "cmor4cmip7")}
 # The version the case's years are CMORized into: "- cmor data version: v20261028".
 DATA_VERSION = entry(r"cmor[ \t]+data[ \t]+version", r"v\d{8}\b")
+# The case's run script, its path below scripts/ on the CMIP7_Runscripts branch:
+# "- run script: DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh".
+RUN_SCRIPT = entry(r"run[ \t]+script", r"[A-Za-z0-9][^\s`]*\.sh")
 # The version directory a CMOR file sits under: .../r1i1p1f1/v20261028/so_..._000101-001012.nc
 VERSION_DIR = re.compile(r"^v\d{8}$")
 VARIANT = re.compile(r"^r\d+i\d+p\d+f\d+$")
@@ -319,6 +322,9 @@ def main():
         output = {tool: m.group(1) for tool, r in OUTPUT_ROOTS.items() if (m := r.search(body))}
         if output:
             case["cmorOutput"] = output
+        if m := RUN_SCRIPT.search(body):
+            # A full link or a path that starts with scripts/ is kept as the path below scripts/.
+            case["runScript"] = re.sub(r"^.*?\bscripts/", "", m.group(1))
         if m := DATA_VERSION.search(body):
             case["dataVersion"] = m.group(1)
             report += "; CMOR data version " + m.group(1)

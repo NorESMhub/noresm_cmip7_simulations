@@ -61,7 +61,8 @@ The tracker takes its cases from the issues in this repository, one per case:
 - **Description:** a list of entries, one a line, each written as
   `- entry: value`, as in the example below. Add each entry when it applies:
 
-  - `- run script:` once the case's run script is archived;
+  - `- run script:` `TBD` until the case's run script is archived, then its path
+    below `scripts/` (see the run scripts below);
   - `- continues:` the issue of the case this one continues, e.g. `#2`, or
     `none` for a case that starts a simulation;
   - `- cmor data version:` `TBD` until it is decided, which is before
@@ -72,7 +73,7 @@ The tracker takes its cases from the issues in this repository, one per case:
   `nird_progress.py` reads `TBD` as not set.
 
   ```
-  - run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
+  - run script: DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
   - continues: #2
   - cmor data version: v20261028
   - cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/<case>.cmor
@@ -110,35 +111,38 @@ The tracker takes its cases from the issues in this repository, one per case:
 
 ## The run scripts
 
-Each case's run script is pushed straight to its experiment's directory under
-`scripts/` on the `CMIP7_Runscripts` branch, which needs write access to the
+Each case's run script is pushed straight to its directory under `scripts/` on
+the `CMIP7_Runscripts` branch, which needs write access to the
 repository.
 
-- **Directory:** `scripts/<experiment>/`, named after the issue's experiment label,
-  e.g. `scripts/piControl/`. Every experiment label has one. A new label needs its
-  own directory, with an empty `.gitkeep` file so that git keeps it while it is empty.
+- **Directory:** `scripts/<MIP>/<experiment>/`. A case that is not a CMIP7 run, whose issue has the
+  `test` label, goes in `scripts/test/`.
 - **Name:** `<issue>.<compset>.<resolution>.<beta>.<date>.sh`, each part copied
   from the case name: `n1850GHGGaxg.LM.nor30b28.011.20261102` gets
   `011.n1850GHGGaxg.LM.b28.20261102.sh`.
-- **Push:** from a clone of the repository,
+- **Push:** in a clone of the repository,
 
   ```bash
   git switch CMIP7_Runscripts && git pull
-  cp /path/to/run_script.sh scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
-  git add scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
+  cp /path/to/run_script.sh scripts/DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
+  git add scripts/DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
   git commit -m "Run script for #11"
   git push
   ```
 
-  Without a clone, open the experiment's directory under `scripts/` on GitHub, use
-  **Add file → Upload files** and choose **Commit directly to the CMIP7_Runscripts
-  branch**.
-- **Commit message:** `Run script for #11`, with the case's issue number. GitHub
-  then shows the commit on the issue. Don't write `Closes #11` or `Fixes #11`:
-  either closes the issue.
-- **Issue:** add the script's link to the issue's description as the entry
-  `- run script:`, e.g.
-  `- run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh`.
+  The commit message is `Run script for #<case issue>`, e.g. `Run script for #11`.
+  Naming the issue makes GitHub list the commit on it. Don't use `Closes #11` or
+  `Fixes #11`, as those close the issue.
+- **Issue:** in the issue's description, replace `TBD` after `- run script:`
+  with the script's path below `scripts/`, the same path you gave `git add`
+  without the `scripts/`:
+
+  ```
+  - run script: DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
+  ```
+
+  `nird_progress.py` reads the path, and the tracker builds the link to the script
+  on GitHub and shows it after the case's issue.
 
 ## Continuations and members
 
