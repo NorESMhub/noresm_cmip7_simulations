@@ -571,6 +571,8 @@
   #simTables .th-note{ font-size: 10px; font-weight: 500; color: var(--series-1); white-space: nowrap; }
   #simTables td.step-c .step-range{ display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; white-space: nowrap; padding: 1px 6px; border-radius: 8px; color: var(--text-primary); background: color-mix(in srgb, var(--series-7) 18%, transparent); }
   #simTables td.step-c .step-range.done{ font-weight: 700; }
+  /* Several cases' cmip7prep chips wrap, one under the other. */
+  #simTables td.step-c .step-ranges{ display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
   /* CMORized years are a purple chip, like the issues, and green once their QA is done, by the issue's qa- label. */
   #simTables td.step-c .step-range.qa-done{ background: color-mix(in srgb, var(--series-6) 18%, transparent); }
   #simTables td.step-c .step-warn{ margin-left: 3px; font-size: 11px; font-weight: 700; color: var(--danger); }
@@ -692,7 +694,7 @@
         <li><b>a <span class="wf-tag wf-label">label</span> on the case's GitHub issue:</b>
           <ul>
             <li>the case's issue number turns from purple to green once the run's QA is done, from <code class="wf-labelname">qa-run</code>;</li>
-            <li>the cmip7prep years turn from purple to green once QA is done, from <code class="wf-labelname">qa-cmip7prep</code>;</li>
+            <li>the cmip7prep years, shown case by case since each case has its own cmip7-prep directory, turn from purple to green once that case's QA is done, from <code class="wf-labelname">qa-cmip7prep</code>;</li>
             <li>the cmor4cmip7 years turn from purple to green once QA is done, from <code class="wf-labelname">qa-cmor4cmip7</code>;</li>
             <li>ESGF from <code class="wf-labelname">esgf</code>;</li>
           </ul></li>
@@ -837,7 +839,7 @@
           <li id="wf-cmoratm"><div class="wf-title">CMORize the atmosphere, land, sea ice and land ice using cmip7-prep</div>
             <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K</code> with the cmor4cmip7 output. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>.</p>
             <p>The <code>cmip7prep output root</code> is the directory that holds those files: the script reads only that directory, not the ones below it. Each case has its own, with its own time series and logs, so every issue names its case's directory. Without the entry, the script looks in the case's <code>.cmor</code> directory.</p>
-            <p>The cmip7prep years are purple until the output has been validated; then add the label <code class="wf-labelname">qa-cmip7prep</code> to the case's issue, and after the next run of the progress script they turn green.</p></li>
+            <p>The tracker shows the cmip7prep years case by case, a chip for each case with CMORized years, since each case has its own directory: piControl's #2 can be done while #11 is not. A case's years are purple until its output has been validated; then add the label <code class="wf-labelname">qa-cmip7prep</code> to the case's issue, and after the next run of the progress script they turn green.</p></li>
           <li id="wf-cmorocn"><div class="wf-title">CMORize the ocean and ocean biogeochemistry using cmor4cmip7</div>
             <p>The CMORized output goes in <code>/nird/datapeak/NS9034K/.CMIP7</code>, under the model, experiment, variant and version, e.g. <code>NorESM3-LM/piControl/r1i1p1f1/v20261028</code>. The first 100 years of piControl's ocean are being CMORized there now. The progress script reads the time ranges in the names of the files under the issue's <code>cmor4cmip7 output root</code>, e.g. <code>_000101-001012.nc</code>, and the tracker shows the years every variable has, e.g. <code>1–10</code>.</p>
             <p>The <code>cmor4cmip7 output root</code> is the simulation's variant directory, e.g. <code>/nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</code>, without the version, so a later version is read too. The script reads every directory below it and takes the files whose names have the issue's experiment and variant, e.g. <code>_piControl_r1i1p1f1_</code>. These hold all the simulation's years, so every issue of the simulation gives the same root, and the tracker counts each year once. A root above the model directory would mix the LM and MM files of the same experiment and variant.</p>
@@ -2650,6 +2652,24 @@
             td.title += some.length ? ": not every member CMORized yet\n" + p.members.map(x => `${x.variant}: ${memberYears(x)}`).join("\n")
               : ": nothing CMORized yet";
           }
+          // cmip7-prep's years are shown case by case, one chip for each case that has
+          // any, in the colour of that case's own QA label.
+          if (step.key === "cmoratm" && p && p.members.length === 1){
+            const perCase = p.members[0].prepByCase;
+            const withYears = perCase.filter(x => x.years.length);
+            td.title = `${row.name}: ${step.name}`;
+            if (withYears.length){
+              m.className = "step-ranges"; m.textContent = "";
+              withYears.forEach(x => {
+                const chip = document.createElement("span");
+                chip.className = "step-range" + (x.qaDone ? " qa-done" : "");
+                chip.textContent = yearSpans(x.years);
+                m.appendChild(chip);
+              });
+            }
+            td.title += "\n" + perCase.map(x => `#${x.issue}: ${x.years.length ? `years ${yearSpans(x.years)}, `
+              + (x.qaDone ? "QA done" : `QA not done yet (label ${step.qaLabel})`) : "nothing CMORized yet"}`).join("\n");
+          }
           // Where the output is, as the case issues give it.
           const tool = step.key === "cmoratm" ? "cmip7prep" : "cmor4cmip7";
           const dirs = p && p.members ? p.members.flatMap(x => x.outputs).filter(o => o[tool]).map(o => `#${o.issue}: ${o[tool]}`) : [];
@@ -3162,6 +3182,15 @@
     cases.forEach(c => (c.cmor4cmip7 || []).forEach(([a, b]) => { for (let y = a; y <= b; y++) ocn.add(y); }));
     m.cmor.cmoratm = span(atm);
     m.cmor.cmorocn = span(ocn);
+    // cmip7-prep writes each case to its own directory, so its years are also kept case by
+    // case, each with its issue's QA label: piControl's #2 can be done while #11 is not.
+    m.prepByCase = cases.map(c => {
+      const years = new Set();
+      if (expected.length) (c.cmor || []).forEach(s => {
+        if (expected.every(k => (s.steps || []).includes(k))) for (let y = s.first; y <= s.last; y++) years.add(y);
+      });
+      return { issue: c.issue, years: [...years], qaDone: (c.labels || []).includes("qa-cmip7prep") };
+    });
     m.outputs = cases.filter(c => c.cmorOutput).map(c => ({ issue: c.issue, ...c.cmorOutput }));
     // The version directories each tool's files are in, year by year, and what disagrees: a
     // version in a case's cmip7-prep directory other than its issue's, a cmor4cmip7 version
