@@ -13,19 +13,18 @@ The following steps should be followed to add a run script to this repository:
 1. Clone the repository (one time)
 
 ``` bash
-git clone https://github.com/NorESMhub/noresm_cmip7_simulations
+> git clone -b CMIP7_Runscripts https://github.com/NorESMhub/noresm_cmip7_simulations
 ```
 
 2. Upload a run script to the repository
 
 ``` bash
-git switch CMIP7_Runscripts
-## copy the script into its directory under its name;
-cp <script_dir/run_script> scripts/<MIP>/
-git add <run_script>
-git commit -m "<message>"   # with the message:
-## Run script for # (e.g. Run script for #11. Naming the issue makes GitHub list the commit on it)
-git push
+> cd scripts/<MIP>/<Experiment_id>
+> cp <your run script> scripts/<MIP>/<Experiment_id>/<Issue>.<compset>.<Resolution>.<Betaversion>.<Date>.sh
+> git add scripts/<MIP>/<Experiment_id>/<Issue>.<compset>.<Resolution>.<Betaversion>.<Date>.sh
+> git commit -m "<message>"   # with the message:
+  ## Run script for # (e.g. Run script for #11. Naming the issue makes GitHub list the commit on it)
+> git push origin CMIP7_Runscripts
 ```
 
 ## Structure of the run script
