@@ -705,11 +705,7 @@
             <li><code class="wf-entry">- cmor4cmip7 output root:</code> the simulation's cmor4cmip7 variant directory, the same in each of its issues, or <code>TBD</code> until it is set, read for the cmor4cmip7 column;</li>
           </ul></li>
         <li><b>the files on NIRD:</b> Status, Progress, cmip7prep and cmor4cmip7. A run is In progress once its files reach NIRD, and Completed once its issue has the <code class="wf-labelname">completed</code> label.</li>
-        <li><b>colours in the tables:</b>
-          <ul>
-            <li>an issue number, and its <a class="script-chip">sh</a>, is purple, <a class="case-chip">#011</a>, until the run's QA is done, and then green, <a class="case-chip qa-done">#002</a>;</li>
-            <li>the years under cmip7prep and cmor4cmip7 are purple, <span class="legend-years">1–50</span>, once they are CMORized, and green, <span class="legend-years qa-done">1–50</span>, once their QA is done.</li>
-          </ul></li>
+        <li><b>colours in the tables:</b> <span class="legend-years">purple</span> QA not done yet, <span class="legend-years qa-done">green</span> QA done.</li>
         <li class="auto-note" id="autoNote"></li>
       </ul>
     </div>
@@ -2474,8 +2470,7 @@
     });
     // The key to the colours in the tables, above the index.
     const key = document.createElement("div"); key.className = "sim-key";
-    key.innerHTML = 'Issue numbers and their <a class="script-chip">sh</a> are purple, <a class="case-chip">#011</a>, until the run\'s QA is done, then green, <a class="case-chip qa-done">#002</a>.'
-      + ' The years under cmip7prep and cmor4cmip7 are purple, <span class="legend-years">1–50</span>, once CMORized, then green, <span class="legend-years qa-done">1–50</span>, once their QA is done.';
+    key.innerHTML = '<span class="legend-years">purple</span> QA not done yet &nbsp; <span class="legend-years qa-done">green</span> QA done';
     index.insertBefore(key, index.firstChild);
     simTables.appendChild(index);
     // The links scroll within the page, wherever it is served from.
