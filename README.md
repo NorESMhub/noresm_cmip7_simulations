@@ -21,9 +21,9 @@ git clone https://github.com/NorESMhub/noresm_cmip7_simulations
 ``` bash
 git switch CMIP7_Runscripts
 ## copy the script into its directory under its name;
-cp <script dir> scripts/<MIP>/
-git add <the script>
-git commit -m "<message"   # with the message:
+cp <script_dir/run_script> scripts/<MIP>/
+git add <run_script>
+git commit -m "<message>"   # with the message:
 ## Run script for # (e.g. Run script for #11. Naming the issue makes GitHub list the commit on it)
 git push
 ```
