@@ -112,7 +112,7 @@ fi
 resolution="ne16pg3_tn14_ais8gris4"
 compset="N0p5xCO2GhgGaxg"
 #casename="${compset}.LM.nor30b27.${USER}.$(date +"%Y%m%d")"
-casename="${compset}.LM.nor30b28.015.20261106)"
+casename="${compset}.LM.nor30b28.015.20261106"
 casepath="${casesdir}/${casename}"
 refcase="n1850GHGGaxg.LM.nor30b27.002.20261016"
 refyear="0101"
