@@ -396,6 +396,8 @@
   .sim-index a{ display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12px; color: var(--text-primary); text-decoration: none; background: color-mix(in srgb, var(--series-1) 16%, transparent); }
   .sim-index a:hover{ background: color-mix(in srgb, var(--series-1) 30%, transparent); }
   .sim-index{ scroll-margin-top: 12px; }
+  .sim-key{ margin-bottom: 6px; font-size: 12px; color: var(--text-secondary); line-height: 1.9; }
+  .sim-key .case-chip.qa-done{ background: color-mix(in srgb, var(--series-6) 18%, transparent); }
   .sim-index-hint{ margin: 0 0 2px; font-size: 12px; color: var(--text-secondary); }
   #simTables .sim-index-up{ margin-left: 10px; font-size: 11px; font-weight: 500; color: var(--text-muted); text-decoration: none; }
   #simTables .sim-index-up:hover{ color: var(--accent); text-decoration: underline; }
@@ -437,7 +439,11 @@
   .progress-text{ font-size: 12px; color: var(--text-secondary); }
   /* In the fixed-width tables the progress text wraps instead of being cut off. */
   #simTables .progress-cell{ white-space: normal; }
-  #simTables .progress-bar{ flex: none; }
+  #simTables .progress-bar{ flex: none; width: 80px; }
+  /* The step headings in the bars are compact, so the CMORize columns can be narrow. */
+  #simTables tr.sim-group th.step-h{ font-size: 10px; padding-left: 2px; padding-right: 2px; }
+  /* A long group name wraps rather than being cut off. */
+  #simTables tr.sim-group th.sim-group-name{ white-space: normal; }
   #simTables .col-cmor{ text-align: center; }
   #simTables .col-cmor input{ width: 16px; height: 16px; }
   table.data-table th{
@@ -500,9 +506,16 @@
   #simTables td.col-cases .case-pair{ white-space: nowrap; }
   a.case-chip{ text-decoration: none; cursor: pointer; }
   a.case-chip:hover{ text-decoration: underline; }
-  /* A case's run script, a small orange chip after its issue. */
-  a.script-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 1px 5px; margin-right: 5px; border-radius: 8px; background: color-mix(in srgb, var(--series-2) 18%, transparent); color: var(--text-primary); text-decoration: none; }
+  /* A case's run script, a small chip after its issue, in the issue's colour. */
+  a.script-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 1px 5px; margin-right: 5px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); text-decoration: none; }
   a.script-chip:hover{ text-decoration: underline; }
+  /* An issue whose run is QA'd, in the green of the labels. */
+  /* Every green on the page is the In progress green. */
+  /* The examples in the description of the colours, styled as in the tables. */
+  .caption-list .case-chip.qa-done{ background: color-mix(in srgb, var(--series-6) 18%, transparent); }
+  .legend-years{ display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 6px; border-radius: 8px; color: var(--text-primary); background: color-mix(in srgb, var(--series-7) 18%, transparent); }
+  .legend-years.qa-done{ background: color-mix(in srgb, var(--series-6) 18%, transparent); }
+  #simTables .case-chip.qa-done, #simTables .script-chip.qa-done{ background: color-mix(in srgb, var(--series-6) 18%, transparent); }
   .case-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 6px; margin-right: 3px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); cursor: default; }
   .tab-nav{ display:flex; gap:4px; margin: 4px 0 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .tab-nav a{ padding: 9px 16px; font-weight: 600; font-size: 14px; color: var(--text-secondary); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
@@ -541,10 +554,10 @@
   /* A script's path, e.g. workflow/nird_progress.py. */
   code.wf-script{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-2) 18%, transparent); color: var(--text-primary); }
   /* A GitHub label's name, e.g. qa-run. */
-  code.wf-labelname{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-3) 18%, transparent); color: var(--text-primary); }
+  code.wf-labelname{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-6) 18%, transparent); color: var(--text-primary); }
   code.wf-entry{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); }
   /* Label tags, in the green of the label names, as on GitHub. */
-  .wf-label{ background: color-mix(in srgb, var(--series-3) 18%, transparent); color: var(--text-primary); }
+  .wf-label{ background: color-mix(in srgb, var(--series-6) 18%, transparent); color: var(--text-primary); }
   #simTables th.step-h{ font-size: 11px; padding: 4px 3px; text-align: center; white-space: nowrap; }
   #simTables th.step-h a{ color: inherit; text-decoration: none; display: inline-block; min-width: 18px; }
   #simTables th.step-group{ text-align: center; font-size: 11px; color: var(--text-muted); padding: 4px; border-bottom: 1px solid var(--border); }
@@ -556,8 +569,10 @@
   #simTables td.step-c .step-mark.done{ color: var(--series-1); font-weight: 700; }
   #simTables td.step-c .step-mark.running{ color: var(--accent); }
   #simTables .th-note{ font-size: 10px; font-weight: 500; color: var(--series-1); white-space: nowrap; }
-  #simTables td.step-c .step-range{ font-size: 10px; white-space: nowrap; color: var(--accent); }
-  #simTables td.step-c .step-range.done{ color: var(--series-1); font-weight: 700; }
+  #simTables td.step-c .step-range{ display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; white-space: nowrap; padding: 1px 6px; border-radius: 8px; color: var(--text-primary); background: color-mix(in srgb, var(--series-7) 18%, transparent); }
+  #simTables td.step-c .step-range.done{ font-weight: 700; }
+  /* CMORized years are a purple chip, like the issues, and green once their QA is done, by the issue's qa- label. */
+  #simTables td.step-c .step-range.qa-done{ background: color-mix(in srgb, var(--series-6) 18%, transparent); }
   #simTables td.step-c .step-warn{ margin-left: 3px; font-size: 11px; font-weight: 700; color: var(--danger); }
   #simTables td.step-c.auto-done{ background: color-mix(in srgb, var(--series-1) 10%, transparent); }
   #simTables thead th[rowspan]:not(:first-child):not(.col-narrow),
@@ -676,9 +691,9 @@
       <ul class="editor-caption caption-list">
         <li><b>a <span class="wf-tag wf-label">label</span> on the case's GitHub issue:</b>
           <ul>
-            <li>the run's QA from <code class="wf-labelname">qa-run</code>;</li>
-            <li>the cmip7prep QA from <code class="wf-labelname">qa-cmip7prep</code>;</li>
-            <li>the cmor4cmip7 QA from <code class="wf-labelname">qa-cmor4cmip7</code>;</li>
+            <li>the case's issue number turns from purple to green once the run's QA is done, from <code class="wf-labelname">qa-run</code>;</li>
+            <li>the cmip7prep years turn from purple to green once QA is done, from <code class="wf-labelname">qa-cmip7prep</code>;</li>
+            <li>the cmor4cmip7 years turn from purple to green once QA is done, from <code class="wf-labelname">qa-cmor4cmip7</code>;</li>
             <li>ESGF from <code class="wf-labelname">esgf</code>;</li>
           </ul></li>
         <li><b>the entries in the description of the case's GitHub issue:</b> a list, one entry a line, as <code class="wf-entry">- entry: value</code> (see <a href="#wf-issue">Make the experiment's GitHub issue</a>):
@@ -690,6 +705,11 @@
             <li><code class="wf-entry">- cmor4cmip7 output root:</code> the simulation's cmor4cmip7 variant directory, the same in each of its issues, or <code>TBD</code> until it is set, read for the cmor4cmip7 column;</li>
           </ul></li>
         <li><b>the files on NIRD:</b> Status, Progress, cmip7prep and cmor4cmip7. A run is In progress once its files reach NIRD, and Completed once its issue has the <code class="wf-labelname">completed</code> label.</li>
+        <li><b>colours in the tables:</b>
+          <ul>
+            <li>an issue number, and its <a class="script-chip">sh</a>, is purple, <a class="case-chip">#011</a>, until the run's QA is done, and then green, <a class="case-chip qa-done">#002</a>;</li>
+            <li>the years under cmip7prep and cmor4cmip7 are purple, <span class="legend-years">1–50</span>, once they are CMORized, and green, <span class="legend-years qa-done">1–50</span>, once their QA is done.</li>
+          </ul></li>
         <li class="auto-note" id="autoNote"></li>
       </ul>
     </div>
@@ -777,7 +797,7 @@
         <h3>QA</h3>
         <ul class="wf-steps">
           <li id="wf-runqa">
-            <p>The QA column depends on the label <code class="wf-labelname">qa-run</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the run's QA is done.</p>
+            <p>The case's issue number in the tables is purple until the run's QA is done; then add the label <code class="wf-labelname">qa-run</code> to the issue, and after the next run of the progress script it turns green.</p>
             <details class="wf-more" id="wf-case">
               <summary>QA the run <span class="wf-tag wf-label">label: qa-run</span></summary>
               <p>Create and build the case. On Olivia and Betzy, cases go in <code>/cluster/projects/nn9560k/$USER</code>, each in a directory named after the case: <code>/cluster/projects/nn9560k/$USER/&lt;case&gt;</code>.</p>
@@ -820,14 +840,12 @@
             <div class="wf-decide"><b>To decide:</b> how urgency is shown.</div></li>
           <li id="wf-cmoratm"><div class="wf-title">CMORize the atmosphere, land, sea ice and land ice using cmip7-prep</div>
             <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K</code> with the cmor4cmip7 output. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>.</p>
-            <p>The <code>cmip7prep output root</code> is the directory that holds those files: the script reads only that directory, not the ones below it. Each case has its own, with its own time series and logs, so every issue names its case's directory. Without the entry, the script looks in the case's <code>.cmor</code> directory.</p></li>
-          <li id="wf-qaatm"><div class="wf-title">Validate the cmip7-prep output <span class="wf-tag wf-label">label: qa-cmip7prep</span></div>
-            <p>The QA column after cmip7prep depends on the label <code class="wf-labelname">qa-cmip7prep</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the cmip7-prep output has been validated.</p></li>
+            <p>The <code>cmip7prep output root</code> is the directory that holds those files: the script reads only that directory, not the ones below it. Each case has its own, with its own time series and logs, so every issue names its case's directory. Without the entry, the script looks in the case's <code>.cmor</code> directory.</p>
+            <p>The cmip7prep years are purple until the output has been validated; then add the label <code class="wf-labelname">qa-cmip7prep</code> to the case's issue, and after the next run of the progress script they turn green.</p></li>
           <li id="wf-cmorocn"><div class="wf-title">CMORize the ocean and ocean biogeochemistry using cmor4cmip7</div>
             <p>The CMORized output goes in <code>/nird/datapeak/NS9034K/.CMIP7</code>, under the model, experiment, variant and version, e.g. <code>NorESM3-LM/piControl/r1i1p1f1/v20261028</code>. The first 100 years of piControl's ocean are being CMORized there now. The progress script reads the time ranges in the names of the files under the issue's <code>cmor4cmip7 output root</code>, e.g. <code>_000101-001012.nc</code>, and the tracker shows the years every variable has, e.g. <code>1–10</code>.</p>
-            <p>The <code>cmor4cmip7 output root</code> is the simulation's variant directory, e.g. <code>/nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</code>, without the version, so a later version is read too. The script reads every directory below it and takes the files whose names have the issue's experiment and variant, e.g. <code>_piControl_r1i1p1f1_</code>. These hold all the simulation's years, so every issue of the simulation gives the same root, and the tracker counts each year once. A root above the model directory would mix the LM and MM files of the same experiment and variant.</p></li>
-          <li id="wf-qaocn"><div class="wf-title">QA the cmor4cmip7 output <span class="wf-tag wf-label">label: qa-cmor4cmip7</span></div>
-            <p>The QA column after cmor4cmip7 depends on the label <code class="wf-labelname">qa-cmor4cmip7</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the cmor4cmip7 output has been QA'd.</p></li>
+            <p>The <code>cmor4cmip7 output root</code> is the simulation's variant directory, e.g. <code>/nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</code>, without the version, so a later version is read too. The script reads every directory below it and takes the files whose names have the issue's experiment and variant, e.g. <code>_piControl_r1i1p1f1_</code>. These hold all the simulation's years, so every issue of the simulation gives the same root, and the tracker counts each year once. A root above the model directory would mix the LM and MM files of the same experiment and variant.</p>
+            <p>The cmor4cmip7 years are purple until the output has been QA'd; then add the label <code class="wf-labelname">qa-cmor4cmip7</code> to the case's issue, and after the next run of the progress script they turn green.</p></li>
         </ul>
         <p class="wf-note">cmip7-prep and cmor4cmip7 lay out their output differently. That doesn't matter for publication: esg-prep links both into the structure ESGF needs. The CMORization and publication workflow, and the esg-prep command, will be added here as they are settled.</p>
         </details>
@@ -1051,14 +1069,13 @@
   const issuesUrl = () => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/issues`;
   // The run scripts are under scripts/ on this branch; an issue gives a script's path below it.
   const RUNSCRIPTS_BRANCH = "CMIP7_Runscripts";
+  // The label that marks a case's run as QA'd; its issue chip is then green.
+  const RUN_QA_LABEL = "qa-run";
   const runScriptUrl = path => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/blob/${RUNSCRIPTS_BRANCH}/scripts/${path}`;
   const WORKFLOW_STEPS = [
-    { key: "runqa",     short: "QA",         name: "QA checklist done", phase: "QA", label: "qa-run" },
     { key: "run",       short: "Run",        name: "Run: Status and Progress", phase: "Run", derived: true, cols: 2 },
-    { key: "cmoratm",   short: "cmip7prep",  name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", phase: "CMORize", auto: true, range: true },
-    { key: "qaatm",     short: "QA",         name: "cmip7-prep output validated", label: "qa-cmip7prep" },
-    { key: "cmorocn",   short: "cmor4cmip7", name: "Ocean and ocean biogeochemistry CMORized with cmor4cmip7", split: true, auto: true, range: true },
-    { key: "qaocn",     short: "QA",         name: "cmor4cmip7 output QA done", label: "qa-cmor4cmip7" },
+    { key: "cmoratm",   short: "cmip7prep",  name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", phase: "CMORize", auto: true, range: true, qaLabel: "qa-cmip7prep" },
+    { key: "cmorocn",   short: "cmor4cmip7", name: "Ocean and ocean biogeochemistry CMORized with cmor4cmip7", split: true, auto: true, range: true, qaLabel: "qa-cmor4cmip7" },
     { key: "esgf",      short: "ESGF",       name: "Published on ESGF", phase: "Publish", label: "esgf" },
   ];
   const stepDone = (row, key) => key === "run" ? row.status === "completed"
@@ -2427,9 +2444,9 @@
           : `<th class="step-h${s.phase ? " phase-start" : s.split ? " split-start" : ""}" title="${s.name}${s.label ? ` (label: ${s.label})` : ""}"><a href="#wf-${s.key}">${s.short}</a></th>`).join("");
   }
 
-  // Simulation, Owner, Issues, Years, then the step columns: QA, Status, Progress, cmip7prep,
-  // QA, cmor4cmip7, QA, ESGF.
-  const SIM_COL_WIDTHS = [19, 7, 10, 5, 4, 12, 16, 7, 4, 8, 4, 4];
+  // Simulation, Owner, Issues, Years, then the step columns: Status, Progress, cmip7prep,
+  // cmor4cmip7, ESGF.
+  const SIM_COL_WIDTHS = [19, 8, 10, 5, 15, 22, 8, 8, 5];
 
   function renderSimTable(){
     simTables.innerHTML = "";
@@ -2455,6 +2472,11 @@
       });
       index.appendChild(line);
     });
+    // The key to the colours in the tables, above the index.
+    const key = document.createElement("div"); key.className = "sim-key";
+    key.innerHTML = 'Issue numbers and their <a class="script-chip">sh</a> are purple, <a class="case-chip">#011</a>, until the run\'s QA is done, then green, <a class="case-chip qa-done">#002</a>.'
+      + ' The years under cmip7prep and cmor4cmip7 are purple, <span class="legend-years">1–50</span>, once CMORized, then green, <span class="legend-years qa-done">1–50</span>, once their QA is done.';
+    index.insertBefore(key, index.firstChild);
     simTables.appendChild(index);
     // The links scroll within the page, wherever it is served from.
     simTables.onclick = e => {
@@ -2618,10 +2640,14 @@
           const memberYears = x => x.cmor[step.key] ? `${x.cmor[step.key].from}–${x.cmor[step.key].to}` : "nothing yet";
           if (r){
             const done = autoSteps(row)[step.key] === true;
-            m.className = "step-range" + (done ? " done" : "");
+            // The years turn green once every member's issue has the step's QA label.
+            const qaDone = p.members.length > 0 && p.members.every(x => x.labels.includes(step.qaLabel));
+            m.className = "step-range" + (done ? " done" : "") + (qaDone ? " qa-done" : "");
             m.textContent = `${r.from}–${r.to}`;
             td.title += `: years ${r.from}–${r.to} done` + (p.members.length > 1
               ? " by every member\n" + p.members.map(x => `${x.variant}: ${memberYears(x)}`).join("\n") : "");
+            td.title += qaDone ? `\nQA done: the issue has the label ${step.qaLabel}`
+              : `\nQA not done yet: add the label ${step.qaLabel} to the issue once the output is checked`;
             if (done) td.classList.add("auto-done");
           } else {
             m.className = "step-mark"; m.textContent = "·";
@@ -2716,7 +2742,11 @@
         const chip = document.createElement("a"); chip.className = "case-chip";
         chip.href = `${issuesUrl()}/${c.issue}`; chip.target = "_blank"; chip.rel = "noopener";
         chip.textContent = "#" + String(c.issue).padStart(3, "0") + (manyMembers ? " " + c.variant.split("i")[0] : "");
-        chip.title = `${c.case}\n${c.variant} · ${c.version} · ${reached(c)} · ${c.owner}`;
+        // An issue turns green once the run's QA is done, by its qa-run label.
+        const qaDone = (c.labels || []).includes(RUN_QA_LABEL);
+        if (qaDone) chip.classList.add("qa-done");
+        chip.title = `${c.case}\n${c.variant} · ${c.version} · ${reached(c)} · ${c.owner}`
+          + (qaDone ? `\nQA done: labelled ${RUN_QA_LABEL}` : `\nQA not done yet: add the label ${RUN_QA_LABEL} once the run's QA is done`);
         // An issue and its run script stay together on one line.
         const pair = document.createElement("span"); pair.className = "case-pair";
         pair.appendChild(chip);
@@ -2725,6 +2755,7 @@
           const sh = document.createElement("a"); sh.className = "script-chip";
           sh.href = runScriptUrl(c.runScript); sh.target = "_blank"; sh.rel = "noopener";
           sh.textContent = "sh"; sh.title = `Run script for #${c.issue}: scripts/${c.runScript}`;
+          if (qaDone) sh.classList.add("qa-done");
           pair.appendChild(sh);
         }
         tdCases.appendChild(pair);

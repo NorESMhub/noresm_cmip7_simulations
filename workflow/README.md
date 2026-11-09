@@ -46,16 +46,16 @@ The tracker takes its cases from the issues in this repository, one per case:
 - **Assignee:** whoever runs it; the issue's author if nobody is assigned.
 - **`completed`:** add this label when the run has finished.
 - **`test`:** add this label to a case that is not a CMIP7 run, to leave it out.
-- **Step labels:** add a step's label when the step is done, and the tracker ticks
-  its column after the next run of `nird_progress.py`. A run with several members
-  has a row for each, named by its variant, e.g. `1pctCO2 LM r1i1p1f1` to
-  `r3i1p1f1`, so each member's issue ticks its own row.
+- **Step labels:** add a step's label when the step is done, and the tracker shows
+  it after the next run of `nird_progress.py`. A run with several members has a
+  row for each, named by its variant, e.g. `1pctCO2 LM r1i1p1f1` to `r3i1p1f1`,
+  so each member's issue counts for its own row.
 
   | Label | Step |
   |---|---|
-  | `qa-run` | QA: the run's QA checklist is done |
-  | `qa-cmip7prep` | CMORize: the cmip7-prep output is validated |
-  | `qa-cmor4cmip7` | CMORize: the cmor4cmip7 output is QA'd |
+  | `qa-run` | QA: the run's QA checklist is done; its issue number turns from purple to green |
+  | `qa-cmip7prep` | CMORize: the cmip7-prep output is validated; its years turn from purple to green |
+  | `qa-cmor4cmip7` | CMORize: the cmor4cmip7 output is QA'd; its years turn from purple to green |
   | `esgf` | Publish: the data is on ESGF |
 
 - **Description:** a list of entries, one a line, each written as
