@@ -6,8 +6,8 @@ The directory structure is `scripts`/`CMIP7 MIP`/`experiment_id`.
 
 Each run script for a NorESM3 CMIP7 experiment belongs in one of the `experiment_id` directories and should have a filename of the form:
 ```
-<Issue number>.<experiment_id>.<Resolution>.<Betaversion>.<Variant>.<Date>.sh
-e.g. 009.piControl.LM.b28.r1i1p1f1.YYYYMMDD.sh
+<issue number>.<experiment_id>.<Resolution>.<BetaTag/ReleaseTag>.<Variant>.<Date>.sh
+e.g. 009.piControl.LM.beta28.r1i1p1f1.YYYYMMDD.sh
 ```
 
 ## Adding a run script to this repository
