@@ -529,10 +529,10 @@
   .wf-alert, .wf-warn{ color: var(--danger); font-weight: 700; }
   .wf-note{ margin: 6px 0 0; font-size: 13px; color: var(--text-secondary); }
   .wf-pre{ margin: 4px 0 0; padding: 6px 8px; font-size: 12px; background: color-mix(in srgb, var(--text-muted) 10%, transparent); border-radius: 4px; overflow-x: auto; }
-  /* Issue entries, in the green of the entries in the outline. */
+  /* Issue entries, in the purple of the entries in the outline. */
   /* Notes that belong to the block above them. */
   .wf-indent{ margin-left: 20px; }
-  .wf-pre.wf-pre-entries{ margin-left: 20px; background: color-mix(in srgb, var(--series-3) 18%, transparent); color: var(--text-primary); }
+  .wf-pre.wf-pre-entries{ margin-left: 20px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); }
   .wf-decide ul{ margin: 3px 0 0; padding-left: 18px; }
   .wf-parts{ margin: 3px 0 0; padding-left: 18px; font-size: 13px; color: var(--text-secondary); }
   .wf-parts code{ overflow-wrap: anywhere; }
@@ -540,11 +540,11 @@
   /* An entry in an issue's description, e.g. - cmor data version: v20261028. */
   /* A script's path, e.g. workflow/nird_progress.py. */
   code.wf-script{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-2) 18%, transparent); color: var(--text-primary); }
-  /* A GitHub label's name, e.g. run-qa. */
-  code.wf-labelname{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); }
-  code.wf-entry{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-3) 18%, transparent); color: var(--text-primary); }
-  /* Label tags, in the purple of the label names. */
-  .wf-label{ background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); }
+  /* A GitHub label's name, e.g. qa-run. */
+  code.wf-labelname{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-3) 18%, transparent); color: var(--text-primary); }
+  code.wf-entry{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); }
+  /* Label tags, in the green of the label names, as on GitHub. */
+  .wf-label{ background: color-mix(in srgb, var(--series-3) 18%, transparent); color: var(--text-primary); }
   #simTables th.step-h{ font-size: 11px; padding: 4px 3px; text-align: center; white-space: nowrap; }
   #simTables th.step-h a{ color: inherit; text-decoration: none; display: inline-block; min-width: 18px; }
   #simTables th.step-group{ text-align: center; font-size: 11px; color: var(--text-muted); padding: 4px; border-bottom: 1px solid var(--border); }
@@ -672,26 +672,24 @@
   <section class="card editor-card" id="simPlanCard">
     <div class="editor-head">
       <h2>Simulation tracker</h2>
+      <p class="editor-caption">The progress script is <code class="wf-script">workflow/nird_progress.py</code> in the <a href="https://github.com/NorESMhub/noresm_cmip7_simulations" target="_blank" rel="noopener">noresm_cmip7_simulations</a> repository, and it is run on NIRD. It reads the case issues on GitHub and the case files on NIRD. The script fills in the columns of the tables from three places:</p>
       <ul class="editor-caption caption-list">
-        <li><b>Progress script:</b> The progress script is <code class="wf-script">workflow/nird_progress.py</code> in the <a href="https://github.com/NorESMhub/noresm_cmip7_simulations" target="_blank" rel="noopener">noresm_cmip7_simulations</a> repository, and it is run on NIRD. It reads the case issues on GitHub and the case files on NIRD. The script fills in the columns of the tables from three places:
+        <li><b>a <span class="wf-tag wf-label">label</span> on the case's GitHub issue:</b>
           <ul>
-            <li><b>a <span class="wf-tag wf-label">label</span> on the case's GitHub issue:</b>
-              <ul>
-                <li>the run's QA from <code class="wf-labelname">run-qa</code>;</li>
-                <li>the cmip7prep QA from <code class="wf-labelname">cmip7prep-qa</code>;</li>
-                <li>the cmor4cmip7 QA from <code class="wf-labelname">cmor4cmip7-qa</code>;</li>
-                <li>ESGF from <code class="wf-labelname">esgf</code>;</li>
-              </ul></li>
-            <li><b>the entries in the description of the case's GitHub issue:</b> a list, one entry a line, as <code class="wf-entry">- entry: value</code>. The script reads the CMORization entries; the others are for readers (see <a href="#wf-issue">Make the experiment's GitHub issue</a>):
-              <ul>
-                <li><code class="wf-entry">- run script:</code> the path of the case's run script below <code>scripts/</code>, e.g. <code>DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh</code>, or <code>TBD</code>. The tracker links it after the case's issue, as <a class="script-chip">sh</a>;</li>
-                <li><code class="wf-entry">- continues:</code> the issue of the case this one continues, e.g. <code>#1</code>, or <code>none</code>, for readers;</li>
-                <li><code class="wf-entry">- cmor data version:</code> the version both tools write the case's years into, e.g. <code>v20261028</code>, or <code>TBD</code> until it is set, checked against the version directories on NIRD;</li>
-                <li><code class="wf-entry">- cmip7prep output root:</code> the case's own cmip7-prep output directory, or <code>TBD</code> until it is set, read for the cmip7prep column;</li>
-                <li><code class="wf-entry">- cmor4cmip7 output root:</code> the simulation's cmor4cmip7 variant directory, the same in each of its issues, or <code>TBD</code> until it is set, read for the cmor4cmip7 column;</li>
-              </ul></li>
-            <li><b>the files on NIRD:</b> Status, Progress, cmip7prep and cmor4cmip7. A run is In progress once its files reach NIRD, and Completed once its issue has the <code class="wf-labelname">completed</code> label.</li>
+            <li>the run's QA from <code class="wf-labelname">qa-run</code>;</li>
+            <li>the cmip7prep QA from <code class="wf-labelname">qa-cmip7prep</code>;</li>
+            <li>the cmor4cmip7 QA from <code class="wf-labelname">qa-cmor4cmip7</code>;</li>
+            <li>ESGF from <code class="wf-labelname">esgf</code>;</li>
           </ul></li>
+        <li><b>the entries in the description of the case's GitHub issue:</b> a list, one entry a line, as <code class="wf-entry">- entry: value</code> (see <a href="#wf-issue">Make the experiment's GitHub issue</a>):
+          <ul>
+            <li><code class="wf-entry">- run script:</code> the path of the case's run script below <code>scripts/</code>, e.g. <code>DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh</code>, or <code>TBD</code>. The tracker links it after the case's issue, as <a class="script-chip">sh</a>;</li>
+            <li><code class="wf-entry">- continues:</code> the issue of the case this one continues, e.g. <code>#1</code>, or <code>none</code>, for readers;</li>
+            <li><code class="wf-entry">- cmor data version:</code> the version both tools write the case's years into, e.g. <code>v20261028</code>, or <code>TBD</code> until it is set, checked against the version directories on NIRD;</li>
+            <li><code class="wf-entry">- cmip7prep output root:</code> the case's own cmip7-prep output directory, or <code>TBD</code> until it is set, read for the cmip7prep column;</li>
+            <li><code class="wf-entry">- cmor4cmip7 output root:</code> the simulation's cmor4cmip7 variant directory, the same in each of its issues, or <code>TBD</code> until it is set, read for the cmor4cmip7 column;</li>
+          </ul></li>
+        <li><b>the files on NIRD:</b> Status, Progress, cmip7prep and cmor4cmip7. A run is In progress once its files reach NIRD, and Completed once its issue has the <code class="wf-labelname">completed</code> label.</li>
         <li class="auto-note" id="autoNote"></li>
       </ul>
     </div>
@@ -723,7 +721,7 @@
                 <li><b>assignee:</b> whoever runs it, shown as the run's owner;</li>
                 <li><b><code class="wf-labelname">completed</code>:</b> add this label when the run has finished;</li>
                 <li><b><code class="wf-labelname">test</code>:</b> add this label to a case that is not a CMIP7 run, to leave it out;</li>
-                <li><b>step labels:</b> <code class="wf-labelname">run-qa</code>, <code class="wf-labelname">cmip7prep-qa</code>, <code class="wf-labelname">cmor4cmip7-qa</code> and <code class="wf-labelname">esgf</code>, each added when its step is done;</li>
+                <li><b>step labels:</b> <code class="wf-labelname">qa-run</code>, <code class="wf-labelname">qa-cmip7prep</code>, <code class="wf-labelname">qa-cmor4cmip7</code> and <code class="wf-labelname">esgf</code>, each added when its step is done;</li>
                 <li><b>description:</b> a list of entries, one a line, each written as <code class="wf-entry">- entry: value</code>, as in the example below. Add each entry when it applies:
                   <ul>
                     <li><code class="wf-entry">- run script:</code> <code>TBD</code> until the case's run script is archived, then its path below <code>scripts/</code> (see <a href="#wf-script">Archive the run script</a>);</li>
@@ -779,11 +777,11 @@
         <h3>QA</h3>
         <ul class="wf-steps">
           <li id="wf-runqa">
-            <p>The QA column depends on the label <code class="wf-labelname">run-qa</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the run's QA is done.</p>
+            <p>The QA column depends on the label <code class="wf-labelname">qa-run</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the run's QA is done.</p>
             <details class="wf-more" id="wf-case">
-              <summary>QA the run <span class="wf-tag wf-label">label: run-qa</span></summary>
+              <summary>QA the run <span class="wf-tag wf-label">label: qa-run</span></summary>
               <p>Create and build the case. On Olivia and Betzy, cases go in <code>/cluster/projects/nn9560k/$USER</code>, each in a directory named after the case: <code>/cluster/projects/nn9560k/$USER/&lt;case&gt;</code>.</p>
-              <p>Go through the QA checklist, then add the label <code class="wf-labelname">run-qa</code> to the issue.</p>
+              <p>Go through the QA checklist, then add the label <code class="wf-labelname">qa-run</code> to the issue.</p>
             </details></li>
         </ul>
       </div>
@@ -810,7 +808,7 @@
       <div class="wf-phase">
         <h3>CMORize</h3>
         <details class="wf-more">
-        <summary>The CMORization steps <span class="wf-tag wf-label">label: cmip7prep-qa</span><span class="wf-tag wf-label">label: cmor4cmip7-qa</span></summary>
+        <summary>The CMORization steps <span class="wf-tag wf-label">label: qa-cmip7prep</span><span class="wf-tag wf-label">label: qa-cmor4cmip7</span></summary>
         <ul class="wf-steps">
           <li id="wf-cmorissue"><div class="wf-title">Make the CMORization issue</div>
             <p>Once the simulation has finished, open an issue in <a href="https://github.com/NorESMhub/CMIP7_CMOR-Publish/issues" target="_blank" rel="noopener">NorESMhub/CMIP7_CMOR-Publish</a> from its template, which is like the CMIP6 one, and label it <code class="wf-labelname">cmorization</code>. The repository's other labels are <code class="wf-labelname">publication</code>, <code class="wf-labelname">archive</code>, <code class="wf-labelname">cmor_bug</code>, <code class="wf-labelname">publication_bug</code> and <code class="wf-labelname">retract</code>.</p>
@@ -823,13 +821,13 @@
           <li id="wf-cmoratm"><div class="wf-title">CMORize the atmosphere, land, sea ice and land ice using cmip7-prep</div>
             <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K</code> with the cmor4cmip7 output. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>.</p>
             <p>The <code>cmip7prep output root</code> is the directory that holds those files: the script reads only that directory, not the ones below it. Each case has its own, with its own time series and logs, so every issue names its case's directory. Without the entry, the script looks in the case's <code>.cmor</code> directory.</p></li>
-          <li id="wf-qaatm"><div class="wf-title">Validate the cmip7-prep output <span class="wf-tag wf-label">label: cmip7prep-qa</span></div>
-            <p>The QA column after cmip7prep depends on the label <code class="wf-labelname">cmip7prep-qa</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the cmip7-prep output has been validated.</p></li>
+          <li id="wf-qaatm"><div class="wf-title">Validate the cmip7-prep output <span class="wf-tag wf-label">label: qa-cmip7prep</span></div>
+            <p>The QA column after cmip7prep depends on the label <code class="wf-labelname">qa-cmip7prep</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the cmip7-prep output has been validated.</p></li>
           <li id="wf-cmorocn"><div class="wf-title">CMORize the ocean and ocean biogeochemistry using cmor4cmip7</div>
             <p>The CMORized output goes in <code>/nird/datapeak/NS9034K/.CMIP7</code>, under the model, experiment, variant and version, e.g. <code>NorESM3-LM/piControl/r1i1p1f1/v20261028</code>. The first 100 years of piControl's ocean are being CMORized there now. The progress script reads the time ranges in the names of the files under the issue's <code>cmor4cmip7 output root</code>, e.g. <code>_000101-001012.nc</code>, and the tracker shows the years every variable has, e.g. <code>1–10</code>.</p>
             <p>The <code>cmor4cmip7 output root</code> is the simulation's variant directory, e.g. <code>/nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</code>, without the version, so a later version is read too. The script reads every directory below it and takes the files whose names have the issue's experiment and variant, e.g. <code>_piControl_r1i1p1f1_</code>. These hold all the simulation's years, so every issue of the simulation gives the same root, and the tracker counts each year once. A root above the model directory would mix the LM and MM files of the same experiment and variant.</p></li>
-          <li id="wf-qaocn"><div class="wf-title">QA the cmor4cmip7 output <span class="wf-tag wf-label">label: cmor4cmip7-qa</span></div>
-            <p>The QA column after cmor4cmip7 depends on the label <code class="wf-labelname">cmor4cmip7-qa</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the cmor4cmip7 output has been QA'd.</p></li>
+          <li id="wf-qaocn"><div class="wf-title">QA the cmor4cmip7 output <span class="wf-tag wf-label">label: qa-cmor4cmip7</span></div>
+            <p>The QA column after cmor4cmip7 depends on the label <code class="wf-labelname">qa-cmor4cmip7</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the cmor4cmip7 output has been QA'd.</p></li>
         </ul>
         <p class="wf-note">cmip7-prep and cmor4cmip7 lay out their output differently. That doesn't matter for publication: esg-prep links both into the structure ESGF needs. The CMORization and publication workflow, and the esg-prep command, will be added here as they are settled.</p>
         </details>
@@ -1055,12 +1053,12 @@
   const RUNSCRIPTS_BRANCH = "CMIP7_Runscripts";
   const runScriptUrl = path => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/blob/${RUNSCRIPTS_BRANCH}/scripts/${path}`;
   const WORKFLOW_STEPS = [
-    { key: "runqa",     short: "QA",         name: "QA checklist done", phase: "QA", label: "run-qa" },
+    { key: "runqa",     short: "QA",         name: "QA checklist done", phase: "QA", label: "qa-run" },
     { key: "run",       short: "Run",        name: "Run: Status and Progress", phase: "Run", derived: true, cols: 2 },
     { key: "cmoratm",   short: "cmip7prep",  name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", phase: "CMORize", auto: true, range: true },
-    { key: "qaatm",     short: "QA",         name: "cmip7-prep output validated", label: "cmip7prep-qa" },
+    { key: "qaatm",     short: "QA",         name: "cmip7-prep output validated", label: "qa-cmip7prep" },
     { key: "cmorocn",   short: "cmor4cmip7", name: "Ocean and ocean biogeochemistry CMORized with cmor4cmip7", split: true, auto: true, range: true },
-    { key: "qaocn",     short: "QA",         name: "cmor4cmip7 output QA done", label: "cmor4cmip7-qa" },
+    { key: "qaocn",     short: "QA",         name: "cmor4cmip7 output QA done", label: "qa-cmor4cmip7" },
     { key: "esgf",      short: "ESGF",       name: "Published on ESGF", phase: "Publish", label: "esgf" },
   ];
   const stepDone = (row, key) => key === "run" ? row.status === "completed"

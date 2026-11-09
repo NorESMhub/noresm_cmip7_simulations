@@ -53,9 +53,9 @@ The tracker takes its cases from the issues in this repository, one per case:
 
   | Label | Step |
   |---|---|
-  | `run-qa` | QA: the run's QA checklist is done |
-  | `cmip7prep-qa` | CMORize: the cmip7-prep output is validated |
-  | `cmor4cmip7-qa` | CMORize: the cmor4cmip7 output is QA'd |
+  | `qa-run` | QA: the run's QA checklist is done |
+  | `qa-cmip7prep` | CMORize: the cmip7-prep output is validated |
+  | `qa-cmor4cmip7` | CMORize: the cmor4cmip7 output is QA'd |
   | `esgf` | Publish: the data is on ESGF |
 
 - **Description:** a list of entries, one a line, each written as
