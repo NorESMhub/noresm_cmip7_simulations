@@ -6,6 +6,28 @@ Directory list is organized by CMIP7 `experiment_id`.
 
 The run script name should include a corresponding issue tracking number, that describes the experiment and links to CMORized output and diagnostics.
 
+## Adding a run script to this repository
+
+The following steps should be followed to add a run script to this repository:
+
+1. Clone the repository (one time)
+
+``` bash
+git clone https://github.com/NorESMhub/noresm_cmip7_simulations
+```
+
+2. Upload a run script to the repository
+
+``` bash
+git switch CMIP7_Runscripts
+## copy the script into its directory under its name;
+cp <script dir> scripts/<MIP>/
+git add <the script>
+git commit -m "<message"   # with the message:
+## Run script for # (e.g. Run script for #11. Naming the issue makes GitHub list the commit on it)
+git push
+```
+
 ## Structure of the run script
 
 The filename should be of the form,
