@@ -83,7 +83,7 @@ COMPLETED = re.compile(r"completed_steps_(\d+)-(\d+)\.json$")
 # so_Omon_NorESM3_piControl_r1i1p1f1_gn_000101-001012.nc
 CMOR_FILE = re.compile(r"^(.+)_(\d{4})\d*-(\d{4})\d*\.nc$")
 def entry(label, value):
-    """An entry of an issue's description: "- label: value" on one line, the label in bold or
+    """An entry of an issue's description: "- entry: value" on one line, the label in bold or
     not, or the label as a heading, "### label", with the value on the next line that isn't
     blank."""
     return re.compile(r"^[ \t]*(?:[-*+][ \t]+|#{1,6}[ \t]*)?(?:\*\*)?" + label

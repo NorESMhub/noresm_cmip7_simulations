@@ -58,11 +58,18 @@ The tracker takes its cases from the issues in this repository, one per case:
   | `cmor4cmip7-qa` | CMORize: the cmor4cmip7 output is QA'd |
   | `esgf` | Publish: the data is on ESGF |
 
-- **Description:** a list with an entry for the run script, the case it
-  continues, if any, the CMOR data version and each tool's output root: the
-  label, a colon and the link, issue, version or directory, one entry a line.
-  Add the version before CMORization starts, and each root as its tool starts on
-  the simulation:
+- **Description:** a list of entries, one a line, each written as
+  `- entry: value`, as in the example below. Add each entry when it applies:
+
+  - `- run script:` once the case's run script is archived;
+  - `- continues:` the issue of the case this one continues, e.g. `#2`, or
+    `none` for a case that starts a simulation;
+  - `- cmor data version:` `TBD` until it is decided, which is before
+    CMORization starts;
+  - `- cmip7prep output root:` and `- cmor4cmip7 output root:` `TBD` until
+    each tool starts on the simulation, then its directory.
+
+  `nird_progress.py` reads `TBD` as not set.
 
   ```
   - run script: https://github.com/NorESMhub/noresm_cmip7_simulations/blob/CMIP7_Runscripts/scripts/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
@@ -137,7 +144,7 @@ repository.
 
 A simulation continued in a new case gets a new issue with the same experiment and
 variant labels, and the entry `- continues: #<earlier issue>` in its
-description. The tracker reads the two as one member, taking its progress from the
+description; a case that starts a simulation has `- continues: none`. The tracker reads the two as one member, taking its progress from the
 later model date; the entry is for readers, as the labels are enough for the
 tracker. Another member of the ensemble gets its own variant, e.g.
 `r2i1p1f1`, and its own progress.
