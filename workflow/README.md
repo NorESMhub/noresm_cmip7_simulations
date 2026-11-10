@@ -46,16 +46,10 @@ The tracker takes its cases from the issues in this repository, one per case:
 - **Assignee:** whoever runs it; the issue's author if nobody is assigned.
 - **`completed`:** add this label when the run has finished.
 - **`test`:** add this label to a case that is not a CMIP7 run, to leave it out.
-- **Step labels:** add a step's label when the step is done, and the tracker shows
-  it after the next run of `nird_progress.py`. A run with several members has a
+- **`esgf`:** add this label when the data is on ESGF, and the tracker shows it
+  after the next run of `nird_progress.py`. A run with several members has a
   row for each, named by its variant, e.g. `1pctCO2 LM r1i1p1f1` to `r3i1p1f1`,
   so each member's issue counts for its own row.
-
-  | Label | Step |
-  |---|---|
-  | `qa-cmip7prep` | CMORize: the cmip7-prep output is validated; its years turn from purple to green |
-  | `qa-cmor4cmip7` | CMORize: the cmor4cmip7 output is QA'd; its years turn from purple to green |
-  | `esgf` | Publish: the data is on ESGF |
 
 - **Description:** a list of entries, one a line, each written as
   `- entry: value`, as in the example below. Add each entry when it applies:
@@ -146,8 +140,9 @@ repository.
 `RUN_STARTDATE`, with the script's shell variables, such as `${refcase}`,
 filled in. Hovering the case's issue in the tracker shows them, naming the issue
 whose title is the `RUN_REFCASE`. A case of the same run and member continues
-it, e.g. "Continues #2 (branch at 0171-01-01)", and follows it in the Issues
-column after an arrow, `#002 → #011`. A case of another experiment branches from
+it, e.g. "Continues #2 (branch at 0171-01-01)", and goes under it in the Issues
+column, after an arrow and one step further in for each case it continues. A
+case of another experiment branches from
 it, e.g. "Branches from #2, piControl LM (hybrid at 0101-01-01, starting
 1850-01-01)". Nothing else needs adding to the issue, and GitHub's parent links
 are not read.

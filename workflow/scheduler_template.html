@@ -396,7 +396,6 @@
   .sim-index a{ display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12px; color: var(--text-primary); text-decoration: none; background: color-mix(in srgb, var(--series-1) 16%, transparent); }
   .sim-index a:hover{ background: color-mix(in srgb, var(--series-1) 30%, transparent); }
   .sim-index{ scroll-margin-top: 12px; }
-  .sim-key{ margin-bottom: 6px; font-size: 12px; color: var(--text-secondary); line-height: 1.9; }
   .sim-index-hint{ margin: 0 0 2px; font-size: 12px; color: var(--text-secondary); }
   #simTables .sim-index-up{ margin-left: 10px; font-size: 11px; font-weight: 500; color: var(--text-muted); text-decoration: none; }
   #simTables .sim-index-up:hover{ color: var(--accent); text-decoration: underline; }
@@ -500,20 +499,15 @@
   #simTables tr.member-single > td{ border-top: 2px solid var(--text-secondary); border-bottom: 2px solid var(--text-secondary); }
   #simTables input.num{ width: 58px; min-width: 50px; }
   #simTables td.col-owner{ font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; }
-  /* A run with several cases wraps its issue and script chips onto a second line. */
+  /* Each case's issue and script chips are a line of their own. */
   #simTables td.col-cases{ white-space: normal; line-height: 1.9; }
-  #simTables td.col-cases .case-pair{ white-space: nowrap; }
+  #simTables td.col-cases .case-pair{ display: block; white-space: nowrap; }
   #simTables .case-arrow{ color: var(--text-muted); margin: 0 4px 0 0; cursor: default; }
   a.case-chip{ text-decoration: none; cursor: pointer; }
   a.case-chip:hover{ text-decoration: underline; }
   /* A case's run script, a small chip after its issue, in the issue's colour. */
   a.script-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 1px 5px; margin-right: 5px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); text-decoration: none; }
   a.script-chip:hover{ text-decoration: underline; }
-  /* An issue whose run is QA'd, in the green of the labels. */
-  /* Every green on the page is the In progress green. */
-  /* The examples in the description of the colours, styled as in the tables. */
-  .legend-years{ display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 6px; border-radius: 8px; color: var(--text-primary); background: color-mix(in srgb, var(--series-7) 18%, transparent); }
-  .legend-years.qa-done{ background: color-mix(in srgb, var(--series-6) 18%, transparent); }
   .case-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 6px; margin-right: 3px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); cursor: default; }
   .tab-nav{ display:flex; gap:4px; margin: 4px 0 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .tab-nav a{ padding: 9px 16px; font-weight: 600; font-size: 14px; color: var(--text-secondary); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
@@ -551,7 +545,7 @@
   /* An entry in an issue's description, e.g. - cmor data version: v20261028. */
   /* A script's path, e.g. workflow/nird_progress.py. */
   code.wf-script{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-2) 18%, transparent); color: var(--text-primary); }
-  /* A GitHub label's name, e.g. qa-cmip7prep. */
+  /* A GitHub label's name, e.g. esgf. */
   code.wf-labelname{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-6) 18%, transparent); color: var(--text-primary); }
   code.wf-entry{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); }
   /* Label tags, in the green of the label names, as on GitHub. */
@@ -571,8 +565,6 @@
   #simTables td.step-c .step-range.done{ font-weight: 700; }
   /* Several cases' cmip7prep chips wrap, one under the other. */
   #simTables td.step-c .step-ranges{ display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
-  /* CMORized years are a purple chip, like the issues, and green once their QA is done, by the issue's qa- label. */
-  #simTables td.step-c .step-range.qa-done{ background: color-mix(in srgb, var(--series-6) 18%, transparent); }
   #simTables td.step-c .step-warn{ margin-left: 3px; font-size: 11px; font-weight: 700; color: var(--danger); }
   #simTables td.step-c.auto-done{ background: color-mix(in srgb, var(--series-1) 10%, transparent); }
   #simTables thead th[rowspan]:not(:first-child):not(.col-narrow),
@@ -580,12 +572,9 @@
   #simTables td.phase-start,
   #simTables th.step-h.phase-start,
   #simTables th.step-group{ border-left: 2px solid color-mix(in srgb, var(--text-muted) 60%, transparent); }
-  /* Within a phase, a line between groups of steps, such as each CMORization tool and its QA. */
+  /* Within a phase, a line between groups of steps, such as the two CMORization tools. */
   #simTables td.split-start,
   #simTables th.step-h.split-start{ border-left: 1px solid color-mix(in srgb, var(--text-muted) 60%, transparent); }
-  .caption-list{ margin: 6px 0 0; padding-left: 16px; }
-  .caption-list ul{ margin: 2px 0; padding-left: 16px; }
-  .caption-list li{ margin: 2px 0; }
   .auto-note{ color: var(--text-muted); }
   /* Each group's bar: its name, then the column headings. */
   #simTables tr.sim-group th{ font-size: 11px; font-weight: 600; padding: 9px 6px 6px; color: var(--series-1); background: color-mix(in srgb, var(--series-1) 14%, transparent); white-space: nowrap; vertical-align: bottom; }
@@ -687,29 +676,8 @@
   <section class="card editor-card" id="simPlanCard">
     <div class="editor-head">
       <h2>Simulation tracker</h2>
-      <p class="editor-caption">The progress script is <code class="wf-script">workflow/nird_progress.py</code> in the <a href="https://github.com/NorESMhub/noresm_cmip7_simulations" target="_blank" rel="noopener">noresm_cmip7_simulations</a> repository, and it is run on NIRD. It reads the case issues on GitHub and the case files on NIRD. The script fills in the columns of the tables from three places:</p>
-      <ul class="editor-caption caption-list">
-        <li><b>a <span class="wf-tag wf-label">label</span> on the case's GitHub issue:</b>
-          <ul>
-            <li>the cmip7prep years, shown case by case since each case has its own cmip7-prep directory, turn from purple to green once that case's QA is done, from <code class="wf-labelname">qa-cmip7prep</code>;</li>
-            <li>the cmor4cmip7 years turn from purple to green once QA is done, from <code class="wf-labelname">qa-cmor4cmip7</code>;</li>
-            <li>ESGF from <code class="wf-labelname">esgf</code>;</li>
-          </ul></li>
-        <li><b>the entries in the description of the case's GitHub issue:</b> a list, one entry a line, as <code class="wf-entry">- entry: value</code> (see <a href="#wf-issue">Make the experiment's GitHub issue</a>):
-          <ul>
-            <li><code class="wf-entry">- run script:</code> the path of the case's run script below <code>scripts/</code>, e.g. <code>DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh</code>, or <code>TBD</code>. The tracker links it after the case's issue, as <a class="script-chip">sh</a>. The progress script reads how the case started from the script's <code>./xmlchange</code> lines: its <code>RUN_TYPE</code>, <code>RUN_REFCASE</code>, <code>RUN_REFDATE</code> and <code>RUN_STARTDATE</code>. Hovering the case's issue shows them, naming the issue whose title is the <code>RUN_REFCASE</code>:
-              <ul>
-                <li>a case of the same run and member continues it, e.g. <i>Continues #2 (branch at 0171-01-01)</i>, and follows it in the Issues column after an arrow, <code>#002 → #011</code>;</li>
-                <li>a case of another experiment branches from it, e.g. <i>Branches from #2, piControl LM (hybrid at 0101-01-01, starting 1850-01-01)</i>;</li>
-              </ul></li>
-            <li><code class="wf-entry">- cmor data version:</code> the version both tools write the case's years into, e.g. <code>v20261028</code>, or <code>TBD</code> until it is set, checked against the version directories on NIRD;</li>
-            <li><code class="wf-entry">- cmip7prep output root:</code> the case's own cmip7-prep output directory, or <code>TBD</code> until it is set, read for the cmip7prep column;</li>
-            <li><code class="wf-entry">- cmor4cmip7 output root:</code> the simulation's cmor4cmip7 variant directory, the same in each of its issues, or <code>TBD</code> until it is set, read for the cmor4cmip7 column;</li>
-          </ul></li>
-        <li><b>the files on NIRD:</b> Status, Progress, cmip7prep and cmor4cmip7. A run is In progress once its files reach NIRD, and Completed once its issue has the <code class="wf-labelname">completed</code> label.</li>
-        <li><b>colours in the tables:</b> the cmip7prep and cmor4cmip7 years are <span class="legend-years">purple</span> until QA is done and <span class="legend-years qa-done">green</span> once it is.</li>
-        <li class="auto-note" id="autoNote"></li>
-      </ul>
+      <p class="editor-caption">The progress script is <code class="wf-script">workflow/nird_progress.py</code> in the <a href="https://github.com/NorESMhub/noresm_cmip7_simulations" target="_blank" rel="noopener">noresm_cmip7_simulations</a> repository, and it is run on NIRD. It reads the case issues on GitHub and the case files on NIRD. The script fills in the columns of the tables from three places: the labels on the case's GitHub issue, the entries in its description, and the files on NIRD.</p>
+      <p class="editor-caption auto-note" id="autoNote" hidden></p>
     </div>
     <details class="wf-details" id="workflow" open>
       <summary class="wf-head">Workflow steps</summary>
@@ -739,7 +707,7 @@
                 <li><b>assignee:</b> whoever runs it, shown as the run's owner;</li>
                 <li><b><code class="wf-labelname">completed</code>:</b> add this label when the run has finished;</li>
                 <li><b><code class="wf-labelname">test</code>:</b> add this label to a case that is not a CMIP7 run, to leave it out;</li>
-                <li><b>step labels:</b> <code class="wf-labelname">qa-cmip7prep</code>, <code class="wf-labelname">qa-cmor4cmip7</code> and <code class="wf-labelname">esgf</code>, each added when its step is done;</li>
+                <li><b><code class="wf-labelname">esgf</code>:</b> add this label when the data is on ESGF;</li>
                 <li><b>description:</b> a list of entries, one a line, each written as <code class="wf-entry">- entry: value</code>, as in the example below. Add each entry when it applies:
                   <ul>
                     <li><code class="wf-entry">- run script:</code> <code>TBD</code> until the case's run script is archived, then its path below <code>scripts/</code> (see <a href="#wf-script">Archive the run script</a>);</li>
@@ -793,9 +761,9 @@
         <h3>Run</h3>
         <ul class="wf-steps">
           <li id="wf-runstep">
-            <p>The progress script reads the run's Status and Progress on NIRD.</p>
             <details class="wf-more" id="wf-run">
               <summary>How the run is done and tracked</summary>
+              <p>The progress script reads the run's Status and Progress on NIRD.</p>
               <p>Create and build the case. On Olivia and Betzy, cases go in <code>/cluster/projects/nn9560k/$USER</code>, each in a directory named after the case: <code>/cluster/projects/nn9560k/$USER/&lt;case&gt;</code>.</p>
               <p>Set the run's priority and coordinate it with the other runs. Copy the output to NIRD by hand with rsync while the run is going. The progress script reads the years done from the atmosphere history files copied there, and the tracker shows them in the Progress column and sets the Status to In progress. To set it to Completed, add the <code class="wf-labelname">completed</code> label to its issue.</p>
               <div class="wf-decide"><b>To decide:</b>
@@ -812,7 +780,7 @@
       <div class="wf-phase">
         <h3>CMORize</h3>
         <details class="wf-more">
-        <summary>The CMORization steps <span class="wf-tag wf-label">label: qa-cmip7prep</span><span class="wf-tag wf-label">label: qa-cmor4cmip7</span></summary>
+        <summary>The CMORization steps</summary>
         <ul class="wf-steps">
           <li id="wf-cmorissue"><div class="wf-title">Make the CMORization issue</div>
             <p>Once the simulation has finished, open an issue in <a href="https://github.com/NorESMhub/CMIP7_CMOR-Publish/issues" target="_blank" rel="noopener">NorESMhub/CMIP7_CMOR-Publish</a> from its template, which is like the CMIP6 one, and label it <code class="wf-labelname">cmorization</code>. The repository's other labels are <code class="wf-labelname">publication</code>, <code class="wf-labelname">archive</code>, <code class="wf-labelname">cmor_bug</code>, <code class="wf-labelname">publication_bug</code> and <code class="wf-labelname">retract</code>.</p>
@@ -825,11 +793,10 @@
           <li id="wf-cmoratm"><div class="wf-title">CMORize the atmosphere, land, sea ice and land ice using cmip7-prep</div>
             <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K</code> with the cmor4cmip7 output. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>.</p>
             <p>The <code>cmip7prep output root</code> is the directory that holds those files: the script reads only that directory, not the ones below it. Each case has its own, with its own time series and logs, so every issue names its case's directory. Without the entry, the script looks in the case's <code>.cmor</code> directory.</p>
-            <p>The tracker shows the cmip7prep years case by case, a chip for each case with CMORized years, since each case has its own directory: piControl's #2 can be done while #11 is not. A case's years are purple until its output has been validated; then add the label <code class="wf-labelname">qa-cmip7prep</code> to the case's issue, and after the next run of the progress script they turn green.</p></li>
+            <p>The tracker shows the cmip7prep years case by case, a chip for each case with CMORized years, since each case has its own directory: piControl's #2 can be done while #11 is not.</p></li>
           <li id="wf-cmorocn"><div class="wf-title">CMORize the ocean and ocean biogeochemistry using cmor4cmip7</div>
             <p>The CMORized output goes in <code>/nird/datapeak/NS9034K/.CMIP7</code>, under the model, experiment, variant and version, e.g. <code>NorESM3-LM/piControl/r1i1p1f1/v20261028</code>. The first 100 years of piControl's ocean are being CMORized there now. The progress script reads the time ranges in the names of the files under the issue's <code>cmor4cmip7 output root</code>, e.g. <code>_000101-001012.nc</code>, and the tracker shows the years every variable has, e.g. <code>1–10</code>.</p>
-            <p>The <code>cmor4cmip7 output root</code> is the simulation's variant directory, e.g. <code>/nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</code>, without the version, so a later version is read too. The script reads every directory below it and takes the files whose names have the issue's experiment and variant, e.g. <code>_piControl_r1i1p1f1_</code>. These hold all the simulation's years, so every issue of the simulation gives the same root, and the tracker counts each year once. A root above the model directory would mix the LM and MM files of the same experiment and variant.</p>
-            <p>The cmor4cmip7 years are purple until the output has been QA'd; then add the label <code class="wf-labelname">qa-cmor4cmip7</code> to the case's issue, and after the next run of the progress script they turn green.</p></li>
+            <p>The <code>cmor4cmip7 output root</code> is the simulation's variant directory, e.g. <code>/nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</code>, without the version, so a later version is read too. The script reads every directory below it and takes the files whose names have the issue's experiment and variant, e.g. <code>_piControl_r1i1p1f1_</code>. These hold all the simulation's years, so every issue of the simulation gives the same root, and the tracker counts each year once. A root above the model directory would mix the LM and MM files of the same experiment and variant.</p></li>
         </ul>
         <p class="wf-note">cmip7-prep and cmor4cmip7 lay out their output differently. That doesn't matter for publication: esg-prep links both into the structure ESGF needs. The CMORization and publication workflow, and the esg-prep command, will be added here as they are settled.</p>
         </details>
@@ -1053,7 +1020,6 @@
   const issuesUrl = () => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/issues`;
   // The run scripts are under scripts/ on this branch; an issue gives a script's path below it.
   const RUNSCRIPTS_BRANCH = "CMIP7_Runscripts";
-  // The label that marks a case's run as QA'd; its issue chip is then green.
   // How a case started, from the ./xmlchange lines of its run script: its RUN_TYPE, its
   // RUN_REFCASE, the issue of that case if it has one, RUN_REFDATE and RUN_STARTDATE.
   // A case continues its parent when both are cases of the same run and member; otherwise it
@@ -1078,8 +1044,8 @@
   const runScriptUrl = path => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/blob/${RUNSCRIPTS_BRANCH}/scripts/${path}`;
   const WORKFLOW_STEPS = [
     { key: "run",       short: "Run",        name: "Run: Status and Progress", phase: "Run", derived: true, cols: 2 },
-    { key: "cmoratm",   short: "cmip7prep",  name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", phase: "CMORize", auto: true, range: true, qaLabel: "qa-cmip7prep" },
-    { key: "cmorocn",   short: "cmor4cmip7", name: "Ocean and ocean biogeochemistry CMORized with cmor4cmip7", split: true, auto: true, range: true, qaLabel: "qa-cmor4cmip7" },
+    { key: "cmoratm",   short: "cmip7prep",  name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", phase: "CMORize", auto: true, range: true },
+    { key: "cmorocn",   short: "cmor4cmip7", name: "Ocean and ocean biogeochemistry CMORized with cmor4cmip7", split: true, auto: true, range: true },
     { key: "esgf",      short: "ESGF",       name: "Published on ESGF", phase: "Publish", label: "esgf" },
   ];
   const stepDone = (row, key) => key === "run" ? row.status === "completed"
@@ -2450,7 +2416,7 @@
 
   // Simulation, Owner, Issues, Years, then the step columns: Status, Progress, cmip7prep,
   // cmor4cmip7, ESGF.
-  const SIM_COL_WIDTHS = [19, 8, 10, 5, 15, 22, 8, 8, 5];
+  const SIM_COL_WIDTHS = [19, 8, 12, 5, 15, 20, 8, 8, 5];
 
   function renderSimTable(){
     simTables.innerHTML = "";
@@ -2476,10 +2442,6 @@
       });
       index.appendChild(line);
     });
-    // The key to the colours in the tables, above the index.
-    const key = document.createElement("div"); key.className = "sim-key";
-    key.innerHTML = 'cmip7prep and cmor4cmip7 years: <span class="legend-years">purple</span> QA not done yet &nbsp; <span class="legend-years qa-done">green</span> QA done';
-    index.insertBefore(key, index.firstChild);
     simTables.appendChild(index);
     // The links scroll within the page, wherever it is served from.
     simTables.onclick = e => {
@@ -2643,14 +2605,10 @@
           const memberYears = x => x.cmor[step.key] ? `${x.cmor[step.key].from}–${x.cmor[step.key].to}` : "nothing yet";
           if (r){
             const done = autoSteps(row)[step.key] === true;
-            // The years turn green once every member's issue has the step's QA label.
-            const qaDone = p.members.length > 0 && p.members.every(x => x.labels.includes(step.qaLabel));
-            m.className = "step-range" + (done ? " done" : "") + (qaDone ? " qa-done" : "");
+            m.className = "step-range" + (done ? " done" : "");
             m.textContent = `${r.from}–${r.to}`;
             td.title += `: years ${r.from}–${r.to} done` + (p.members.length > 1
               ? " by every member\n" + p.members.map(x => `${x.variant}: ${memberYears(x)}`).join("\n") : "");
-            td.title += qaDone ? `\nQA done: the issue has the label ${step.qaLabel}`
-              : `\nQA not done yet: add the label ${step.qaLabel} to the issue once the output is checked`;
             if (done) td.classList.add("auto-done");
           } else {
             m.className = "step-mark"; m.textContent = "·";
@@ -2658,8 +2616,7 @@
             td.title += some.length ? ": not every member CMORized yet\n" + p.members.map(x => `${x.variant}: ${memberYears(x)}`).join("\n")
               : ": nothing CMORized yet";
           }
-          // cmip7-prep's years are shown case by case, one chip for each case that has
-          // any, in the colour of that case's own QA label.
+          // cmip7-prep's years are shown case by case, one chip for each case that has any.
           if (step.key === "cmoratm" && p && p.members.length === 1){
             const perCase = p.members[0].prepByCase;
             const withYears = perCase.filter(x => x.years.length);
@@ -2668,13 +2625,12 @@
               m.className = "step-ranges"; m.textContent = "";
               withYears.forEach(x => {
                 const chip = document.createElement("span");
-                chip.className = "step-range" + (x.qaDone ? " qa-done" : "");
+                chip.className = "step-range";
                 chip.textContent = yearSpans(x.years);
                 m.appendChild(chip);
               });
             }
-            td.title += "\n" + perCase.map(x => `#${x.issue}: ${x.years.length ? `years ${yearSpans(x.years)}, `
-              + (x.qaDone ? "QA done" : `QA not done yet (label ${step.qaLabel})`) : "nothing CMORized yet"}`).join("\n");
+            td.title += "\n" + perCase.map(x => `#${x.issue}: ${x.years.length ? `years ${yearSpans(x.years)}` : "nothing CMORized yet"}`).join("\n");
           }
           // Where the output is, as the case issues give it.
           const tool = step.key === "cmoratm" ? "cmip7prep" : "cmor4cmip7";
@@ -2767,10 +2723,13 @@
           + "\n" + caseStart(c);
         // An issue and its run script stay together on one line.
         const pair = document.createElement("span"); pair.className = "case-pair";
-        // An arrow leads from a case to the case that continues it.
-        if (continues(c) && (row.cases || []).some(x => x.issue === c.start.parent)){
+        // A case that continues another of the row's cases goes under it, one step further in.
+        let depth = 0;
+        for (let p = c; continues(p) && (row.cases || []).includes(parentCase(p)); p = parentCase(p)) depth++;
+        if (depth){
+          pair.style.paddingLeft = `${(depth - 1) * 12}px`;
           const arrow = document.createElement("span"); arrow.className = "case-arrow";
-          arrow.textContent = "→"; arrow.title = `#${c.issue} ${caseStart(c).replace(/^C/, "c")}`;
+          arrow.textContent = "↳"; arrow.title = `#${c.issue} ${caseStart(c).replace(/^C/, "c")}`;
           pair.appendChild(arrow);
         }
         pair.appendChild(chip);
@@ -3191,13 +3150,13 @@
     m.cmor.cmoratm = span(atm);
     m.cmor.cmorocn = span(ocn);
     // cmip7-prep writes each case to its own directory, so its years are also kept case by
-    // case, each with its issue's QA label: piControl's #2 can be done while #11 is not.
+    // case: piControl's #2 can be done while #11 is not.
     m.prepByCase = cases.map(c => {
       const years = new Set();
       if (expected.length) (c.cmor || []).forEach(s => {
         if (expected.every(k => (s.steps || []).includes(k))) for (let y = s.first; y <= s.last; y++) years.add(y);
       });
-      return { issue: c.issue, years: [...years], qaDone: (c.labels || []).includes("qa-cmip7prep") };
+      return { issue: c.issue, years: [...years] };
     });
     m.outputs = cases.filter(c => c.cmorOutput).map(c => ({ issue: c.issue, ...c.cmorOutput }));
     // The version directories each tool's files are in, year by year, and what disagrees: a
