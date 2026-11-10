@@ -700,8 +700,8 @@
           </ul></li>
         <li><b>the entries in the description of the case's GitHub issue:</b> a list, one entry a line, as <code class="wf-entry">- entry: value</code> (see <a href="#wf-issue">Make the experiment's GitHub issue</a>):
           <ul>
-            <li><code class="wf-entry">- run script:</code> the path of the case's run script below <code>scripts/</code>, e.g. <code>DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh</code>, or <code>TBD</code>. The tracker links it after the case's issue, as <a class="script-chip">sh</a>;</li>
-            <li><code class="wf-entry">- continues:</code> the issue of the case this one continues, e.g. <code>#1</code>, or <code>none</code>, for readers;</li>
+            <li><code class="wf-entry">- run script:</code> the path of the case's run script below <code>scripts/</code>, e.g. <code>DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh</code>, or <code>TBD</code>. The tracker links it after the case's issue, as <a class="script-chip">sh</a>;</li>
+            <li><code class="wf-entry">- run_type:</code>, <code class="wf-entry">- run_refcase:</code> and <code class="wf-entry">- run_refdate:</code> how the case started, as its <code>RUN_TYPE</code>, <code>RUN_REFCASE</code> and <code>RUN_REFDATE</code>, for readers;</li>
             <li><code class="wf-entry">- cmor data version:</code> the version both tools write the case's years into, e.g. <code>v20261028</code>, or <code>TBD</code> until it is set, checked against the version directories on NIRD;</li>
             <li><code class="wf-entry">- cmip7prep output root:</code> the case's own cmip7-prep output directory, or <code>TBD</code> until it is set, read for the cmip7prep column;</li>
             <li><code class="wf-entry">- cmor4cmip7 output root:</code> the simulation's cmor4cmip7 variant directory, the same in each of its issues, or <code>TBD</code> until it is set, read for the cmor4cmip7 column;</li>
@@ -736,6 +736,7 @@
                 <li><b>title:</b> the <a href="#wf-casename">case name</a> and nothing else;</li>
                 <li><b>experiment label:</b> the CMIP7 experiment, e.g. <code>esm-hist</code>, spelt as in the tracker;</li>
                 <li><b>variant label:</b> the ensemble member, e.g. <code>r1i1p1f1</code>;</li>
+                <li><b>parent:</b> the issue of the case it starts from, its <code>RUN_REFCASE</code>, set under Relationships in the issue's sidebar. A case that starts from initial conditions has none;</li>
                 <li><b>assignee:</b> whoever runs it, shown as the run's owner;</li>
                 <li><b><code class="wf-labelname">completed</code>:</b> add this label when the run has finished;</li>
                 <li><b><code class="wf-labelname">test</code>:</b> add this label to a case that is not a CMIP7 run, to leave it out;</li>
@@ -743,13 +744,17 @@
                 <li><b>description:</b> a list of entries, one a line, each written as <code class="wf-entry">- entry: value</code>, as in the example below. Add each entry when it applies:
                   <ul>
                     <li><code class="wf-entry">- run script:</code> <code>TBD</code> until the case's run script is archived, then its path below <code>scripts/</code> (see <a href="#wf-script">Archive the run script</a>);</li>
-                    <li><code class="wf-entry">- continues:</code> the issue of the case this one continues, e.g. <code>#2</code>, or <code>none</code> for a case that starts a simulation;</li>
+                    <li><code class="wf-entry">- run_type:</code> <code>startup</code>, <code>branch</code> or <code>hybrid</code>;</li>
+                    <li><code class="wf-entry">- run_refcase:</code> the name of the case it starts from, or <code>none</code> for a startup;</li>
+                    <li><code class="wf-entry">- run_refdate:</code> the date of that case's restart files, as <code>YYYY-MM-DD</code>, or <code>none</code> for a startup. All three are <code>TBD</code> until the case is made, and then <code>./xmlquery RUN_TYPE,RUN_REFCASE,RUN_REFDATE</code> in the case directory gives them;</li>
                     <li><code class="wf-entry">- cmor data version:</code> <code>TBD</code> until it is decided, which is before CMORization starts;</li>
                     <li><code class="wf-entry">- cmip7prep output root:</code> and <code class="wf-entry">- cmor4cmip7 output root:</code> <code>TBD</code> until each tool starts on the simulation, then its directory. The progress script reads <code>TBD</code> as not set.</li>
                   </ul></li>
               </ul>
-              <pre class="wf-pre wf-pre-entries">- run script: DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
-- continues: #2
+              <pre class="wf-pre wf-pre-entries">- run script: DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh
+- run_type: branch
+- run_refcase: n1850GHGGaxg.LM.nor30b27.002.20261016
+- run_refdate: 0101-01-01
 - cmor data version: v20261028
 - cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/n1850GHGGaxg.LM.nor30b28.011.20261102.cmor
 - cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</pre>
@@ -759,7 +764,8 @@
               <p>The two output roots are explained under <a href="#wf-cmoratm">cmip7-prep</a> and <a href="#wf-cmorocn">cmor4cmip7</a> in CMORize.</p>
               </div>
               <ul class="wf-parts">
-                <li><b>continuing a simulation in a new case:</b> give the new issue the same experiment and variant labels, and the earlier issue as the entry <code class="wf-entry">- continues: #2</code> in its description. The tracker reads the two as one simulation and takes its progress from the later model date, as with #2 and #11;</li>
+                <li><b>continuing a simulation in a new case:</b> give the new issue the same experiment and variant labels, and the earlier case as its parent and its <code class="wf-entry">- run_refcase:</code>. The tracker reads the two as one simulation and takes its progress from the later model date, as with #2 and #11;</li>
+                <li><b>starting a new experiment from another:</b> its parent is the case it branches from, e.g. piControl's #2 for 1pctCO2's #4. A later continuation of it has the experiment's own earlier case as its parent;</li>
                 <li><b>another member of the ensemble:</b> give it its own variant, e.g. <code>r2i1p1f1</code>. The run's years done are the mean over its members.</li>
               </ul>
             </details>
@@ -768,9 +774,9 @@
               <p>Push the case's run script straight to its directory under <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/tree/CMIP7_Runscripts/scripts" target="_blank" rel="noopener"><code>scripts/</code></a> on the <code>CMIP7_Runscripts</code> branch; this needs write access to the repository.</p>
               <ul class="wf-parts">
                 <li><b>directory:</b> <code>scripts/&lt;MIP&gt;/&lt;experiment&gt;/</code>. A case that is not a CMIP7 run, whose issue has the <code class="wf-labelname">test</code> label, goes in <code>scripts/test/</code>;</li>
-                <li><b>name:</b> <code>issue.compset.resolution.beta.date.sh</code>
+                <li><b>name:</b> <code>issue.experiment.resolution.beta.variant.date.sh</code>
                   <ul>
-                    <li>each part copied from the case name, e.g. <code>011.n1850GHGGaxg.LM.b28.20261102.sh</code> for <code>n1850GHGGaxg.LM.nor30b28.011.20261102</code>;</li>
+                    <li>the experiment and variant from the issue's labels, the rest from the case name, e.g. <code>011.piControl.LM.beta28.r1i1p1f1.20261102.sh</code> for <code>n1850GHGGaxg.LM.nor30b28.011.20261102</code>;</li>
                   </ul></li>
                 <li><b>push:</b> in a clone of the repository,
                   <ul>
@@ -784,7 +790,7 @@
                     <li><code>git push</code>;</li>
                   </ul></li>
                 <li><b>issue:</b> in the issue's description, replace <code>TBD</code> after <code class="wf-entry">- run script:</code> with the script's path below <code>scripts/</code>, the same path you gave <code>git add</code> without the <code>scripts/</code>:
-                  <pre class="wf-pre wf-pre-entries">- run script: DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh</pre>
+                  <pre class="wf-pre wf-pre-entries">- run script: DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh</pre>
                   The tracker builds the link to the script on GitHub and shows it after the case's issue, as <a class="script-chip">sh</a>.</li>
               </ul>
             </details></li>

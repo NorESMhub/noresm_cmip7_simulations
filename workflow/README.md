@@ -43,6 +43,9 @@ The tracker takes its cases from the issues in this repository, one per case:
   `nHistEsmGHGGaxg.LM.nor30b28.008.20261029`. `LM` is ne16pg3_tn14 and `MM` is ne30pg3_tn14; the tracker names runs by them, e.g. `esm-hist LM`.
 - **Experiment label:** the CMIP7 experiment, e.g. `esm-hist`, spelt as in the tracker.
 - **Variant label:** the ensemble member, e.g. `r1i1p1f1`.
+- **Parent:** the issue of the case it starts from, its `RUN_REFCASE`, set under
+  Relationships in the issue's sidebar. A case that starts from initial
+  conditions has none.
 - **Assignee:** whoever runs it; the issue's author if nobody is assigned.
 - **`completed`:** add this label when the run has finished.
 - **`test`:** add this label to a case that is not a CMIP7 run, to leave it out.
@@ -63,8 +66,13 @@ The tracker takes its cases from the issues in this repository, one per case:
 
   - `- run script:` `TBD` until the case's run script is archived, then its path
     below `scripts/` (see the run scripts below);
-  - `- continues:` the issue of the case this one continues, e.g. `#2`, or
-    `none` for a case that starts a simulation;
+  - `- run_type:` `startup`, `branch` or `hybrid`;
+  - `- run_refcase:` the name of the case it starts from, or `none` for a
+    startup;
+  - `- run_refdate:` the date of that case's restart files, as `YYYY-MM-DD`, or
+    `none` for a startup. All three are `TBD` until the case is made, and then
+    `./xmlquery RUN_TYPE,RUN_REFCASE,RUN_REFDATE` in the case directory gives
+    them. They are for readers;
   - `- cmor data version:` `TBD` until it is decided, which is before
     CMORization starts;
   - `- cmip7prep output root:` and `- cmor4cmip7 output root:` `TBD` until
@@ -73,8 +81,10 @@ The tracker takes its cases from the issues in this repository, one per case:
   `nird_progress.py` reads `TBD` as not set.
 
   ```
-  - run script: DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
-  - continues: #2
+  - run script: DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh
+  - run_type: branch
+  - run_refcase: n1850GHGGaxg.LM.nor30b27.002.20261016
+  - run_refdate: 0101-01-01
   - cmor data version: v20261028
   - cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/<case>.cmor
   - cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1
@@ -117,15 +127,16 @@ repository.
 
 - **Directory:** `scripts/<MIP>/<experiment>/`. A case that is not a CMIP7 run, whose issue has the
   `test` label, goes in `scripts/test/`.
-- **Name:** `<issue>.<compset>.<resolution>.<beta>.<date>.sh`, each part copied
-  from the case name: `n1850GHGGaxg.LM.nor30b28.011.20261102` gets
-  `011.n1850GHGGaxg.LM.b28.20261102.sh`.
+- **Name:** `<issue>.<experiment>.<resolution>.<beta>.<variant>.<date>.sh`, the
+  experiment and variant from the issue's labels and the rest from the case name:
+  `n1850GHGGaxg.LM.nor30b28.011.20261102` gets
+  `011.piControl.LM.beta28.r1i1p1f1.20261102.sh`.
 - **Push:** in a clone of the repository,
 
   ```bash
   git switch CMIP7_Runscripts && git pull
-  cp /path/to/run_script.sh scripts/DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
-  git add scripts/DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
+  cp /path/to/run_script.sh scripts/DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh
+  git add scripts/DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh
   git commit -m "Run script for #11"
   git push
   ```
@@ -138,7 +149,7 @@ repository.
   without the `scripts/`:
 
   ```
-  - run script: DECK/piControl/011.n1850GHGGaxg.LM.b28.20261102.sh
+  - run script: DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh
   ```
 
   `nird_progress.py` reads the path, and the tracker builds the link to the script
@@ -147,11 +158,13 @@ repository.
 ## Continuations and members
 
 A simulation continued in a new case gets a new issue with the same experiment and
-variant labels, and the entry `- continues: #<earlier issue>` in its
-description; a case that starts a simulation has `- continues: none`. The tracker reads the two as one member, taking its progress from the
-later model date; the entry is for readers, as the labels are enough for the
-tracker. Another member of the ensemble gets its own variant, e.g.
-`r2i1p1f1`, and its own progress.
+variant labels, and the earlier case as its parent and its `- run_refcase:`. The
+tracker reads the two as one member, taking its progress from the later model
+date; the labels are enough for the tracker. A new experiment started from another
+has as its parent the case it branches from, e.g. piControl's #2 for 1pctCO2's
+#4, and a later continuation of it has the experiment's own earlier case as its
+parent. Another member of the ensemble gets its own variant, e.g. `r2i1p1f1`, and
+its own progress.
 
 ## `nird_progress.py`
 
