@@ -397,7 +397,6 @@
   .sim-index a:hover{ background: color-mix(in srgb, var(--series-1) 30%, transparent); }
   .sim-index{ scroll-margin-top: 12px; }
   .sim-key{ margin-bottom: 6px; font-size: 12px; color: var(--text-secondary); line-height: 1.9; }
-  .sim-key .case-chip.qa-done{ background: color-mix(in srgb, var(--series-6) 18%, transparent); }
   .sim-index-hint{ margin: 0 0 2px; font-size: 12px; color: var(--text-secondary); }
   #simTables .sim-index-up{ margin-left: 10px; font-size: 11px; font-weight: 500; color: var(--text-muted); text-decoration: none; }
   #simTables .sim-index-up:hover{ color: var(--accent); text-decoration: underline; }
@@ -504,6 +503,7 @@
   /* A run with several cases wraps its issue and script chips onto a second line. */
   #simTables td.col-cases{ white-space: normal; line-height: 1.9; }
   #simTables td.col-cases .case-pair{ white-space: nowrap; }
+  #simTables .case-arrow{ color: var(--text-muted); margin: 0 4px 0 0; cursor: default; }
   a.case-chip{ text-decoration: none; cursor: pointer; }
   a.case-chip:hover{ text-decoration: underline; }
   /* A case's run script, a small chip after its issue, in the issue's colour. */
@@ -512,10 +512,8 @@
   /* An issue whose run is QA'd, in the green of the labels. */
   /* Every green on the page is the In progress green. */
   /* The examples in the description of the colours, styled as in the tables. */
-  .caption-list .case-chip.qa-done{ background: color-mix(in srgb, var(--series-6) 18%, transparent); }
   .legend-years{ display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 6px; border-radius: 8px; color: var(--text-primary); background: color-mix(in srgb, var(--series-7) 18%, transparent); }
   .legend-years.qa-done{ background: color-mix(in srgb, var(--series-6) 18%, transparent); }
-  #simTables .case-chip.qa-done, #simTables .script-chip.qa-done{ background: color-mix(in srgb, var(--series-6) 18%, transparent); }
   .case-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 6px; margin-right: 3px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); cursor: default; }
   .tab-nav{ display:flex; gap:4px; margin: 4px 0 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .tab-nav a{ padding: 9px 16px; font-weight: 600; font-size: 14px; color: var(--text-secondary); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
@@ -553,7 +551,7 @@
   /* An entry in an issue's description, e.g. - cmor data version: v20261028. */
   /* A script's path, e.g. workflow/nird_progress.py. */
   code.wf-script{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-2) 18%, transparent); color: var(--text-primary); }
-  /* A GitHub label's name, e.g. qa-run. */
+  /* A GitHub label's name, e.g. qa-cmip7prep. */
   code.wf-labelname{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-6) 18%, transparent); color: var(--text-primary); }
   code.wf-entry{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); }
   /* Label tags, in the green of the label names, as on GitHub. */
@@ -693,21 +691,23 @@
       <ul class="editor-caption caption-list">
         <li><b>a <span class="wf-tag wf-label">label</span> on the case's GitHub issue:</b>
           <ul>
-            <li>the case's issue number turns from purple to green once the run's QA is done, from <code class="wf-labelname">qa-run</code>;</li>
             <li>the cmip7prep years, shown case by case since each case has its own cmip7-prep directory, turn from purple to green once that case's QA is done, from <code class="wf-labelname">qa-cmip7prep</code>;</li>
             <li>the cmor4cmip7 years turn from purple to green once QA is done, from <code class="wf-labelname">qa-cmor4cmip7</code>;</li>
             <li>ESGF from <code class="wf-labelname">esgf</code>;</li>
           </ul></li>
         <li><b>the entries in the description of the case's GitHub issue:</b> a list, one entry a line, as <code class="wf-entry">- entry: value</code> (see <a href="#wf-issue">Make the experiment's GitHub issue</a>):
           <ul>
-            <li><code class="wf-entry">- run script:</code> the path of the case's run script below <code>scripts/</code>, e.g. <code>DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh</code>, or <code>TBD</code>. The tracker links it after the case's issue, as <a class="script-chip">sh</a>;</li>
-            <li><code class="wf-entry">- run_type:</code>, <code class="wf-entry">- run_refcase:</code> and <code class="wf-entry">- run_refdate:</code> how the case started, as its <code>RUN_TYPE</code>, <code>RUN_REFCASE</code> and <code>RUN_REFDATE</code>, for readers;</li>
+            <li><code class="wf-entry">- run script:</code> the path of the case's run script below <code>scripts/</code>, e.g. <code>DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh</code>, or <code>TBD</code>. The tracker links it after the case's issue, as <a class="script-chip">sh</a>. The progress script reads how the case started from the script's <code>./xmlchange</code> lines: its <code>RUN_TYPE</code>, <code>RUN_REFCASE</code>, <code>RUN_REFDATE</code> and <code>RUN_STARTDATE</code>. Hovering the case's issue shows them, naming the issue whose title is the <code>RUN_REFCASE</code>:
+              <ul>
+                <li>a case of the same run and member continues it, e.g. <i>Continues #2 (branch at 0171-01-01)</i>, and follows it in the Issues column after an arrow, <code>#002 → #011</code>;</li>
+                <li>a case of another experiment branches from it, e.g. <i>Branches from #2, piControl LM (hybrid at 0101-01-01, starting 1850-01-01)</i>;</li>
+              </ul></li>
             <li><code class="wf-entry">- cmor data version:</code> the version both tools write the case's years into, e.g. <code>v20261028</code>, or <code>TBD</code> until it is set, checked against the version directories on NIRD;</li>
             <li><code class="wf-entry">- cmip7prep output root:</code> the case's own cmip7-prep output directory, or <code>TBD</code> until it is set, read for the cmip7prep column;</li>
             <li><code class="wf-entry">- cmor4cmip7 output root:</code> the simulation's cmor4cmip7 variant directory, the same in each of its issues, or <code>TBD</code> until it is set, read for the cmor4cmip7 column;</li>
           </ul></li>
         <li><b>the files on NIRD:</b> Status, Progress, cmip7prep and cmor4cmip7. A run is In progress once its files reach NIRD, and Completed once its issue has the <code class="wf-labelname">completed</code> label.</li>
-        <li><b>colours in the tables:</b> <span class="legend-years">purple</span> QA not done yet, <span class="legend-years qa-done">green</span> QA done.</li>
+        <li><b>colours in the tables:</b> the cmip7prep and cmor4cmip7 years are <span class="legend-years">purple</span> until QA is done and <span class="legend-years qa-done">green</span> once it is.</li>
         <li class="auto-note" id="autoNote"></li>
       </ul>
     </div>
@@ -736,25 +736,18 @@
                 <li><b>title:</b> the <a href="#wf-casename">case name</a> and nothing else;</li>
                 <li><b>experiment label:</b> the CMIP7 experiment, e.g. <code>esm-hist</code>, spelt as in the tracker;</li>
                 <li><b>variant label:</b> the ensemble member, e.g. <code>r1i1p1f1</code>;</li>
-                <li><b>parent:</b> the issue of the case it starts from, its <code>RUN_REFCASE</code>, set under Relationships in the issue's sidebar. A case that starts from initial conditions has none;</li>
                 <li><b>assignee:</b> whoever runs it, shown as the run's owner;</li>
                 <li><b><code class="wf-labelname">completed</code>:</b> add this label when the run has finished;</li>
                 <li><b><code class="wf-labelname">test</code>:</b> add this label to a case that is not a CMIP7 run, to leave it out;</li>
-                <li><b>step labels:</b> <code class="wf-labelname">qa-run</code>, <code class="wf-labelname">qa-cmip7prep</code>, <code class="wf-labelname">qa-cmor4cmip7</code> and <code class="wf-labelname">esgf</code>, each added when its step is done;</li>
+                <li><b>step labels:</b> <code class="wf-labelname">qa-cmip7prep</code>, <code class="wf-labelname">qa-cmor4cmip7</code> and <code class="wf-labelname">esgf</code>, each added when its step is done;</li>
                 <li><b>description:</b> a list of entries, one a line, each written as <code class="wf-entry">- entry: value</code>, as in the example below. Add each entry when it applies:
                   <ul>
                     <li><code class="wf-entry">- run script:</code> <code>TBD</code> until the case's run script is archived, then its path below <code>scripts/</code> (see <a href="#wf-script">Archive the run script</a>);</li>
-                    <li><code class="wf-entry">- run_type:</code> <code>startup</code>, <code>branch</code> or <code>hybrid</code>;</li>
-                    <li><code class="wf-entry">- run_refcase:</code> the name of the case it starts from, or <code>none</code> for a startup;</li>
-                    <li><code class="wf-entry">- run_refdate:</code> the date of that case's restart files, as <code>YYYY-MM-DD</code>, or <code>none</code> for a startup. All three are <code>TBD</code> until the case is made, and then <code>./xmlquery RUN_TYPE,RUN_REFCASE,RUN_REFDATE</code> in the case directory gives them;</li>
                     <li><code class="wf-entry">- cmor data version:</code> <code>TBD</code> until it is decided, which is before CMORization starts;</li>
                     <li><code class="wf-entry">- cmip7prep output root:</code> and <code class="wf-entry">- cmor4cmip7 output root:</code> <code>TBD</code> until each tool starts on the simulation, then its directory. The progress script reads <code>TBD</code> as not set.</li>
                   </ul></li>
               </ul>
               <pre class="wf-pre wf-pre-entries">- run script: DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh
-- run_type: branch
-- run_refcase: n1850GHGGaxg.LM.nor30b27.002.20261016
-- run_refdate: 0101-01-01
 - cmor data version: v20261028
 - cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/n1850GHGGaxg.LM.nor30b28.011.20261102.cmor
 - cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</pre>
@@ -764,8 +757,7 @@
               <p>The two output roots are explained under <a href="#wf-cmoratm">cmip7-prep</a> and <a href="#wf-cmorocn">cmor4cmip7</a> in CMORize.</p>
               </div>
               <ul class="wf-parts">
-                <li><b>continuing a simulation in a new case:</b> give the new issue the same experiment and variant labels, and the earlier case as its parent and its <code class="wf-entry">- run_refcase:</code>. The tracker reads the two as one simulation and takes its progress from the later model date, as with #2 and #11;</li>
-                <li><b>starting a new experiment from another:</b> its parent is the case it branches from, e.g. piControl's #2 for 1pctCO2's #4. A later continuation of it has the experiment's own earlier case as its parent;</li>
+                <li><b>continuing a simulation in a new case:</b> give the new issue the same experiment and variant labels. Its run script's <code>RUN_REFCASE</code> is the earlier case. The tracker reads the two as one simulation and takes its progress from the later model date, as with #2 and #11;</li>
                 <li><b>another member of the ensemble:</b> give it its own variant, e.g. <code>r2i1p1f1</code>. The run's years done are the mean over its members.</li>
               </ul>
             </details>
@@ -798,25 +790,13 @@
       </div>
 
       <div class="wf-phase">
-        <h3>QA</h3>
-        <ul class="wf-steps">
-          <li id="wf-runqa">
-            <p>The case's issue number in the tables is purple until the run's QA is done; then add the label <code class="wf-labelname">qa-run</code> to the issue, and after the next run of the progress script it turns green.</p>
-            <details class="wf-more" id="wf-case">
-              <summary>QA the run <span class="wf-tag wf-label">label: qa-run</span></summary>
-              <p>Create and build the case. On Olivia and Betzy, cases go in <code>/cluster/projects/nn9560k/$USER</code>, each in a directory named after the case: <code>/cluster/projects/nn9560k/$USER/&lt;case&gt;</code>.</p>
-              <p>Go through the QA checklist, then add the label <code class="wf-labelname">qa-run</code> to the issue.</p>
-            </details></li>
-        </ul>
-      </div>
-
-      <div class="wf-phase">
         <h3>Run</h3>
         <ul class="wf-steps">
           <li id="wf-runstep">
             <p>The progress script reads the run's Status and Progress on NIRD.</p>
             <details class="wf-more" id="wf-run">
               <summary>How the run is done and tracked</summary>
+              <p>Create and build the case. On Olivia and Betzy, cases go in <code>/cluster/projects/nn9560k/$USER</code>, each in a directory named after the case: <code>/cluster/projects/nn9560k/$USER/&lt;case&gt;</code>.</p>
               <p>Set the run's priority and coordinate it with the other runs. Copy the output to NIRD by hand with rsync while the run is going. The progress script reads the years done from the atmosphere history files copied there, and the tracker shows them in the Progress column and sets the Status to In progress. To set it to Completed, add the <code class="wf-labelname">completed</code> label to its issue.</p>
               <div class="wf-decide"><b>To decide:</b>
                 <ul>
@@ -1074,7 +1054,27 @@
   // The run scripts are under scripts/ on this branch; an issue gives a script's path below it.
   const RUNSCRIPTS_BRANCH = "CMIP7_Runscripts";
   // The label that marks a case's run as QA'd; its issue chip is then green.
-  const RUN_QA_LABEL = "qa-run";
+  // How a case started, from the ./xmlchange lines of its run script: its RUN_TYPE, its
+  // RUN_REFCASE, the issue of that case if it has one, RUN_REFDATE and RUN_STARTDATE.
+  // A case continues its parent when both are cases of the same run and member; otherwise it
+  // branches from it.
+  const caseOfIssue = n => progressData && (progressData.cases || []).find(x => x.issue === n);
+  function parentCase(c){ return c.start && c.start.parent ? caseOfIssue(c.start.parent) : null; }
+  function continues(c){
+    const p = parentCase(c);
+    return !!(p && p.runName && p.runName === c.runName && p.variant === c.variant);
+  }
+  function caseStart(c){
+    const s = c.start;
+    if (!s || !s.type) return c.runScript ? "Start: not found in the run script" : "Start: from the run script, once it is archived";
+    const how = s.type + (s.type !== "startup" && s.refdate ? ` at ${s.refdate}` : "")
+      + (s.startdate && (s.type !== "branch" || s.startdate !== s.refdate) ? `, starting ${s.startdate}` : "");
+    if (s.type === "startup" || !s.refcase) return `Starts from initial conditions (${how})`;
+    const p = parentCase(c);
+    if (continues(c)) return `Continues #${s.parent} (${how})`;
+    if (s.parent) return `Branches from #${s.parent}${p && p.runName ? `, ${p.runName}` : ""} (${how})\nRUN_REFCASE ${s.refcase}`;
+    return `Starts from ${s.refcase} (${how})`;
+  }
   const runScriptUrl = path => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/blob/${RUNSCRIPTS_BRANCH}/scripts/${path}`;
   const WORKFLOW_STEPS = [
     { key: "run",       short: "Run",        name: "Run: Status and Progress", phase: "Run", derived: true, cols: 2 },
@@ -2478,7 +2478,7 @@
     });
     // The key to the colours in the tables, above the index.
     const key = document.createElement("div"); key.className = "sim-key";
-    key.innerHTML = '<span class="legend-years">purple</span> QA not done yet &nbsp; <span class="legend-years qa-done">green</span> QA done';
+    key.innerHTML = 'cmip7prep and cmor4cmip7 years: <span class="legend-years">purple</span> QA not done yet &nbsp; <span class="legend-years qa-done">green</span> QA done';
     index.insertBefore(key, index.firstChild);
     simTables.appendChild(index);
     // The links scroll within the page, wherever it is served from.
@@ -2763,20 +2763,22 @@
         const chip = document.createElement("a"); chip.className = "case-chip";
         chip.href = `${issuesUrl()}/${c.issue}`; chip.target = "_blank"; chip.rel = "noopener";
         chip.textContent = "#" + String(c.issue).padStart(3, "0") + (manyMembers ? " " + c.variant.split("i")[0] : "");
-        // An issue turns green once the run's QA is done, by its qa-run label.
-        const qaDone = (c.labels || []).includes(RUN_QA_LABEL);
-        if (qaDone) chip.classList.add("qa-done");
         chip.title = `${c.case}\n${c.variant} · ${c.version} · ${reached(c)} · ${c.owner}`
-          + (qaDone ? `\nQA done: labelled ${RUN_QA_LABEL}` : `\nQA not done yet: add the label ${RUN_QA_LABEL} once the run's QA is done`);
+          + "\n" + caseStart(c);
         // An issue and its run script stay together on one line.
         const pair = document.createElement("span"); pair.className = "case-pair";
+        // An arrow leads from a case to the case that continues it.
+        if (continues(c) && (row.cases || []).some(x => x.issue === c.start.parent)){
+          const arrow = document.createElement("span"); arrow.className = "case-arrow";
+          arrow.textContent = "→"; arrow.title = `#${c.issue} ${caseStart(c).replace(/^C/, "c")}`;
+          pair.appendChild(arrow);
+        }
         pair.appendChild(chip);
         // The case's run script, from the path its issue gives.
         if (c.runScript){
           const sh = document.createElement("a"); sh.className = "script-chip";
           sh.href = runScriptUrl(c.runScript); sh.target = "_blank"; sh.rel = "noopener";
-          sh.textContent = "sh"; sh.title = `Run script for #${c.issue}: scripts/${c.runScript}`;
-          if (qaDone) sh.classList.add("qa-done");
+          sh.textContent = "sh"; sh.title = `Run script for #${c.issue}: scripts/${c.runScript}\n${caseStart(c)}`;
           pair.appendChild(sh);
         }
         tdCases.appendChild(pair);
@@ -3355,7 +3357,7 @@
       c.variant = (c.labels || []).find(l => VARIANT.test(l));
       if (!row) unmatched.push(`#${c.issue}, no label names an experiment in the plan at ${c.resolution}`);
       else if (!c.variant) unmatched.push(`#${c.issue}, no variant label such as r1i1p1f1`);
-      else (row.cases = row.cases || []).push(c);
+      else { c.runName = row.name; (row.cases = row.cases || []).push(c); }
     });
     const runs = {};
     sims.forEach(row => {

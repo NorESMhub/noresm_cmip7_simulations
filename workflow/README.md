@@ -43,9 +43,6 @@ The tracker takes its cases from the issues in this repository, one per case:
   `nHistEsmGHGGaxg.LM.nor30b28.008.20261029`. `LM` is ne16pg3_tn14 and `MM` is ne30pg3_tn14; the tracker names runs by them, e.g. `esm-hist LM`.
 - **Experiment label:** the CMIP7 experiment, e.g. `esm-hist`, spelt as in the tracker.
 - **Variant label:** the ensemble member, e.g. `r1i1p1f1`.
-- **Parent:** the issue of the case it starts from, its `RUN_REFCASE`, set under
-  Relationships in the issue's sidebar. A case that starts from initial
-  conditions has none.
 - **Assignee:** whoever runs it; the issue's author if nobody is assigned.
 - **`completed`:** add this label when the run has finished.
 - **`test`:** add this label to a case that is not a CMIP7 run, to leave it out.
@@ -56,7 +53,6 @@ The tracker takes its cases from the issues in this repository, one per case:
 
   | Label | Step |
   |---|---|
-  | `qa-run` | QA: the run's QA checklist is done; its issue number turns from purple to green |
   | `qa-cmip7prep` | CMORize: the cmip7-prep output is validated; its years turn from purple to green |
   | `qa-cmor4cmip7` | CMORize: the cmor4cmip7 output is QA'd; its years turn from purple to green |
   | `esgf` | Publish: the data is on ESGF |
@@ -66,13 +62,6 @@ The tracker takes its cases from the issues in this repository, one per case:
 
   - `- run script:` `TBD` until the case's run script is archived, then its path
     below `scripts/` (see the run scripts below);
-  - `- run_type:` `startup`, `branch` or `hybrid`;
-  - `- run_refcase:` the name of the case it starts from, or `none` for a
-    startup;
-  - `- run_refdate:` the date of that case's restart files, as `YYYY-MM-DD`, or
-    `none` for a startup. All three are `TBD` until the case is made, and then
-    `./xmlquery RUN_TYPE,RUN_REFCASE,RUN_REFDATE` in the case directory gives
-    them. They are for readers;
   - `- cmor data version:` `TBD` until it is decided, which is before
     CMORization starts;
   - `- cmip7prep output root:` and `- cmor4cmip7 output root:` `TBD` until
@@ -82,9 +71,6 @@ The tracker takes its cases from the issues in this repository, one per case:
 
   ```
   - run script: DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh
-  - run_type: branch
-  - run_refcase: n1850GHGGaxg.LM.nor30b27.002.20261016
-  - run_refdate: 0101-01-01
   - cmor data version: v20261028
   - cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/<case>.cmor
   - cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1
@@ -155,15 +141,23 @@ repository.
   `nird_progress.py` reads the path, and the tracker builds the link to the script
   on GitHub and shows it after the case's issue.
 
+`nird_progress.py` also reads how the case started from the script's
+`./xmlchange` lines: its `RUN_TYPE`, `RUN_REFCASE`, `RUN_REFDATE` and
+`RUN_STARTDATE`, with the script's shell variables, such as `${refcase}`,
+filled in. Hovering the case's issue in the tracker shows them, naming the issue
+whose title is the `RUN_REFCASE`. A case of the same run and member continues
+it, e.g. "Continues #2 (branch at 0171-01-01)", and follows it in the Issues
+column after an arrow, `#002 → #011`. A case of another experiment branches from
+it, e.g. "Branches from #2, piControl LM (hybrid at 0101-01-01, starting
+1850-01-01)". Nothing else needs adding to the issue, and GitHub's parent links
+are not read.
+
 ## Continuations and members
 
 A simulation continued in a new case gets a new issue with the same experiment and
-variant labels, and the earlier case as its parent and its `- run_refcase:`. The
+variant labels, and its run script's `RUN_REFCASE` is the earlier case. The
 tracker reads the two as one member, taking its progress from the later model
-date; the labels are enough for the tracker. A new experiment started from another
-has as its parent the case it branches from, e.g. piControl's #2 for 1pctCO2's
-#4, and a later continuation of it has the experiment's own earlier case as its
-parent. Another member of the ensemble gets its own variant, e.g. `r2i1p1f1`, and
+date. Another member of the ensemble gets its own variant, e.g. `r2i1p1f1`, and
 its own progress.
 
 ## `nird_progress.py`
@@ -209,6 +203,9 @@ python3 -I workflow/nird_progress.py \
 - `--pattern` sets which files count (default `*.cam.i.*.nc`).
 - `--issues` reads the issues from a saved copy of the GitHub API's answer
   instead of fetching them.
+- `--scripts` reads the run scripts from a `scripts/` directory, e.g. in a
+  checkout of the `CMIP7_Runscripts` branch, instead of fetching them from
+  GitHub's raw file server.
 
 It reads GitHub anonymously, which allows 60 requests an hour; it makes one for
 each hundred issues.

@@ -57,8 +57,15 @@ is read:
       --timing-dir "/nird/datalake/NS9560K/noresm3/cases/{case}/timing" \\
       --timing-dir "/nird/datalake/NS9560K/noresm3/cases/{case}/{case}/timing"
 
+For a case whose issue gives its run script, "- run script: <path below scripts/>",
+the script is read from the CMIP7_Runscripts branch, and the case's RUN_TYPE,
+RUN_REFCASE, RUN_REFDATE and RUN_STARTDATE are taken from its ./xmlchange lines.
+The issue whose title is the RUN_REFCASE is recorded as the case's parent, the
+case it continues or branches from.
+
 --pattern sets which files count (default *.cam.i.*.nc). --issues reads the
-issues from a file saved from the GitHub API instead of fetching them.
+issues from a file saved from the GitHub API instead of fetching them, and
+--scripts the run scripts from a scripts/ directory instead of GitHub.
 """
 
 import argparse
@@ -69,6 +76,9 @@ import gzip
 import json
 import os
 import re
+import shlex
+import urllib.error
+import urllib.parse
 import urllib.request
 
 REPO = "NorESMhub/noresm_cmip7_simulations"
@@ -98,6 +108,14 @@ DATA_VERSION = entry(r"cmor[ \t]+data[ \t]+version", r"v\d{8}\b")
 # The case's run script, its path below scripts/ on the CMIP7_Runscripts branch:
 # "- run script: DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh".
 RUN_SCRIPT = entry(r"run[ \t]+script", r"[A-Za-z0-9][^\s`]*\.sh")
+# The run scripts are on this branch, below scripts/.
+RUNSCRIPTS_BRANCH = "CMIP7_Runscripts"
+# The settings read from a run script's ./xmlchange lines, and the names they are written under.
+RUN_SETTINGS = {"RUN_TYPE": "type", "RUN_REFCASE": "refcase", "RUN_REFDATE": "refdate",
+                "RUN_STARTDATE": "startdate"}
+# A shell variable given a plain value: refcase="n1850GHGGaxg.LM.nor30b27.002.20261016"
+SHELL_VARIABLE = re.compile(r"""^(?:export\s+)?([A-Za-z_]\w*)=("[^"$`]*"|'[^']*'|[^\s"'$`;]*)\s*(?:#.*)?$""")
+XMLCHANGE = re.compile(r"^\./xmlchange\s+(.*)$")
 # The version directory a CMOR file sits under: .../r1i1p1f1/v20261028/so_..._000101-001012.nc
 VERSION_DIR = re.compile(r"^v\d{8}$")
 VARIANT = re.compile(r"^r\d+i\d+p\d+f\d+$")
@@ -125,6 +143,67 @@ def fetch_issues(repo):
             return issues
         issues.extend(i for i in batch if "pull_request" not in i)
         page += 1
+
+
+def read_run_script(repo, path, scripts_dir=None):
+    """The text of the run script at path below scripts/, from scripts_dir if given and from
+    the CMIP7_Runscripts branch on GitHub otherwise, and why it couldn't be read if it couldn't."""
+    try:
+        if scripts_dir:
+            with open(os.path.join(scripts_dir, path), encoding="utf-8", errors="replace") as f:
+                return f.read(), None
+        url = (f"https://raw.githubusercontent.com/{repo}/{RUNSCRIPTS_BRANCH}/scripts/"
+               + urllib.parse.quote(path))
+        req = urllib.request.Request(url, headers={"User-Agent": "nird_progress"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return r.read().decode("utf-8", errors="replace"), None
+    except FileNotFoundError:
+        return None, f"not found at scripts/{path}"
+    except urllib.error.HTTPError as e:
+        return None, f"not found at scripts/{path}" if e.code == 404 else f"not read, HTTP {e.code}"
+    except OSError as e:
+        return None, str(getattr(e, "reason", None) or e)
+
+
+def run_settings(text):
+    """The RUN_TYPE, RUN_REFCASE, RUN_REFDATE and RUN_STARTDATE a run script sets with
+    ./xmlchange, either as KEY=value[,KEY=value] or as --id KEY --val value. A shell variable
+    the script gives a plain value, such as refcase="...", is filled in; a setting whose value
+    still depends on the shell, such as $(date), is left out."""
+    variables, settings = {}, {}
+
+    def expand(value):
+        return re.sub(r"\$\{(\w+)\}|\$(\w+)",
+                      lambda m: variables.get(m.group(1) or m.group(2), m.group(0)), value)
+
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if m := SHELL_VARIABLE.match(line):
+            variables[m.group(1)] = m.group(2).strip("\"'")
+            continue
+        m = XMLCHANGE.match(line)
+        if not m:
+            continue
+        try:
+            args = shlex.split(expand(m.group(1)), comments=True)
+        except ValueError:
+            continue
+        pairs = []
+        if "--id" in args:
+            i = args.index("--id")
+            val = args[args.index("--val") + 1] if "--val" in args[:-1] else None
+            if i + 1 < len(args) and val is not None:
+                pairs.append((args[i + 1], val))
+        else:
+            for arg in args:
+                if not arg.startswith("-"):
+                    pairs += [tuple(p.split("=", 1)) for p in arg.split(",") if "=" in p]
+        for key, value in pairs:
+            if key in RUN_SETTINGS and "$" not in value:
+                settings[RUN_SETTINGS[key]] = value
+    return settings
 
 
 def latest_date(directory, pattern):
@@ -289,6 +368,8 @@ def main():
     p.add_argument("--pattern", default="*.cam.i.*.nc", help="dated files that count, as a shell pattern")
     p.add_argument("--repo", default=REPO, help="the repository with the case issues")
     p.add_argument("--issues", help="read the issues from this JSON file instead of GitHub")
+    p.add_argument("--scripts", help="read the run scripts from this scripts/ directory, e.g. in a "
+                                     "checkout of the CMIP7_Runscripts branch, instead of GitHub")
     a = p.parse_args()
 
     if a.issues:
@@ -297,6 +378,8 @@ def main():
     else:
         issues = fetch_issues(a.repo)
 
+    # A case's parent is the issue whose title is its RUN_REFCASE.
+    issue_of_case = {i["title"].strip(): i["number"] for i in issues}
     cases, skipped = [], []
     for issue in sorted(issues, key=lambda i: i["number"]):
         num, title = issue["number"], issue["title"].strip()
@@ -325,6 +408,14 @@ def main():
         if m := RUN_SCRIPT.search(body):
             # A full link or a path that starts with scripts/ is kept as the path below scripts/.
             case["runScript"] = re.sub(r"^.*?\bscripts/", "", m.group(1))
+            text, why = read_run_script(a.repo, case["runScript"], a.scripts)
+            if text is None:
+                report += f"; run script {why}"
+            elif start := run_settings(text):
+                if start.get("refcase") in issue_of_case:
+                    start["parent"] = issue_of_case[start["refcase"]]
+                case["start"] = start
+                report += "; " + " ".join(f"{k} {v}" for k, v in start.items())
         if m := DATA_VERSION.search(body):
             case["dataVersion"] = m.group(1)
             report += "; CMOR data version " + m.group(1)
