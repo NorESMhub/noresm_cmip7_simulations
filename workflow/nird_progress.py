@@ -8,6 +8,7 @@ import datetime
 import fnmatch
 import glob
 import gzip
+import http.client
 import json
 import os
 import re
@@ -35,16 +36,17 @@ def entry(label, value):
                       + r"(?:\*\*)?[ \t]*:?[ \t]*(?:\*\*)?\s*`?(" + value + r")", re.M | re.I)
 
 
-# Where each tool's CMORized output is: "- cmip7prep output root: /nird/...".
+# Where each tool's CMORized output is, when it isn't in the default place:
+# "- cmip7prep output root: /nird/...".
 OUTPUT_ROOTS = {tool: entry(tool + r"[ \t]+output(?:[ \t]+root)?", r"/[^\s`]+")
                 for tool in ("cmip7prep", "cmor4cmip7")}
-# The version the case's years are CMORized into: "- cmor data version: v20261028".
-DATA_VERSION = entry(r"cmor[ \t]+data[ \t]+version", r"v\d{8}\b")
-# The case's run script, its path below scripts/ on the CMIP7_Runscripts branch:
-# "- run script: DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh".
-RUN_SCRIPT = entry(r"run[ \t]+script", r"[A-Za-z0-9][^\s`]*\.sh")
-# The run scripts are on this branch, below scripts/.
+# The version the case's years are CMORized into, with or without the v:
+# "- cmor data version: v20261028".
+DATA_VERSION = entry(r"cmor[ \t]+data[ \t]+version", r"v?\d{8}\b")
+# The run scripts are on this branch, below scripts/, each named after its case's issue:
+# DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh is #11's.
 RUNSCRIPTS_BRANCH = "CMIP7_Runscripts"
+SCRIPT_ISSUE = re.compile(r"^0*(\d+)\..*\.sh$")
 # The settings read from a run script's ./xmlchange lines, and the names they are written under.
 RUN_SETTINGS = {"RUN_TYPE": "type", "RUN_REFCASE": "refcase", "RUN_REFDATE": "refdate",
                 "RUN_STARTDATE": "startdate"}
@@ -80,6 +82,24 @@ def fetch_issues(repo):
         page += 1
 
 
+def list_run_scripts(repo, scripts_dir=None):
+    """The run scripts' paths below scripts/, from scripts_dir if given and from the
+    CMIP7_Runscripts branch on GitHub otherwise, and why they couldn't be listed if they couldn't."""
+    try:
+        if scripts_dir:
+            return [os.path.relpath(os.path.join(d, f), scripts_dir)
+                    for d, _, files in os.walk(scripts_dir) for f in files if f.endswith(".sh")], None
+        url = f"https://api.github.com/repos/{repo}/git/trees/{RUNSCRIPTS_BRANCH}?recursive=1"
+        req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json",
+                                                   "User-Agent": "nird_progress"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            tree = json.load(r)["tree"]
+        return [t["path"][len("scripts/"):] for t in tree
+                if t["type"] == "blob" and t["path"].startswith("scripts/") and t["path"].endswith(".sh")], None
+    except (OSError, ValueError, KeyError, http.client.HTTPException) as e:
+        return None, str(getattr(e, "reason", None) or e)
+
+
 def read_run_script(repo, path, scripts_dir=None):
     """The text of the run script at path below scripts/, from scripts_dir if given and from
     the CMIP7_Runscripts branch on GitHub otherwise, and why it couldn't be read if it couldn't."""
@@ -96,7 +116,7 @@ def read_run_script(repo, path, scripts_dir=None):
         return None, f"not found at scripts/{path}"
     except urllib.error.HTTPError as e:
         return None, f"not found at scripts/{path}" if e.code == 404 else f"not read, HTTP {e.code}"
-    except OSError as e:
+    except (OSError, http.client.HTTPException) as e:
         return None, str(getattr(e, "reason", None) or e)
 
 
@@ -297,6 +317,9 @@ def main():
     p.add_argument("--dir", required=True, help='each case\'s directory, e.g. "/archive/{case}/atm/hist"')
     p.add_argument("--cmor-dir", help='each case\'s cmip7-prep output directory, e.g. "/cases/{case}.cmor", '
                                       'for a case whose issue names no cmip7prep output root')
+    p.add_argument("--cmor4cmip7-dir", help='each simulation\'s cmor4cmip7 variant directory, e.g. '
+                                            '"/.CMIP7/NorESM3-{resolution}/{experiment}/{variant}", '
+                                            'for a case whose issue names no cmor4cmip7 output root')
     p.add_argument("--timing-dir", action="append", default=[],
                    help='each case\'s timing directory, e.g. "/cases/{case}/timing"; give it more than '
                         'once for cases laid out differently, and the first that exists is read')
@@ -315,6 +338,14 @@ def main():
 
     # A case's parent is the issue whose title is its RUN_REFCASE.
     issue_of_case = {i["title"].strip(): i["number"] for i in issues}
+    # A case's run script is the one whose name starts with its issue number.
+    scripts, why = list_run_scripts(a.repo, a.scripts)
+    if scripts is None:
+        print(f"The run scripts could not be listed: {why}")
+    scripts_of_issue = {}
+    for path in sorted(scripts or []):
+        if m := SCRIPT_ISSUE.match(os.path.basename(path)):
+            scripts_of_issue.setdefault(int(m.group(1)), []).append(path)
     cases, skipped = [], []
     for issue in sorted(issues, key=lambda i: i["number"]):
         num, title = issue["number"], issue["title"].strip()
@@ -338,11 +369,23 @@ def main():
             report = "no directory" if last is False else "no dated files"
         body = issue.get("body") or ""
         output = {tool: m.group(1) for tool, r in OUTPUT_ROOTS.items() if (m := r.search(body))}
+        # Without an entry, each tool's output is looked for in its default place. The experiment
+        # is whichever label names an existing directory there.
+        if "cmip7prep" not in output and a.cmor_dir and os.path.isdir(d := a.cmor_dir.format(case=title)):
+            output["cmip7prep"] = d
+        if "cmor4cmip7" not in output and a.cmor4cmip7_dir:
+            variant = next((l for l in labels if VARIANT.match(l)), None)
+            dirs = [a.cmor4cmip7_dir.format(resolution=case["resolution"], experiment=l, variant=variant)
+                    for l in labels if variant and l != variant]
+            if d := next((d for d in dirs if os.path.isdir(d)), None):
+                output["cmor4cmip7"] = d
         if output:
             case["cmorOutput"] = output
-        if m := RUN_SCRIPT.search(body):
-            # A full link or a path that starts with scripts/ is kept as the path below scripts/.
-            case["runScript"] = re.sub(r"^.*?\bscripts/", "", m.group(1))
+        found = scripts_of_issue.get(num, [])
+        if len(found) > 1:
+            report += "; more than one run script: " + ", ".join(found)
+        elif found:
+            case["runScript"] = found[0]
             text, why = read_run_script(a.repo, case["runScript"], a.scripts)
             if text is None:
                 report += f"; run script {why}"
@@ -351,12 +394,13 @@ def main():
                     start["parent"] = issue_of_case[start["refcase"]]
                 case["start"] = start
                 report += "; " + " ".join(f"{k} {v}" for k, v in start.items())
+        else:
+            report += "; no run script"
         if m := DATA_VERSION.search(body):
-            case["dataVersion"] = m.group(1)
-            report += "; CMOR data version " + m.group(1)
+            case["dataVersion"] = "v" + m.group(1).lstrip("vV")
+            report += "; CMOR data version " + case["dataVersion"]
         versions = {}
-        prep_dir = output.get("cmip7prep") or (a.cmor_dir.format(case=title) if a.cmor_dir else None)
-        if prep_dir:
+        if prep_dir := output.get("cmip7prep"):
             sets = cmor_sets(prep_dir)
             if sets:
                 case["cmor"] = sets

@@ -518,8 +518,6 @@
   .wf-head{ cursor: pointer; padding: 10px 0; font-size: 15px; font-weight: 600; color: color-mix(in srgb, var(--series-2) 75%, var(--text-primary)); }
   .wf-details[open] > .wf-head{ border-bottom: 1px solid var(--border); }
   .wf-intro{ margin: 10px 0 0; font-size: 13px; color: var(--text-secondary); }
-  .wf-phase{ margin-top: 18px; }
-  .wf-phase h3{ font-size: 14px; margin: 0 0 6px; padding-left: 8px; border-left: 3px solid var(--series-2); color: color-mix(in srgb, var(--series-2) 75%, var(--text-primary)); text-transform: uppercase; letter-spacing: .04em; }
   .wf-steps{ margin: 0; padding-left: 0; list-style: none; }
   .wf-steps > li{ padding: 8px 0 10px; border-bottom: 1px solid var(--border); }
   .wf-steps > li:last-child{ border-bottom: none; }
@@ -676,14 +674,13 @@
   <section class="card editor-card" id="simPlanCard">
     <div class="editor-head">
       <h2>Simulation tracker</h2>
-      <p class="editor-caption">The progress script is <code class="wf-script">workflow/nird_progress.py</code> in the <a href="https://github.com/NorESMhub/noresm_cmip7_simulations" target="_blank" rel="noopener">noresm_cmip7_simulations</a> repository, and it is run on NIRD. It reads the case issues on GitHub and the case files on NIRD. The script fills in the columns of the tables from three places: the labels on the case's GitHub issue, the entries in its description, and the files on NIRD.</p>
+      <p class="editor-caption">The progress script is <code class="wf-script">workflow/nird_progress.py</code> in the <a href="https://github.com/NorESMhub/noresm_cmip7_simulations" target="_blank" rel="noopener">noresm_cmip7_simulations</a> repository, and it is run on NIRD. It reads the case issues on GitHub and the case files on NIRD. The script fills in the columns of the tables from three places: the labels on the case's GitHub issue, the CMOR data version in its description, and the files on NIRD.</p>
       <p class="editor-caption auto-note" id="autoNote" hidden></p>
     </div>
     <details class="wf-details" id="workflow" open>
       <summary class="wf-head">Workflow steps</summary>
 
       <div class="wf-phase">
-        <h3>Prepare</h3>
         <ul class="wf-steps">
           <li id="wf-prepare">
             <details class="wf-more" id="wf-casename">
@@ -708,21 +705,13 @@
                 <li><b><code class="wf-labelname">completed</code>:</b> add this label when the run has finished;</li>
                 <li><b><code class="wf-labelname">test</code>:</b> add this label to a case that is not a CMIP7 run, to leave it out;</li>
                 <li><b><code class="wf-labelname">esgf</code>:</b> add this label when the data is on ESGF;</li>
-                <li><b>description:</b> a list of entries, one a line, each written as <code class="wf-entry">- entry: value</code>, as in the example below. Add each entry when it applies:
-                  <ul>
-                    <li><code class="wf-entry">- run script:</code> <code>TBD</code> until the case's run script is archived, then its path below <code>scripts/</code> (see <a href="#wf-script">Archive the run script</a>);</li>
-                    <li><code class="wf-entry">- cmor data version:</code> <code>TBD</code> until it is decided, which is before CMORization starts;</li>
-                    <li><code class="wf-entry">- cmip7prep output root:</code> and <code class="wf-entry">- cmor4cmip7 output root:</code> <code>TBD</code> until each tool starts on the simulation, then its directory. The progress script reads <code>TBD</code> as not set.</li>
-                  </ul></li>
+                <li><b>description:</b> one entry, <code class="wf-entry">- cmor data version:</code>, with <code>TBD</code> until the version is decided, which is before CMORization starts, then the version: <code>v</code> and its date as YYYYMMDD, the <code>v</code> optional:</li>
               </ul>
-              <pre class="wf-pre wf-pre-entries">- run script: DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh
-- cmor data version: v20261028
-- cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/n1850GHGGaxg.LM.nor30b28.011.20261102.cmor
-- cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</pre>
+              <pre class="wf-pre wf-pre-entries">- cmor data version: v20261028</pre>
               <div class="wf-indent">
               <p>The CMOR data version, e.g. <code>v20261028</code>, <b>must agree between the two CMORization tools for a given span of years</b>: cmip7-prep, which CMORizes the atmosphere, land, sea ice and land ice (its <code>--data-version</code>), and cmor4cmip7, which CMORizes the ocean and ocean biogeochemistry. That way all the realms for those years are one edition of the dataset.</p>
               <p>If the version directories on NIRD don't match the issue, or each other, the tracker puts <span class="wf-warn">⚠</span> in the cmip7prep or cmor4cmip7 column. Hover the cell to see why.</p>
-              <p>The two output roots are explained under <a href="#wf-cmoratm">cmip7-prep</a> and <a href="#wf-cmorocn">cmor4cmip7</a> in CMORize.</p>
+              <p>The progress script finds everything else itself: each tool's output in its default place, explained under <a href="#wf-cmoratm">cmip7-prep</a> and <a href="#wf-cmorocn">cmor4cmip7</a> in CMORize, and the case's run script by the issue number its name starts with (see <a href="#wf-script">Archive the run script</a>).</p>
               </div>
               <ul class="wf-parts">
                 <li><b>continuing a simulation in a new case:</b> give the new issue the same experiment and variant labels. Its run script's <code>RUN_REFCASE</code> is the earlier case. The tracker reads the two as one simulation and takes its progress from the later model date, as with #2 and #11;</li>
@@ -734,7 +723,7 @@
               <p>Push the case's run script straight to its directory under <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/tree/CMIP7_Runscripts/scripts" target="_blank" rel="noopener"><code>scripts/</code></a> on the <code>CMIP7_Runscripts</code> branch; this needs write access to the repository.</p>
               <ul class="wf-parts">
                 <li><b>directory:</b> <code>scripts/&lt;MIP&gt;/&lt;experiment&gt;/</code>. A case that is not a CMIP7 run, whose issue has the <code class="wf-labelname">test</code> label, goes in <code>scripts/test/</code>;</li>
-                <li><b>name:</b> <code>issue.experiment.resolution.beta.variant.date.sh</code>
+                <li><b>name:</b> <code>issue.experiment.resolution.beta.variant.date.sh</code>. The progress script finds the case's script by the issue number it starts with, so no other script may start with it:
                   <ul>
                     <li>the experiment and variant from the issue's labels, the rest from the case name, e.g. <code>011.piControl.LM.beta28.r1i1p1f1.20261102.sh</code> for <code>n1850GHGGaxg.LM.nor30b28.011.20261102</code>;</li>
                   </ul></li>
@@ -749,16 +738,13 @@
                       </ul></li>
                     <li><code>git push</code>;</li>
                   </ul></li>
-                <li><b>issue:</b> in the issue's description, replace <code>TBD</code> after <code class="wf-entry">- run script:</code> with the script's path below <code>scripts/</code>, the same path you gave <code>git add</code> without the <code>scripts/</code>:
-                  <pre class="wf-pre wf-pre-entries">- run script: DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh</pre>
-                  The tracker builds the link to the script on GitHub and shows it after the case's issue, as <a class="script-chip">sh</a>.</li>
+                <li><b>tracker:</b> after the next run of the progress script, the tracker links the script after the case's issue, as <a class="script-chip">sh</a>.</li>
               </ul>
             </details></li>
         </ul>
       </div>
 
       <div class="wf-phase">
-        <h3>Run</h3>
         <ul class="wf-steps">
           <li id="wf-runstep">
             <details class="wf-more" id="wf-run">
@@ -778,32 +764,28 @@
       </div>
 
       <div class="wf-phase">
-        <h3>CMORize</h3>
         <details class="wf-more">
         <summary>The CMORization steps</summary>
         <ul class="wf-steps">
           <li id="wf-cmorissue"><div class="wf-title">Make the CMORization issue</div>
             <p>Once the simulation has finished, open an issue in <a href="https://github.com/NorESMhub/CMIP7_CMOR-Publish/issues" target="_blank" rel="noopener">NorESMhub/CMIP7_CMOR-Publish</a> from its template, which is like the CMIP6 one, and label it <code class="wf-labelname">cmorization</code>. The repository's other labels are <code class="wf-labelname">publication</code>, <code class="wf-labelname">archive</code>, <code class="wf-labelname">cmor_bug</code>, <code class="wf-labelname">publication_bug</code> and <code class="wf-labelname">retract</code>.</p>
-            <p>Before either tool starts, add the CMOR data version to the description of the case's issue in noresm_cmip7_simulations, and as each tool starts, its output root, each as an entry of its own, as the two steps below explain. Both tools write the case's years into that version, cmip7-prep with <code>--data-version</code>:</p>
-            <pre class="wf-pre wf-pre-entries">- cmor data version: v20261028
-- cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/&lt;case&gt;.cmor
-- cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</pre>
-            <p>The progress script reads each tool's progress there, and the tracker shows the roots when you hover the cmip7prep or cmor4cmip7 column.</p>
+            <p>Before either tool starts, set the CMOR data version in the description of the case's issue in noresm_cmip7_simulations. Both tools write the case's years into that version, cmip7-prep with <code>--data-version</code>:</p>
+            <pre class="wf-pre wf-pre-entries">- cmor data version: v20261028</pre>
+            <p>The progress script reads each tool's progress in its default place, as the two steps below explain, and the tracker shows where when you hover the cmip7prep or cmor4cmip7 column. Output somewhere else needs an entry in the issue, <code class="wf-entry">- cmip7prep output root:</code> or <code class="wf-entry">- cmor4cmip7 output root:</code>, giving the directory.</p>
             <div class="wf-decide"><b>To decide:</b> how urgency is shown.</div></li>
           <li id="wf-cmoratm"><div class="wf-title">CMORize the atmosphere, land, sea ice and land ice using cmip7-prep</div>
             <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K</code> with the cmor4cmip7 output. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>.</p>
-            <p>The <code>cmip7prep output root</code> is the directory that holds those files: the script reads only that directory, not the ones below it. Each case has its own, with its own time series and logs, so every issue names its case's directory. Without the entry, the script looks in the case's <code>.cmor</code> directory.</p>
+            <p>The script reads only the case's <code>.cmor</code> directory, not the ones below it. Each case has its own, with its own time series and logs. For output elsewhere, the <code>cmip7prep output root</code> entry gives the directory that holds the case's <code>completed_steps_*.json</code> files.</p>
             <p>The tracker shows the cmip7prep years case by case, a chip for each case with CMORized years, since each case has its own directory: piControl's #2 can be done while #11 is not.</p></li>
           <li id="wf-cmorocn"><div class="wf-title">CMORize the ocean and ocean biogeochemistry using cmor4cmip7</div>
-            <p>The CMORized output goes in <code>/nird/datapeak/NS9034K/.CMIP7</code>, under the model, experiment, variant and version, e.g. <code>NorESM3-LM/piControl/r1i1p1f1/v20261028</code>. The first 100 years of piControl's ocean are being CMORized there now. The progress script reads the time ranges in the names of the files under the issue's <code>cmor4cmip7 output root</code>, e.g. <code>_000101-001012.nc</code>, and the tracker shows the years every variable has, e.g. <code>1–10</code>.</p>
-            <p>The <code>cmor4cmip7 output root</code> is the simulation's variant directory, e.g. <code>/nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</code>, without the version, so a later version is read too. The script reads every directory below it and takes the files whose names have the issue's experiment and variant, e.g. <code>_piControl_r1i1p1f1_</code>. These hold all the simulation's years, so every issue of the simulation gives the same root, and the tracker counts each year once. A root above the model directory would mix the LM and MM files of the same experiment and variant.</p></li>
+            <p>The CMORized output goes in <code>/nird/datapeak/NS9034K/.CMIP7</code>, under the model, experiment, variant and version, e.g. <code>NorESM3-LM/piControl/r1i1p1f1/v20261028</code>. The first 100 years of piControl's ocean are being CMORized there now. The progress script reads the time ranges in the names of the files there, e.g. <code>_000101-001012.nc</code>, and the tracker shows the years every variable has, e.g. <code>1–10</code>.</p>
+            <p>The script reads the simulation's variant directory, named from the issue's resolution, experiment and variant, e.g. <code>/nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</code>, and every version below it, so a later version is read too. It takes the files whose names have the issue's experiment and variant, e.g. <code>_piControl_r1i1p1f1_</code>. These hold all the simulation's years, so the tracker counts each year once however many issues the simulation has. For output elsewhere, the <code>cmor4cmip7 output root</code> entry gives the variant directory; a root above the model directory would mix the LM and MM files of the same experiment and variant.</p></li>
         </ul>
         <p class="wf-note">cmip7-prep and cmor4cmip7 lay out their output differently. That doesn't matter for publication: esg-prep links both into the structure ESGF needs. The CMORization and publication workflow, and the esg-prep command, will be added here as they are settled.</p>
         </details>
       </div>
 
       <div class="wf-phase">
-        <h3>Publish</h3>
         <ul class="wf-steps">
           <li id="wf-esgf">
             <details class="wf-more">
@@ -1018,7 +1000,7 @@
   // The issues link to the repository progress.json was read from, NorESMhub's by default.
   const ISSUES_REPO = "NorESMhub/noresm_cmip7_simulations";
   const issuesUrl = () => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/issues`;
-  // The run scripts are under scripts/ on this branch; an issue gives a script's path below it.
+  // The run scripts are under scripts/ on this branch; progress.json gives a case's path below it.
   const RUNSCRIPTS_BRANCH = "CMIP7_Runscripts";
   // How a case started, from the ./xmlchange lines of its run script: its RUN_TYPE, its
   // RUN_REFCASE, the issue of that case if it has one, RUN_REFDATE and RUN_STARTDATE.
@@ -1032,7 +1014,7 @@
   }
   function caseStart(c){
     const s = c.start;
-    if (!s || !s.type) return c.runScript ? "Start: not found in the run script" : "Start: from the run script, once it is archived";
+    if (!s || !s.type) return c.runScript ? "Start: not found in the run script" : "Start: from the run script, once it is on the CMIP7_Runscripts branch";
     const how = s.type + (s.type !== "startup" && s.refdate ? ` at ${s.refdate}` : "")
       + (s.startdate && (s.type !== "branch" || s.startdate !== s.refdate) ? `, starting ${s.startdate}` : "");
     if (s.type === "startup" || !s.refcase) return `Starts from initial conditions (${how})`;
@@ -2632,11 +2614,10 @@
             }
             td.title += "\n" + perCase.map(x => `#${x.issue}: ${x.years.length ? `years ${yearSpans(x.years)}` : "nothing CMORized yet"}`).join("\n");
           }
-          // Where the output is, as the case issues give it.
+          // Where the progress script found each case's output.
           const tool = step.key === "cmoratm" ? "cmip7prep" : "cmor4cmip7";
           const dirs = p && p.members ? p.members.flatMap(x => x.outputs).filter(o => o[tool]).map(o => `#${o.issue}: ${o[tool]}`) : [];
-          td.title += dirs.length ? "\nOutput root:\n" + dirs.join("\n")
-            : tool === "cmor4cmip7" ? `\nNo issue names its output yet: set the entry "- cmor4cmip7 output root:" in the issue to the directory.` : "";
+          td.title += dirs.length ? "\nOutput root:\n" + dirs.join("\n") : "\nNo output found yet.";
           // The CMOR data version each issue gives, the versions the files are in, and what disagrees.
           const members = p && p.members ? p.members : [];
           const given = members.flatMap(x => x.dataVersions).map(d => `#${d.issue}: ${d.version}`);
@@ -2733,7 +2714,7 @@
           pair.appendChild(arrow);
         }
         pair.appendChild(chip);
-        // The case's run script, from the path its issue gives.
+        // The case's run script, found on the branch by its issue number.
         if (c.runScript){
           const sh = document.createElement("a"); sh.className = "script-chip";
           sh.href = runScriptUrl(c.runScript); sh.target = "_blank"; sh.rel = "noopener";
