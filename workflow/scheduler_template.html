@@ -299,39 +299,35 @@
   .timing-note b{ font-weight: 600; }
   .cost-table td, .cost-table th{ white-space: nowrap; }
   .cost-table td.n, .cost-table th.n{ text-align: right; font-variant-numeric: tabular-nums; }
-  /* Resolution heading rows: light purple. */
-  .cost-table tr.ct-res th{ background: color-mix(in srgb, var(--series-7) 24%, transparent); color: var(--text-primary); font-size: 13.5px; font-weight: 700; padding-top: 9px; }
-  .cost-table tr.ct-res th span{ font-weight: 500; color: var(--text-secondary); margin-left: 10px; }
+  /* A table for each MIP, with the same fixed column widths, as in the tracker. */
+  #costTables table{ min-width: 900px; table-layout: fixed; }
+  /* Each table is framed like the tracker's: a line down each side and along the bottom,
+     the title row giving the top. */
+  #costTables tr > :first-child{ border-left: 2px solid var(--text-secondary); }
+  #costTables tr > :last-child{ border-right: 2px solid var(--text-secondary); }
+  #costTables tbody tr:last-child > td{ border-bottom: 2px solid var(--text-secondary); }
+  /* The numbers sit centred under their headings. */
+  #costTables td.n, #costTables th.n{ text-align: center; }
+  #costTables .table-scroll + .table-scroll{ margin-top: 28px; }
+  #costTables .table-scroll{ scroll-margin-top: 12px; }
+  .cost-table td{ overflow: hidden; text-overflow: ellipsis; }
+  .cost-table tr.ct-title th{ text-align: left; font-size: 13.5px; font-weight: 700; color: var(--series-1); background: color-mix(in srgb, var(--series-1) 12%, transparent); border-top: 2px solid var(--text-secondary); }
+  .cost-table tr.ct-cols th{ white-space: normal; font-size: 11.5px; vertical-align: bottom; }
+  #costTables p.ct-note{ color: var(--text-muted); font-size: 12px; margin: 12px 0 0; }
   /* Resolution heading rows in the configuration table. */
   #expTimingTable tr.cfg-res th{
     background: var(--accent-wash); font-size: 13.5px; font-weight: 700; text-align: left;
     color: var(--res-colour, var(--text-primary));
     border-left: 4px solid var(--res-colour, var(--accent));
   }
-  .cost-table tr.ct-sub td{ color: var(--text-secondary); font-weight: 600; }
   .cost-table tr.ct-total td{ font-weight: 700; border-top: 2px solid var(--border-strong); }
   .cost-table tr.ct-off td{ color: var(--text-muted); }
-  /* Each MIP's rows share a tint and a left edge in that MIP's colour. */
-  .cost-table tr.ct-mip td{ background: color-mix(in srgb, var(--mip-colour) 9%, transparent); }
-  .cost-table tr.ct-mip.ct-sub td{ background: color-mix(in srgb, var(--mip-colour) 18%, transparent); }
-  .cost-table tr.ct-mip td:first-child{ border-left: 4px solid var(--mip-colour); }
-  .cost-table td.ct-mipname{ color: var(--mip-colour); font-weight: 600; }
-  .cost-table tr.ct-note td{ color: var(--text-muted); font-size: 12px; }
   .cost-table .ct-name{ font-weight: 600; }
   .cost-table .ct-muted{ color: var(--text-muted); }
   /* The storage columns start after a line, apart from the compute columns. */
   .cost-table th.ct-storage-start, .cost-table td:nth-last-child(4){ border-left: 1px solid var(--border); }
   /* Editable cells in the cost table. */
-  .cost-table td.ct-include, .cost-table th.ct-include{ width: 1%; text-align: center; }
-  .cost-table td.ct-include input{ width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
-  .ct-toolbar{ display: flex; gap: 8px; margin: 10px 0 8px; }
-  .cost-table .ct-toggle{ all: unset; cursor: pointer; font-weight: 700; }
-  .cost-table .ct-toggle:focus-visible{ outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 3px; }
-  .cost-table tr.ct-grouphead .ct-toggle{ color: var(--mip-colour); }
-  .cost-table tr.ct-grouphead td{ cursor: default; }
   .cost-table .ct-groupinfo{ margin-left: 10px; font-weight: 400; color: var(--text-secondary); }
-  table.data-table.cost-table input.num{ width: 64px; min-width: 52px; }
-  table.data-table.cost-table select{ width: auto; min-width: 190px; }
   #expTimingTable .cfg-machine-start{ border-left: 1px solid color-mix(in srgb, var(--text-primary) 30%, transparent); padding-left: 12px; }
   #expTimingTable .cfg-num{ text-align: center; }
   #expTimingTable td{ font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-variant-numeric: tabular-nums; }
@@ -370,9 +366,6 @@
   .timing-dialog .mean-label{ fill: var(--text-secondary); font-size: 11px; }
   .timing-dialog .hit{ fill: transparent; }
   .exp-timing-tip{ position: absolute; pointer-events: none; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 12px; color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,.12); white-space: nowrap; z-index: 5; }
-  .cost-table tr.ct-off input:disabled, .cost-table tr.ct-off select:disabled{ opacity: .55; }
-  .cost-table tr.ct-offhead th{ background: var(--surface-2, var(--accent-wash)); text-align: left; font-weight: 600; }
-  .cost-table tr.ct-offhead th span{ font-weight: 400; color: var(--text-muted); margin-left: 10px; font-size: 12px; }
   .cost-table .ct-offtoggle{ all: unset; cursor: pointer; color: var(--text-primary); font-weight: 600; }
   .cost-table .ct-offtoggle:focus-visible{ outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 3px; }
   input.num.needs-timing{ border-color: var(--accent); }
@@ -401,8 +394,8 @@
   .sim-index a:hover{ background: color-mix(in srgb, var(--series-1) 30%, transparent); }
   .sim-index{ scroll-margin-top: 12px; }
   .sim-index-hint{ margin: 0 0 2px; font-size: 12px; color: var(--text-secondary); }
-  #simTables .sim-index-up{ margin-left: 10px; font-size: 11px; font-weight: 500; color: var(--text-muted); text-decoration: none; }
-  #simTables .sim-index-up:hover{ color: var(--accent); text-decoration: underline; }
+  #simTables .sim-index-up, #costTables .sim-index-up{ margin-left: 10px; font-size: 11px; font-weight: 500; color: var(--text-muted); text-decoration: none; }
+  #simTables .sim-index-up:hover, #costTables .sim-index-up:hover{ color: var(--accent); text-decoration: underline; }
   html{ scroll-behavior: smooth; }
   /* Each table is framed: a line along the top of its heading bar and below its last row. */
   #simTables thead tr.sim-group > th{ border-top: 2px solid var(--text-secondary); }
@@ -841,16 +834,10 @@
   <section class="card" id="costTableCard">
     <div class="editor-head">
       <h2>Cost table</h2>
-      <p class="editor-caption">Each run's core-hours and SYPD are on the machine it runs on: Betzy for a run whose timing files say so, Olivia otherwise. Click a MIP to open or close its runs. Edit Members, Years each and Configuration here, or untick a run to take it out of the plan, to see what it would cost. A run with timing files of its own is costed with them; any other run with its configuration's value, the mean over that configuration's runs that have timing files, or an earlier timing if none has. Changes are not saved; the plan itself is set when the page is built. Unticked runs are listed at the bottom. It shows the full planned cost; progress is tracked on the Tracker page. Core-hours are members × years × cost per simulated year. Days per member is how long one member takes on its own.</p>
-      <p class="editor-caption">The four TB columns are the output each run will leave on NIRD: members × years × the GB per simulated year its cases have on NIRD, measured by the progress script. History is the model's history files, restarts the restart sets as kept, time series cmip7-prep's time series, which are to be deleted, and CMOR the CMORized files of both tools. A run with no output of its own takes its configuration's, in grey; hover a value for the GB per simulated year and its parts.</p>
+      <p class="editor-caption">The full planned cost of each run, a table for each MIP at each resolution; progress is tracked on the Tracker page. The runs, their members and their years are the plan the page is built with, and the runs not in it for now are listed at the bottom. Core-hours are members × years × cost per simulated year, on the machine the run runs on: Betzy for a run whose timing files say so, Olivia otherwise. A run with timing files of its own is costed with them; any other run with its configuration's value, the mean over that configuration's runs that have timing files, or an earlier timing if none has. Days per member is how long one member takes on its own.</p>
+      <p class="editor-caption">The four TB columns are the output each run will leave on NIRD once all its members and years are done, not what is there now: members × years × the GB per simulated year its cases have on NIRD so far, measured by the progress script. History is the model's history files, restarts the restart sets as kept, time series cmip7-prep's time series, which are to be deleted, and CMOR the CMORized files of both tools. A run with no output of its own takes its configuration's, in grey; hover a value for the GB per simulated year and its parts.</p>
     </div>
-    <div class="ct-toolbar">
-      <button type="button" class="btn btn-ghost btn-sm" data-action="expand-all">Expand all</button>
-      <button type="button" class="btn btn-ghost btn-sm" data-action="collapse-all">Collapse all</button>
-    </div>
-    <div class="table-scroll">
-      <table class="data-table cost-table" id="costTable"></table>
-    </div>
+    <div id="costTables"></div>
   </section>
 
   <!-- The run schedule is hidden for now; the page is a cost plan. Remove hidden to bring it back. -->
@@ -1511,21 +1498,21 @@
   }
 
   // ---------------- cost table ----------------
-  const costTableEl = el("costTable");
-  // Runs switched off (unticked, or ensemble 0) are listed in a collapsed group at the
-  // bottom of the table, where they can be ticked back on.
+  // A table for each MIP at each resolution, as in the tracker, each with its own column
+  // headings and the same column widths, so the columns line up from one to the next.
+  const costTablesEl = el("costTables");
+  // Runs not in the plan for now (priority or ensemble 0) are in a table of their own at the
+  // bottom, closed until opened.
   let showOffRuns = false;
-  // Open groups of the cost table: MIP groups ("res|mip") start closed, resolutions open.
-  const openMips = new Set();
-  const closedRes = new Set();
+  // The columns' widths in %, from Simulation to CMOR TB.
+  const COST_COL_WIDTHS = [16, 6, 7, 8, 9, 6, 9, 8, 8, 8, 8, 7];
   function renderCostTable(){
     const fmtN = n => Math.round(n).toLocaleString("en-US");
     const fmtM = n => (n / 1e6).toFixed(2) + "M";
     const dash = '<span class="ct-muted">–</span>';
     const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
-    const rowById = new Map(sims.map(r => [r.id, r]));
     const strip = (name, res) => res && name.endsWith(" " + res) ? name.slice(0, -res.length - 1) : name;
-    const NCOLS = 12 + STORAGE_KINDS.length;
+    const NCOLS = COST_COL_WIDTHS.length;
 
     const items = sims.map(r => {
       const cfg = configs.find(c => c.id === r.configId) || configs[0];
@@ -1540,12 +1527,10 @@
         r, cfg, res, off, members, years, cpy, sypd, memberYears, ...plannedStorage(r),
         name: strip(r.name, res),
         mip: r.mip || "DECK",
-        parent: depsOf(r).map(d => strip((rowById.get(d) || {}).name || "", res)).filter(Boolean).join(", ") || "–",
         core: cpy !== null && !off ? memberYears * cpy : null,
         days: sypd ? years / sypd : null,
       };
     });
-    function depsOf(r){ return Array.isArray(r.dependsOn) ? r.dependsOn.filter(Boolean) : (r.dependsOn ? [r.dependsOn] : []); }
     const sum = (list, k) => list.reduce((s, it) => s + (it[k] || 0), 0);
     // A group's TB cells: the sum over its runs with a value.
     const storageSums = list => STORAGE_KINDS.map(k => {
@@ -1553,139 +1538,87 @@
       return got.length ? `<td class="n" title="${got.length} of ${list.length} runs have a value">${fmtTB(got.reduce((s, it) => s + it.tb[k.key], 0))}</td>` : "<td></td>";
     }).join("");
 
-    // The configuration menu lists every configuration, grouped by resolution.
-    const cfgRes = Array.from(new Set(configs.map(configResolution)))
-      .sort((a, b) => (a === "") - (b === "") || a.localeCompare(b));
-    function configSelect(it, disabled){
-      const opts = cfgRes.map(res => `<optgroup label="${esc(res || "Other")}">`
-        + configs.filter(c => configResolution(c) === res)
-            .map(c => `<option value="${esc(c.id)}"${it.cfg && c.id === it.cfg.id ? " selected" : ""}>${esc(c.name)}</option>`).join("")
-        + "</optgroup>").join("");
-      return `<select data-sim="${esc(it.r.id)}" data-field="config" data-key="${esc(it.r.id)}:config"${disabled ? " disabled" : ""}>${opts}</select>`;
-    }
-    function rowHtml(it, style){
-      const id = esc(it.r.id);
+    function rowHtml(it){
       const ens = normalizeEnsemble(it.r.ensemble);
-      const dis = it.off ? " disabled" : "";
-      return `<tr class="ct-mip${it.off ? " ct-off" : ""}" style="${style}">`
-        + `<td class="ct-include"><input type="checkbox" data-sim="${id}" data-field="include" data-key="${id}:include"${it.off ? "" : " checked"} title="Include this run in the plan"></td>`
-        + `<td class="ct-name">${esc(it.name)}</td><td class="ct-mipname">${esc(it.mip)}</td><td>${esc(it.parent)}</td>`
-        + `<td class="n"><input type="number" class="num" min="0" step="1" data-sim="${id}" data-field="members" data-key="${id}:members" value="${ens === null ? "" : ens}" placeholder="not set"${dis}></td>`
-        + `<td class="n"><input type="number" class="num" min="0" step="1" data-sim="${id}" data-field="years" data-key="${id}:years" value="${it.years}"${dis}></td>`
+      return `<tr${it.off ? ' class="ct-off"' : ""}>`
+        + `<td class="ct-name" title="${esc(it.name)}">${esc(it.name)}${machineOf(it.r).key !== MACHINES[0].key ? ` <span class="ct-muted" title="Costed on ${machineOf(it.r).label}, where its timing files say it runs">on ${machineOf(it.r).label}</span>` : ""}</td>`
+        + `<td class="n">${ens === null ? '<span class="ct-muted" title="Not set yet; counted as one">–</span>' : ens}</td>`
+        + `<td class="n">${fmtN(it.years)}</td>`
         + `<td class="n">${it.off ? dash : fmtN(it.memberYears)}</td>`
-        + `<td>${configSelect(it, it.off)}${machineOf(it.r).key !== MACHINES[0].key ? ` <span class="ct-muted" title="Costed on ${machineOf(it.r).label}, where its timing files say it runs">on ${machineOf(it.r).label}</span>` : ""}</td>`
         + `<td class="n">${it.cpy !== null ? fmtN(it.cpy) : dash}</td>`
         + `<td class="n">${it.sypd ? it.sypd.toFixed(0) : dash}</td>`
         + `<td class="n">${it.core !== null ? fmtM(it.core) : (it.off ? dash : '<span class="ct-muted">needs timing</span>')}</td>`
         + `<td class="n">${it.days !== null ? it.days.toFixed(1) : dash}</td>`
         + STORAGE_KINDS.map(k => storageCell(it, k)).join("") + "</tr>";
     }
-
-    let html = '<thead><tr><th class="ct-include" title="Include in the plan">In</th><th>Simulation</th><th>MIP</th><th>Branches from</th>'
-      + '<th class="n">Members</th><th class="n">Years each</th><th class="n">Member-years</th><th>Configuration</th>'
+    const totalsRow = (label, list) => `<tr class="ct-total"><td colspan="3">${label}</td><td class="n">${fmtN(sum(list, "memberYears"))}</td>`
+      + `<td colspan="2"></td><td class="n">${fmtM(sum(list, "core"))}</td><td></td>` + storageSums(list) + "</tr>";
+    const columnHeads = '<tr class="ct-cols"><th>Simulation</th>'
+      + '<th class="n">Members</th><th class="n">Years each</th><th class="n">Member-years</th>'
       + '<th class="n">Core-hr / sim-yr</th><th class="n">SYPD</th><th class="n">Core-hours</th><th class="n">Days per member</th>'
-      + STORAGE_KINDS.map((k, i) => `<th class="n${i === 0 ? " ct-storage-start" : ""}" title="${k.note}, in TB">${k.label} TB</th>`).join("") + '</tr></thead>';
+      + STORAGE_KINDS.map((k, i) => `<th class="n${i === 0 ? " ct-storage-start" : ""}" title="${k.note}, in TB">${k.label} TB</th>`).join("") + "</tr>";
+    const colgroup = "<colgroup>" + COST_COL_WIDTHS.map(w => `<col style="width:${w}%">`).join("") + "</colgroup>";
+    const up = '<a class="sim-index-up" href="#cost-index" title="Back to the index of the tables">↑ index</a>';
+    const table = (id, title, info, body, withHeads = true) => `<div class="table-scroll" id="${id}"><table class="data-table cost-table">${colgroup}`
+      + `<thead><tr class="ct-title"><th colspan="${NCOLS}">${title}<span class="ct-groupinfo">${info}</span>${up}</th></tr>${withHeads ? columnHeads : ""}</thead>`
+      + `<tbody>${body}</tbody></table></div>`;
+    const runs = n => `${n} run${n === 1 ? "" : "s"}`;
+
     // Resolutions none of whose runs have a timing yet are left out, with a note.
     const offItems = items.filter(it => it.off);
     const active = items.filter(it => !it.off);
     const untimedRes = Array.from(new Set(active.map(it => it.res)))
       .filter(res => active.every(it => it.res !== res || it.core === null));
     const shown = active.filter(it => !untimedRes.includes(it.res));
-    // Every MIP group is light blue.
-    const mipStyle = () => "--mip-colour: var(--series-1)";
     const resList = Array.from(new Set(shown.map(it => it.res))).sort();
+    // The MIPs at each resolution, DECK first and then by core-hours.
+    const groups = [];
     resList.forEach(res => {
-      const rr = shown.filter(it => it.res === res);
-      const untimed = rr.filter(it => it.core === null).length;
-      const resOpen = !closedRes.has(res);
-      html += `<tbody><tr class="ct-res"><th colspan="${NCOLS}"><button type="button" class="ct-toggle" data-action="toggle-res" data-res="${esc(res)}" aria-expanded="${resOpen}">`
-        + `${resOpen ? "▾" : "▸"} ${esc(res || "Other")}</button><span>${fmtM(sum(rr, "core"))} core-hours`
-        + `${untimed ? ` · ${untimed} need timing` : ""}</span></th></tr>`;
-      if (!resOpen){ html += "</tbody>"; return; }
       const mips = new Map();
-      rr.forEach(it => { if (!mips.has(it.mip)) mips.set(it.mip, []); mips.get(it.mip).push(it); });
-      const order = Array.from(mips.keys()).sort((a, b) => (a !== "DECK") - (b !== "DECK") || sum(mips.get(b), "core") - sum(mips.get(a), "core"));
-      order.forEach(mip => {
-        const list = mips.get(mip);
-        const key = res + "|" + mip;
-        const open = openMips.has(key);
-        const untimedHere = list.filter(it => it.core === null).length;
-        html += `<tr class="ct-sub ct-mip ct-grouphead" style="${mipStyle(mip)}"><td colspan="6">`
-          + `<button type="button" class="ct-toggle" data-action="toggle-mip" data-key="${esc(key)}" aria-expanded="${open}">${open ? "▾" : "▸"} ${esc(mip)}</button>`
-          + `<span class="ct-groupinfo">${list.length} run${list.length === 1 ? "" : "s"}${untimedHere ? ` · ${untimedHere} need timing` : ""}</span></td>`
-          + `<td class="n">${fmtN(sum(list, "memberYears"))}</td><td colspan="3"></td><td class="n">${fmtM(sum(list, "core"))}</td><td></td>`
-          + storageSums(list) + "</tr>";
-        if (open) list.forEach(it => { html += rowHtml(it, mipStyle(mip)); });
-      });
-      html += "</tbody>";
+      shown.filter(it => it.res === res).forEach(it => { if (!mips.has(it.mip)) mips.set(it.mip, []); mips.get(it.mip).push(it); });
+      Array.from(mips.keys()).sort((a, b) => (a !== "DECK") - (b !== "DECK") || sum(mips.get(b), "core") - sum(mips.get(a), "core"))
+        .forEach(mip => groups.push({ res, mip, list: mips.get(mip), id: "cost-" + `${mip} ${res}`.toLowerCase().replace(/[^a-z0-9]+/g, "-") }));
     });
-    html += `<tbody><tr class="ct-total"><td colspan="6">All</td><td class="n">${fmtN(sum(shown, "memberYears"))}</td><td colspan="3"></td>`
-      + `<td class="n">${fmtM(sum(shown, "core"))}</td><td></td>` + storageSums(shown) + "</tr>";
+
+    // An index of the tables, a line for each resolution, each entry a link to its table.
+    let html = '<nav class="sim-index" id="cost-index" aria-label="Cost tables"><p class="sim-index-hint">Click any of the following to go to that table.</p>'
+      + resList.map(res => `<div class="sim-index-line"><span class="sim-index-res">${esc(res || "Other")}</span>`
+        + groups.filter(g => g.res === res).map(g => `<a href="#${g.id}" title="${esc(g.mip)} ${esc(res)} · ${runs(g.list.length)}">${esc(g.mip)}</a>`).join("") + "</div>").join("")
+      + '<div class="sim-index-line"><span class="sim-index-res">All</span><a href="#cost-all">Totals</a>'
+      + (offItems.length ? '<a href="#cost-off">Not in the plan</a>' : "") + "</div></nav>";
+    groups.forEach(g => {
+      const untimed = g.list.filter(it => it.core === null).length;
+      html += table(g.id, `${esc(g.mip)} ${esc(g.res)}`, `${runs(g.list.length)}${untimed ? ` · ${untimed} need timing` : ""}`,
+        g.list.map(rowHtml).join("") + totalsRow("Total", g.list));
+    });
+    html += table("cost-all", "Totals", "the runs in the plan, by resolution",
+      resList.map(res => totalsRow(esc(res), shown.filter(it => it.res === res))).join("") + totalsRow("All", shown));
     untimedRes.forEach(res => {
-      const n = active.filter(it => it.res === res).length;
-      html += `<tr class="ct-note"><td colspan="${NCOLS}">${esc(res || "Other")} not shown: none of its ${n} runs has a timing yet.</td></tr>`;
+      html += `<p class="ct-note">${esc(res || "Other")} not shown: none of its ${runs(active.filter(it => it.res === res).length)} has a timing yet.</p>`;
     });
-    html += "</tbody>";
     if (offItems.length){
       const mips = Array.from(new Set(offItems.map(it => it.mip))).join(", ");
-      html += `<tbody><tr class="ct-offhead"><th colspan="${NCOLS}"><button type="button" class="ct-offtoggle" data-action="toggle-off" aria-expanded="${showOffRuns}">`
-        + `${showOffRuns ? "▾" : "▸"} Not in the plan for now: ${offItems.length} run${offItems.length === 1 ? "" : "s"} (${esc(mips)})</button>`
-        + `<span>${showOffRuns ? "tick a run to put it back in the plan" : "click to show"}</span></th></tr>`;
-      if (showOffRuns) offItems.forEach(it => { html += rowHtml(it, mipStyle(it.mip)); });
-      html += "</tbody>";
+      html += table("cost-off", `<button type="button" class="ct-offtoggle" data-action="toggle-off" aria-expanded="${showOffRuns}">${showOffRuns ? "▾" : "▸"} Not in the plan for now</button>`,
+        `${runs(offItems.length)} (${esc(mips)})${showOffRuns ? "" : " · click to show"}`,
+        showOffRuns ? offItems.map(rowHtml).join("") : "", showOffRuns);
     }
-    costTableEl.innerHTML = html;
+    costTablesEl.innerHTML = html;
   }
 
-  // Edits in the cost table. A change is applied after focus has moved on, then the page
-  // is redrawn and focus is put back on the same field, so Tab moves through the table.
-  costTableEl.addEventListener("change", e => {
-    const t = e.target;
-    const row = t.dataset && sims.find(r => r.id === t.dataset.sim);
-    if (!row) return;
-    switch (t.dataset.field){
-      case "include":
-        if (t.checked){
-          if (normalizePriority(row.priority) === 0) row.priority = (row.mip || "DECK") === "DECK" ? 1 : 2;
-          if (normalizeEnsemble(row.ensemble) === 0) row.ensemble = 1;
-        } else {
-          row.priority = 0;
-        }
-        break;
-      case "members": row.ensemble = normalizeEnsemble(t.value); break;
-      case "years": row.years = Math.max(0, Math.round(Number(t.value) || 0)); break;
-      case "config": row.configId = t.value; break;
-      default: return;
+  costTablesEl.addEventListener("click", e => {
+    // The index links scroll within the page, wherever it is served from.
+    const a = e.target.closest("a.sim-index-up, .sim-index a");
+    const target = a && document.getElementById(a.getAttribute("href").slice(1));
+    if (target){
+      e.preventDefault();
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
     }
-    setTimeout(() => {
-      const a = document.activeElement;
-      const key = a && a.dataset ? a.dataset.key : null;
-      render();
-      if (key){
-        const n = costTableEl.querySelector(`[data-key="${CSS.escape(key)}"]`);
-        if (n) n.focus();
-      }
-    }, 0);
-  });
-  el("costTableCard").addEventListener("click", e => {
-    const b = e.target.closest("[data-action]");
+    const b = e.target.closest('[data-action="toggle-off"]');
     if (!b) return;
-    const keyOf = b2 => b2.dataset.key;
-    switch (b.dataset.action){
-      case "toggle-off": showOffRuns = !showOffRuns; break;
-      case "toggle-res": closedRes.has(b.dataset.res) ? closedRes.delete(b.dataset.res) : closedRes.add(b.dataset.res); break;
-      case "toggle-mip": openMips.has(keyOf(b)) ? openMips.delete(keyOf(b)) : openMips.add(keyOf(b)); break;
-      case "expand-all":
-        closedRes.clear();
-        sims.forEach(r => openMips.add(resolutionOf(r) + "|" + (r.mip || "DECK")));
-        break;
-      case "collapse-all": openMips.clear(); break;
-      default: return;
-    }
-    const focusKey = b.dataset.action + ":" + (b.dataset.key || b.dataset.res || "");
+    showOffRuns = !showOffRuns;
     renderCostTable();
-    const again = Array.from(el("costTableCard").querySelectorAll("[data-action]"))
-      .find(x => x.dataset.action + ":" + (x.dataset.key || x.dataset.res || "") === focusKey);
+    const again = costTablesEl.querySelector('[data-action="toggle-off"]');
     if (again) again.focus();
   });
 
@@ -2266,11 +2199,6 @@
   function renderTables(){
     renderExpTimings();
     renderSimTable();
-  }
-
-  function configResolution(cfg){
-    const m = /\bne\d+\b/.exec(cfg.name || "");
-    return m ? m[0] : "";
   }
 
   // ---------------- timings by experiment ----------------
