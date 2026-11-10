@@ -160,6 +160,7 @@ Run it on NIRD, from this repository's clone:
 python3 -I workflow/nird_progress.py \
     /nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json \
     --dir "/nird/datalake/NS9560K/noresm3/cases/{case}/atm/hist" \
+    --case-dir "/nird/datalake/NS9560K/noresm3/cases/{case}" \
     --cmor-dir "/nird/datalake/NS9560K/noresm3/cases/{case}.cmor" \
     --cmor4cmip7-dir "/nird/datapeak/NS9034K/.CMIP7/NorESM3-{resolution}/{experiment}/{variant}" \
     --timing-dir "/nird/datalake/NS9560K/noresm3/cases/{case}/timing" \
@@ -167,6 +168,15 @@ python3 -I workflow/nird_progress.py \
 ```
 
 - `--dir` is each case's directory, with `{case}` standing for the case name.
+- `--case-dir` is each case's archive directory, with `<component>/hist` and
+  `rest/`. The script measures the case's output on NIRD in GB per simulated
+  year, in four kinds: history, each component's `hist/`; restarts, `rest/`, over
+  the years the history covers; time series, the netCDF files in cmip7-prep's
+  directory outside `cmor/`; and CMOR, the CMORized files of the case's experiment
+  and variant under cmip7-prep's `cmor/` and the cmor4cmip7 root. The years come
+  from the model dates in the file names, and the CMOR files count each version's
+  years. The Cost plan multiplies each run's rate, or its configuration's, by its
+  members and years.
 - `--cmor-dir` is each case's cmip7-prep output directory, for a case whose issue
   has no cmip7prep output root. The script reads the
   `completed_steps_<first>-<last>.json` files cmip7-prep writes there. A set of

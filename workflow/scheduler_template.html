@@ -191,8 +191,10 @@
     grid-template-columns: 1.3fr 1fr 1fr 1fr;
     gap: 12px;
   }
-  @media (max-width: 860px){ .stats-grid{ grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 480px){ .stats-grid{ grid-template-columns: 1fr; } }
+  /* The cost plan's tiles: the compute cost and the four kinds of output, in one row. */
+  #statsGrid{ grid-template-columns: 1.3fr repeat(4, 1fr); }
+  @media (max-width: 860px){ .stats-grid, #statsGrid{ grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px){ .stats-grid, #statsGrid{ grid-template-columns: 1fr; } }
 
   .stat-tile{
     background: var(--surface);
@@ -317,6 +319,8 @@
   .cost-table tr.ct-note td{ color: var(--text-muted); font-size: 12px; }
   .cost-table .ct-name{ font-weight: 600; }
   .cost-table .ct-muted{ color: var(--text-muted); }
+  /* The storage columns start after a line, apart from the compute columns. */
+  .cost-table th.ct-storage-start, .cost-table td:nth-last-child(4){ border-left: 1px solid var(--border); }
   /* Editable cells in the cost table. */
   .cost-table td.ct-include, .cost-table th.ct-include{ width: 1%; text-align: center; }
   .cost-table td.ct-include input{ width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
@@ -838,6 +842,7 @@
     <div class="editor-head">
       <h2>Cost table</h2>
       <p class="editor-caption">Each run's core-hours and SYPD are on the machine it runs on: Betzy for a run whose timing files say so, Olivia otherwise. Click a MIP to open or close its runs. Edit Members, Years each and Configuration here, or untick a run to take it out of the plan, to see what it would cost. A run with timing files of its own is costed with them; any other run with its configuration's value, the mean over that configuration's runs that have timing files, or an earlier timing if none has. Changes are not saved; the plan itself is set when the page is built. Unticked runs are listed at the bottom. It shows the full planned cost; progress is tracked on the Tracker page. Core-hours are members × years × cost per simulated year. Days per member is how long one member takes on its own.</p>
+      <p class="editor-caption">The four TB columns are the output each run will leave on NIRD: members × years × the GB per simulated year its cases have on NIRD, measured by the progress script. History is the model's history files, restarts the restart sets as kept, time series cmip7-prep's time series, which are to be deleted, and CMOR the CMORized files of both tools. A run with no output of its own takes its configuration's, in grey; hover a value for the GB per simulated year and its parts.</p>
     </div>
     <div class="ct-toolbar">
       <button type="button" class="btn btn-ghost btn-sm" data-action="expand-all">Expand all</button>
@@ -1320,6 +1325,65 @@
   function hasTiming(cfg, row){
     return Number(sypdOn(cfg, row)) > 0;
   }
+  // Output on NIRD in GB per simulated year, from the cases' storage in progress.json:
+  // history by component, restarts, cmip7-prep's time series, and the CMOR files by tool.
+  // A run with output of its own uses it; any other run its configuration's, over all that
+  // configuration's runs' cases.
+  const STORAGE_KINDS = [
+    { key: "hist", label: "History", parts: true, note: "model history files, by component" },
+    { key: "rest", label: "Restarts", note: "restart sets, as kept" },
+    { key: "timeseries", label: "Time series", note: "cmip7-prep's time series, to be deleted" },
+    { key: "cmor", label: "CMOR", parts: true, note: "CMORized files, by tool" },
+  ];
+  function storageRates(cases){
+    const rate = list => {
+      const got = list.filter(x => x && x.years > 0), years = got.reduce((s, x) => s + x.years, 0);
+      return years ? got.reduce((s, x) => s + x.gb, 0) / years : null;
+    };
+    const out = {};
+    STORAGE_KINDS.forEach(k => {
+      const got = cases.map(c => c.storage && c.storage[k.key]).filter(Boolean);
+      if (!got.length) return;
+      if (k.parts){
+        const parts = {};
+        new Set(got.flatMap(Object.keys)).forEach(p => { const r = rate(got.map(g => g[p])); if (r !== null) parts[p] = r; });
+        const rates = Object.values(parts);
+        if (rates.length) out[k.key] = { rate: rates.reduce((s, r) => s + r, 0), parts };
+      } else {
+        const r = rate(got);
+        if (r !== null) out[k.key] = { rate: r };
+      }
+    });
+    return out;
+  }
+  function storageOf(row){
+    const own = storageRates(row.cases || []);
+    const cfg = storageRates(sims.filter(r => r.configId === row.configId).flatMap(r => r.cases || []));
+    const out = {};
+    STORAGE_KINDS.forEach(k => {
+      if (own[k.key]) out[k.key] = { ...own[k.key], own: true };
+      else if (cfg[k.key]) out[k.key] = { ...cfg[k.key], own: false };
+    });
+    return out;
+  }
+  // A run's planned output in TB of each kind: members × years × GB per simulated year.
+  function plannedStorage(row){
+    const memberYears = isRowOff(row) ? 0 : ensembleCount(row) * Math.max(0, Number(row.years) || 0);
+    const rates = storageOf(row), tb = {};
+    STORAGE_KINDS.forEach(k => { tb[k.key] = rates[k.key] ? memberYears * rates[k.key].rate / 1000 : null; });
+    return { rates, tb };
+  }
+  const fmtTB = v => v >= 10 ? v.toFixed(0) : v >= 1 ? v.toFixed(1) : v.toFixed(2);
+  // A run's TB cell: its value, and on hover the rate it comes from and its parts.
+  function storageCell(it, k){
+    const v = it.tb[k.key];
+    if (it.off) return '<td class="n"><span class="ct-muted">–</span></td>';
+    if (v === null) return `<td class="n" title="No ${k.label.toLowerCase()} output on NIRD yet for this run or its configuration"><span class="ct-muted">–</span></td>`;
+    const r = it.rates[k.key];
+    const title = `${r.rate.toFixed(2)} GB per simulated year, measured from ${r.own ? "this run's cases" : "its configuration's runs"}`
+      + (r.parts ? "\n" + Object.entries(r.parts).map(([p, g]) => `${p}: ${g.toFixed(2)} GB`).join("\n") : "");
+    return `<td class="n${r.own ? "" : " ct-muted"}" title="${title.replace(/"/g, "&quot;")}">${fmtTB(v)}</td>`;
+  }
   // A blank ensemble size is "not decided yet": it schedules one member and is flagged.
   // An explicit 0 excludes the run.
   function normalizeEnsemble(v){
@@ -1461,7 +1525,7 @@
     const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
     const rowById = new Map(sims.map(r => [r.id, r]));
     const strip = (name, res) => res && name.endsWith(" " + res) ? name.slice(0, -res.length - 1) : name;
-    const NCOLS = 12;
+    const NCOLS = 12 + STORAGE_KINDS.length;
 
     const items = sims.map(r => {
       const cfg = configs.find(c => c.id === r.configId) || configs[0];
@@ -1473,7 +1537,7 @@
       const sypd = hasTiming(cfg, r) ? Number(sypdOn(cfg, r)) : null;
       const memberYears = off ? 0 : members * years;
       return {
-        r, cfg, res, off, members, years, cpy, sypd, memberYears,
+        r, cfg, res, off, members, years, cpy, sypd, memberYears, ...plannedStorage(r),
         name: strip(r.name, res),
         mip: r.mip || "DECK",
         parent: depsOf(r).map(d => strip((rowById.get(d) || {}).name || "", res)).filter(Boolean).join(", ") || "–",
@@ -1483,6 +1547,11 @@
     });
     function depsOf(r){ return Array.isArray(r.dependsOn) ? r.dependsOn.filter(Boolean) : (r.dependsOn ? [r.dependsOn] : []); }
     const sum = (list, k) => list.reduce((s, it) => s + (it[k] || 0), 0);
+    // A group's TB cells: the sum over its runs with a value.
+    const storageSums = list => STORAGE_KINDS.map(k => {
+      const got = list.filter(it => it.tb[k.key] !== null);
+      return got.length ? `<td class="n" title="${got.length} of ${list.length} runs have a value">${fmtTB(got.reduce((s, it) => s + it.tb[k.key], 0))}</td>` : "<td></td>";
+    }).join("");
 
     // The configuration menu lists every configuration, grouped by resolution.
     const cfgRes = Array.from(new Set(configs.map(configResolution)))
@@ -1508,12 +1577,14 @@
         + `<td class="n">${it.cpy !== null ? fmtN(it.cpy) : dash}</td>`
         + `<td class="n">${it.sypd ? it.sypd.toFixed(0) : dash}</td>`
         + `<td class="n">${it.core !== null ? fmtM(it.core) : (it.off ? dash : '<span class="ct-muted">needs timing</span>')}</td>`
-        + `<td class="n">${it.days !== null ? it.days.toFixed(1) : dash}</td></tr>`;
+        + `<td class="n">${it.days !== null ? it.days.toFixed(1) : dash}</td>`
+        + STORAGE_KINDS.map(k => storageCell(it, k)).join("") + "</tr>";
     }
 
     let html = '<thead><tr><th class="ct-include" title="Include in the plan">In</th><th>Simulation</th><th>MIP</th><th>Branches from</th>'
       + '<th class="n">Members</th><th class="n">Years each</th><th class="n">Member-years</th><th>Configuration</th>'
-      + '<th class="n">Core-hr / sim-yr</th><th class="n">SYPD</th><th class="n">Core-hours</th><th class="n">Days per member</th></tr></thead>';
+      + '<th class="n">Core-hr / sim-yr</th><th class="n">SYPD</th><th class="n">Core-hours</th><th class="n">Days per member</th>'
+      + STORAGE_KINDS.map((k, i) => `<th class="n${i === 0 ? " ct-storage-start" : ""}" title="${k.note}, in TB">${k.label} TB</th>`).join("") + '</tr></thead>';
     // Resolutions none of whose runs have a timing yet are left out, with a note.
     const offItems = items.filter(it => it.off);
     const active = items.filter(it => !it.off);
@@ -1542,13 +1613,14 @@
         html += `<tr class="ct-sub ct-mip ct-grouphead" style="${mipStyle(mip)}"><td colspan="6">`
           + `<button type="button" class="ct-toggle" data-action="toggle-mip" data-key="${esc(key)}" aria-expanded="${open}">${open ? "▾" : "▸"} ${esc(mip)}</button>`
           + `<span class="ct-groupinfo">${list.length} run${list.length === 1 ? "" : "s"}${untimedHere ? ` · ${untimedHere} need timing` : ""}</span></td>`
-          + `<td class="n">${fmtN(sum(list, "memberYears"))}</td><td colspan="3"></td><td class="n">${fmtM(sum(list, "core"))}</td><td></td></tr>`;
+          + `<td class="n">${fmtN(sum(list, "memberYears"))}</td><td colspan="3"></td><td class="n">${fmtM(sum(list, "core"))}</td><td></td>`
+          + storageSums(list) + "</tr>";
         if (open) list.forEach(it => { html += rowHtml(it, mipStyle(mip)); });
       });
       html += "</tbody>";
     });
     html += `<tbody><tr class="ct-total"><td colspan="6">All</td><td class="n">${fmtN(sum(shown, "memberYears"))}</td><td colspan="3"></td>`
-      + `<td class="n">${fmtM(sum(shown, "core"))}</td><td></td></tr>`;
+      + `<td class="n">${fmtM(sum(shown, "core"))}</td><td></td>` + storageSums(shown) + "</tr>";
     untimedRes.forEach(res => {
       const n = active.filter(it => it.res === res).length;
       html += `<tr class="ct-note"><td colspan="${NCOLS}">${esc(res || "Other")} not shown: none of its ${n} runs has a timing yet.</td></tr>`;
@@ -1716,6 +1788,16 @@
         value: fmtCompact(result.totalCost),
         sub: `across <span class="mono tabular">${result.jobCount}</span> simulation members${progressNote}`,
       },
+      // The plan's output on NIRD of each kind, over the runs in the plan.
+      ...STORAGE_KINDS.map(k => {
+        const planned = sims.filter(r => !isRowOff(r)), tb = planned.map(r => plannedStorage(r).tb[k.key]);
+        const known = tb.filter(v => v !== null), missing = planned.length - known.length;
+        return {
+          label: `${k.label} (TB)`,
+          value: known.length ? fmtTB(known.reduce((s, v) => s + v, 0)) : "–",
+          sub: `${k.note}${missing ? `; <span class="mono tabular">${missing}</span> of ${planned.length} runs not measured yet` : ""}`,
+        };
+      }),
       {
         schedule: true,
         label: "Slot utilization",

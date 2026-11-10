@@ -28,6 +28,8 @@ COMPLETED = re.compile(r"completed_steps_(\d+)-(\d+)\.json$")
 # A CMOR file's variable and the years of its time range, before .nc:
 # so_Omon_NorESM3_piControl_r1i1p1f1_gn_000101-001012.nc
 CMOR_FILE = re.compile(r"^(.+)_(\d{4})\d*-(\d{4})\d*\.nc$")
+# A model date in a file name, its year first: 0001, 0001-01, 0001-01-01-00000, 000101.
+NAME_DATE = re.compile(r"(?<!\d)(\d{4})(?:\d{2}|\d{4})?(?:-\d{2}(?:-\d{2}(?:-\d{5})?)?)?(?!\d)")
 def entry(label, value):
     """An entry of an issue's description: "- entry: value" on one line, the label in bold or
     not, or the label as a heading, "### label", with the value on the next line that isn't
@@ -207,12 +209,85 @@ def file_version(dirpath):
 
 
 def cmor_files(directory):
-    """(name match, version) of each CMOR file with a time range under the directory, read
-    once per run."""
+    """(name match, version, bytes) of each CMOR file with a time range under the directory,
+    read once per run."""
     if directory not in _cmor_files:
-        _cmor_files[directory] = [(m, file_version(d)) for d, _, names in os.walk(directory)
+        _cmor_files[directory] = [(m, file_version(d), size(os.path.join(d, name)))
+                                  for d, _, names in os.walk(directory)
                                   for name in names if (m := CMOR_FILE.match(name))]
     return _cmor_files[directory]
+
+
+def size(path):
+    """The file's size in bytes, 0 if it can't be read."""
+    try:
+        return os.path.getsize(path)
+    except OSError:
+        return 0
+
+
+def file_years(name):
+    """The model years a file's name covers: from its first to its last date, written as
+    YYYY, YYYY-MM[-DD[-SSSSS]] or YYYYMM[DD]. The case name is taken out first, since its
+    date is not a model date."""
+    years = [int(m.group(1)) for m in NAME_DATE.finditer(name)]
+    return range(min(years), max(years) + 1) if years else range(0)
+
+
+def output_size(paths, case):
+    """{gb, years} for the netCDF files: their size, and how many model years their names
+    cover; None if there are no dated ones."""
+    years, total = set(), 0
+    for path in paths:
+        if path.endswith(".nc") and (ys := file_years(os.path.basename(path).replace(case, ""))):
+            years.update(ys)
+            total += size(path)
+    return {"gb": round(total / 1e9, 3), "years": len(years)} if years else None
+
+
+def files_below(directory, skip=None):
+    """The paths of the files below the directory, leaving out its subdirectory skip."""
+    paths = []
+    for d, subdirs, names in os.walk(directory):
+        if d == directory and skip in subdirs:
+            subdirs.remove(skip)
+        paths += [os.path.join(d, n) for n in names]
+    return paths
+
+
+def case_storage(case_dir, case, prep_dir, cmor4cmip7_dir, labels):
+    """How much output the case has on NIRD, as {gb, years} for each kind: hist, a dict by
+    component of the <component>/hist directories; rest, the restart sets in rest/, over the
+    years the history covers; timeseries, cmip7-prep's time series, the files in its
+    directory outside cmor/; and cmor, by tool, the CMOR files, each version's years
+    counted. A kind with nothing on NIRD is left out."""
+    storage = {}
+    hist = {}
+    if case_dir and os.path.isdir(case_dir):
+        for comp in sorted(os.listdir(case_dir)):
+            if os.path.isdir(d := os.path.join(case_dir, comp, "hist")) and (s := output_size(files_below(d), case)):
+                hist[comp] = s
+        if hist:
+            storage["hist"] = hist
+        rest = files_below(os.path.join(case_dir, "rest"))
+        years = max(s["years"] for s in hist.values()) if hist else 0
+        if rest and years:
+            storage["rest"] = {"gb": round(sum(map(size, rest)) / 1e9, 3), "years": years}
+    if prep_dir and (s := output_size(files_below(prep_dir, skip="cmor"), case)):
+        storage["timeseries"] = s
+    cmor = {}
+    prep_cmor = os.path.join(prep_dir, "cmor") if prep_dir else None
+    for tool, d in (("cmip7prep", prep_cmor), ("cmor4cmip7", cmor4cmip7_dir)):
+        if d and os.path.isdir(d):
+            by_version, total = {}, 0
+            for m, v, b in case_files(d, labels):
+                by_version.setdefault(v, set()).update(range(int(m.group(2)), int(m.group(3)) + 1))
+                total += b
+            if years := sum(len(ys) for ys in by_version.values()):
+                cmor[tool] = {"gb": round(total / 1e9, 3), "years": years}
+    if cmor:
+        storage["cmor"] = cmor
+    return storage
 
 
 def year_ranges(years):
@@ -234,7 +309,7 @@ def case_files(directory, labels):
     if not variant:
         return []
     keys = [f"_{l}_{variant}_" for l in labels if l != variant]
-    return [(m, v) for m, v in cmor_files(directory) if any(k in m.group(0) for k in keys)]
+    return [(m, v, b) for m, v, b in cmor_files(directory) if any(k in m.group(0) for k in keys)]
 
 
 def cmor_file_years(directory, labels):
@@ -242,7 +317,7 @@ def cmor_file_years(directory, labels):
     directory, from the time ranges in the CMOR file names. Files without a time range
     (fixed fields) don't count."""
     by_var = {}
-    for m, _ in case_files(directory, labels):
+    for m, _, _ in case_files(directory, labels):
         by_var.setdefault(m.group(1), set()).update(range(int(m.group(2)), int(m.group(3)) + 1))
     return year_ranges(set.intersection(*by_var.values())) if by_var else []
 
@@ -251,7 +326,7 @@ def cmor_versions(directory, labels):
     """{version: [[first, last], ...]}: the years of the case's CMOR files under the
     directory, by the version directory they are in."""
     by_version = {}
-    for m, v in case_files(directory, labels):
+    for m, v, _ in case_files(directory, labels):
         if v:
             by_version.setdefault(v, set()).update(range(int(m.group(2)), int(m.group(3)) + 1))
     return {v: year_ranges(ys) for v, ys in sorted(by_version.items())}
@@ -317,6 +392,8 @@ def main():
     p.add_argument("--dir", required=True, help='each case\'s directory, e.g. "/archive/{case}/atm/hist"')
     p.add_argument("--cmor-dir", help='each case\'s cmip7-prep output directory, e.g. "/cases/{case}.cmor", '
                                       'for a case whose issue names no cmip7prep output root')
+    p.add_argument("--case-dir", help='each case\'s archive directory, with <component>/hist and rest, '
+                                      'e.g. "/cases/{case}", to measure its output')
     p.add_argument("--cmor4cmip7-dir", help='each simulation\'s cmor4cmip7 variant directory, e.g. '
                                             '"/.CMIP7/NorESM3-{resolution}/{experiment}/{variant}", '
                                             'for a case whose issue names no cmor4cmip7 output root')
@@ -419,6 +496,14 @@ def main():
         if versions:
             case["cmorVersions"] = versions
             report += "".join(f"; {tool} in " + ", ".join(v) for tool, v in versions.items())
+        storage = case_storage(a.case_dir.format(case=title) if a.case_dir else None, title,
+                               prep_dir, output.get("cmor4cmip7"), labels)
+        if storage:
+            case["storage"] = storage
+            sizes = {"history": list(storage.get("hist", {}).values()), "restarts": [storage.get("rest")],
+                     "time series": [storage.get("timeseries")], "CMOR": list(storage.get("cmor", {}).values())}
+            report += "".join(f"; {kind} {sum(s['gb'] for s in found if s):.1f} GB"
+                              for kind, found in sizes.items() if any(found))
         timing_dir = next((d for d in (t.format(case=title) for t in a.timing_dir) if os.path.isdir(d)), None)
         if timing_dir:
             timing, machine = case_timing(timing_dir)
