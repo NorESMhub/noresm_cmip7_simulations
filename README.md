@@ -24,6 +24,8 @@ The following steps should be followed to add a run script to this repository:
 
 ``` bash
 > cd scripts/<MIP>/<Experiment_id>
+## Make sure you are up to date with the latest version
+> git pull
 > cp <your run script> scripts/<MIP>/<Experiment_id>/<Issue>.<compset>.<Resolution>.<Betaversion>.<Date>.sh
 > git add scripts/<MIP>/<Experiment_id>/<Issue>.<compset>.<Resolution>.<Betaversion>.<Date>.sh
 > git commit -m "<message>"   # with the message:
