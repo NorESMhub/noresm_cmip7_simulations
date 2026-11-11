@@ -7,7 +7,7 @@ published at https://ns9560k.web.sigma2.no/datalake/diagnostics/noresm/cmip7_pla
 ## The page
 
 `build_page.sh` builds the page. It runs `build_scheduler.py` with the plan set
-in `build_page.sh`: the resolutions, members, years and slots. `build_scheduler.py`
+in `build_page.sh`: the resolutions, members and years. `build_scheduler.py`
 takes the experiments from `noresm3_experiments_decoded.csv`, gives each a
 configuration from its `COSTS` table, and writes them into
 `scheduler_template.html`. The page reads the runs' progress and timing from
@@ -217,8 +217,7 @@ default has `{case}` standing for the case name.
   ran on, with the run's own timing there when it has any and its configuration's
   otherwise; a configuration's value is the same mean over all its runs' cases, and
   the value it was built with until it has one. Under Timings by experiment the page
-  lists the timing of each run with a case issue, a line for each machine (Olivia in
-  green, Betzy in orange), and a run's job count opens charts of its SYPD and cost
+  lists the timing of each run with a case issue, a line for each machine, named, and a run's job count opens charts of its SYPD and cost
   job by job. Some cases keep their timing files one level down, in a
   directory named after the case, so `--timing-dir` can be given once for each
   layout, and the first that exists is read (default `<case-dir>/timing` and

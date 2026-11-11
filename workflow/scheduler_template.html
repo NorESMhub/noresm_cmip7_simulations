@@ -333,8 +333,8 @@
   #expTimingTable td{ font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-variant-numeric: tabular-nums; }
   #expTimingTable td.col-name{ font-family: inherit; }
   #expTimingTable td.measured{ font-weight: 600; }
-  /* Olivia is green and Betzy orange, wherever a timing is shown by machine. */
-  :root{ --olivia: var(--series-6); --betzy: var(--series-2); }
+  /* Both machines are green wherever a timing is shown by machine; Betzy's marks are diamonds. */
+  :root{ --olivia: var(--series-6); --betzy: var(--series-6); }
   #expTimingTable td.machine-olivia{ color: var(--olivia); }
   #expTimingTable td.machine-betzy{ color: var(--betzy); }
   .machine-tag{ display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-secondary); }
@@ -841,7 +841,7 @@ python3 -I workflow/nird_progress.py</pre>
   <section class="card editor-card" id="expTimingCard">
     <div class="editor-head">
       <h2>Timings by experiment</h2>
-      <p class="editor-caption">The runs with a case issue, with the cost and throughput measured from their cases' timing files on each machine, <span class="machine-tag">Olivia</span> in green and <span class="machine-tag machine-betzy">Betzy</span> in orange: the mean over their jobs, each weighted by the years it simulated. Click a run's job count to plot its SYPD and cost job by job. A run with no timing files on a machine yet shows its configuration's value in grey, and is costed with it.</p>
+      <p class="editor-caption">The runs with a case issue, with the cost and throughput measured from their cases' timing files on each machine, each line naming its machine, <span class="machine-tag">Olivia</span> or <span class="machine-tag machine-betzy">Betzy</span>: the mean over their jobs, each weighted by the years it simulated. Click a run's job count to plot its SYPD and cost job by job. A run with no timing files on a machine yet shows its configuration's value in grey, and is costed with it.</p>
     </div>
     <div class="table-scroll">
       <table class="data-table" id="expTimingTable">
@@ -1251,17 +1251,15 @@ python3 -I workflow/nird_progress.py</pre>
     // discrete-event list scheduling on `slots` identical machines.
     // A dependency row is "satisfied" as soon as its FIRST ensemble member completes —
     // downstream runs do not wait for every member of a multi-member dependency to finish.
+    // In-progress runs are already occupying a slot right now — pin them to start at day 0
+    // for their remaining duration, rather than letting them compete through the ready queue
+    // (they can't be "scheduled later"; they're already happening). There are always at
+    // least as many slots as runs in progress.
+    const pinnedJobs = jobs.filter(j => j.pinned);
+    slots = Math.max(slots, pinnedJobs.length);
     const machineFree = new Array(slots).fill(0);
     const scheduled = new Set();
     const result = [];
-
-    // In-progress runs are already occupying a slot right now — pin them to start at day 0
-    // for their remaining duration, rather than letting them compete through the ready queue
-    // (they can't be "scheduled later"; they're already happening).
-    const pinnedJobs = jobs.filter(j => j.pinned);
-    if (pinnedJobs.length > slots){
-      return { error: `${pinnedJobs.length} run(s) are marked in progress, but only ${slots} parallel slot${slots === 1 ? "" : "s"} ${slots === 1 ? "is" : "are"} available. Increase parallel slots or mark fewer runs in progress.` };
-    }
     pinnedJobs.forEach((job, idx) => {
       const start = 0, end = job.duration;
       machineFree[idx] = end;

@@ -252,9 +252,6 @@ def main():
     if a.progress:
         with open(a.progress, encoding="utf-8") as f:
             progress = json.load(f)
-    pinned = sum(s.get("membersRunning", 0) for s in sims if s["status"] == "in-progress")
-    if pinned > a.slots:
-        sys.exit(f"{pinned} members are running but --slots is {a.slots}; raise --slots")
 
     with open(a.template, encoding="utf-8") as f:
         page = f.read()

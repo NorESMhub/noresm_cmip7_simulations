@@ -23,5 +23,4 @@ python3 -I "$here/build_scheduler.py" \
     --members piControl=1 --members esm-piControl=1 \
     --members esm-flat10=1 --members esm-flat10-zec=1 --members esm-flat10-cdr=1 \
     --years piControl=600 --years esm-piControl=600 \
-    --slots 9 \
     --out "$out" "$@"
