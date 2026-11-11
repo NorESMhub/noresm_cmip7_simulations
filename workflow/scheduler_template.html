@@ -481,8 +481,7 @@
   .row-del:hover{ color: var(--danger); background: var(--danger-wash); }
   /* The runs' state on the first row; CMORization and publication on the second. */
   /* Each resolution's tiles in one row. */
-  #trackerStats{ grid-template-columns: repeat(7, minmax(0, 1fr)); }
-  @media (max-width: 1100px){ #trackerStats{ grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  #trackerStats{ grid-template-columns: repeat(5, minmax(0, 1fr)); }
   #trackerStats .stat-heading{ grid-column: 1 / -1; margin: 10px 0 -2px; padding-left: 8px; font-size: 14px; font-weight: 700; color: var(--series-1); border-left: 4px solid var(--series-1); }
   #trackerStats .stat-heading:first-child{ margin-top: 0; }
   @media (max-width: 760px){ #trackerStats{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -671,7 +670,23 @@
   <section class="card editor-card" id="simPlanCard">
     <div class="editor-head">
       <h2>Simulation tracker</h2>
-      <p class="editor-caption">The progress script is <code class="wf-script">workflow/nird_progress.py</code> in the <a href="https://github.com/NorESMhub/noresm_cmip7_simulations" target="_blank" rel="noopener">noresm_cmip7_simulations</a> repository, and it is run on NIRD. It reads the case issues on GitHub and the case files on NIRD. The script fills in the columns of the tables from three places: the labels on the case's GitHub issue, the CMOR data version in its description, and the files on NIRD.</p>
+      <p class="editor-caption">The simulation tracker is updated by running <code class="wf-script">workflow/nird_progress.py</code> in the <a href="https://github.com/NorESMhub/noresm_cmip7_simulations" target="_blank" rel="noopener">noresm_cmip7_simulations</a> repository.<br>
+        It is run on NIRD from the clone in <code>/projects/NS9560K/www/diagnostics/noresm/noresm_cmip7_simulations</code>.<br>
+        The script uses information from the GitHub issues, the run scripts on GitHub that go with the issues, the case directories on NIRD and the CMORization directories:</p>
+      <ul class="editor-caption wf-parts">
+        <li>The <b>GitHub issues</b> determine each case's labels, assignee and CMOR data version.</li>
+        <li>The <b>run scripts</b> on the <code>CMIP7_Runscripts</code> branch determine how each case started and which case it continues or branches from.</li>
+        <li>The <b>case directories on NIRD</b> determine each case's latest model date, its cost and throughput, and the size of its history and restart output.</li>
+        <li>The <b>CMORization directories</b> of cmip7-prep and cmor4cmip7 determine the years each tool has CMORized and the size of the time series and CMOR output.</li>
+      </ul>
+      <details class="wf-more" id="progressCommand">
+        <summary>Run <code>nird_progress.py</code></summary>
+        <p class="editor-caption">To update the tables, run it from that directory:</p>
+        <pre class="wf-pre">cd /projects/NS9560K/www/diagnostics/noresm/noresm_cmip7_simulations
+git pull
+python3 -I workflow/nird_progress.py</pre>
+        <p class="editor-caption">The script finds each case's directory, <code>/nird/datalake/NS9560K/noresm3/cases/&lt;case&gt;</code>, from its issue title, and writes <code>progress.json</code> next to this page. Its options are needed only for output somewhere else; <code>python3 -I workflow/nird_progress.py --help</code> lists them.</p>
+      </details>
       <p class="editor-caption auto-note" id="autoNote" hidden></p>
     </div>
     <details class="wf-details" id="workflow" open>
@@ -702,9 +717,11 @@
                 <li><b><code class="wf-labelname">completed</code>:</b> add this label when the run has finished;</li>
                 <li><b><code class="wf-labelname">test</code>:</b> add this label to a case that is not a CMIP7 run, to leave it out;</li>
                 <li><b><code class="wf-labelname">esgf</code>:</b> add this label when the data is on ESGF;</li>
-                <li><b>description:</b> one entry, <code class="wf-entry">- cmor data version:</code>, with <code>TBD</code> until the version is decided, which is before CMORization starts, then the version: <code>v</code> and its date as YYYYMMDD, the <code>v</code> optional:</li>
+                <li><b>description:</b> three entries. <code class="wf-entry">- cmor data version:</code> has <code>TBD</code> until the version is decided, which is before CMORization starts, then the version: <code>v</code> and its date as YYYYMMDD, the <code>v</code> optional. The two output roots are <code>default</code> unless the output is somewhere else:</li>
               </ul>
-              <pre class="wf-pre wf-pre-entries">- cmor data version: v20261028</pre>
+              <pre class="wf-pre wf-pre-entries">- cmor data version: v20261028
+- cmip7prep output root: default
+- cmor4cmip7 output root: default</pre>
               <div class="wf-indent">
               <p>The CMOR data version, e.g. <code>v20261028</code>, <b>must agree between the two CMORization tools for a given span of years</b>: cmip7-prep, which CMORizes the atmosphere, land, sea ice and land ice (its <code>--data-version</code>), and cmor4cmip7, which CMORizes the ocean and ocean biogeochemistry. That way all the realms for those years are one edition of the dataset.</p>
               <p>If the version directories on NIRD don't match the issue, or each other, the tracker puts <span class="wf-warn">⚠</span> in the cmip7prep or cmor4cmip7 column. Hover the cell to see why.</p>
@@ -767,8 +784,10 @@
           <li id="wf-cmorissue"><div class="wf-title">Make the CMORization issue</div>
             <p>Once the simulation has finished, open an issue in <a href="https://github.com/NorESMhub/CMIP7_CMOR-Publish/issues" target="_blank" rel="noopener">NorESMhub/CMIP7_CMOR-Publish</a> from its template, which is like the CMIP6 one, and label it <code class="wf-labelname">cmorization</code>. The repository's other labels are <code class="wf-labelname">publication</code>, <code class="wf-labelname">archive</code>, <code class="wf-labelname">cmor_bug</code>, <code class="wf-labelname">publication_bug</code> and <code class="wf-labelname">retract</code>.</p>
             <p>Before either tool starts, set the CMOR data version in the description of the case's issue in noresm_cmip7_simulations. Both tools write the case's years into that version, cmip7-prep with <code>--data-version</code>:</p>
-            <pre class="wf-pre wf-pre-entries">- cmor data version: v20261028</pre>
-            <p>The progress script reads each tool's progress in its default place, as the two steps below explain, and the tracker shows where when you hover the cmip7prep or cmor4cmip7 column. Output somewhere else needs an entry in the issue, <code class="wf-entry">- cmip7prep output root:</code> or <code class="wf-entry">- cmor4cmip7 output root:</code>, giving the directory.</p>
+            <pre class="wf-pre wf-pre-entries">- cmor data version: v20261028
+- cmip7prep output root: default
+- cmor4cmip7 output root: default</pre>
+            <p>The progress script reads each tool's progress in its default place, as the two steps below explain, and the tracker shows where when you hover the cmip7prep or cmor4cmip7 column. Output somewhere else needs its directory in place of <code>default</code> in the issue's <code class="wf-entry">- cmip7prep output root:</code> or <code class="wf-entry">- cmor4cmip7 output root:</code>. The directory may have <code>&lt;case&gt;</code>, <code>&lt;resolution&gt;</code>, <code>&lt;experiment&gt;</code> and <code>&lt;variant&gt;</code> in it, which the script fills in from the issue, e.g. <code>/nird/datalake/NS9560K/someone/&lt;case&gt;.cmor</code>.</p>
             <div class="wf-decide"><b>To decide:</b> how urgency is shown.</div></li>
           <li id="wf-cmoratm"><div class="wf-title">CMORize the atmosphere, land, sea ice and land ice using cmip7-prep</div>
             <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K</code> with the cmor4cmip7 output. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>.</p>
@@ -1672,8 +1691,6 @@
         { label: "Waiting to start", value: count(issueOpened), sub: "GitHub issue open, no files on NIRD yet" },
         { label: "In progress", value: count(r => r.status === "in-progress"), sub: "running now", hero: true },
         { label: "Completed", value: count(r => r.status === "completed"), sub: "run finished" },
-        { label: "CMORized with cmip7prep", value: count(r => stepDone(r, "cmoratm")), sub: "atmosphere, land, sea ice and land ice" },
-        { label: "CMORized with cmor4cmip7", value: count(r => stepDone(r, "cmorocn")), sub: "ocean and ocean biogeochemistry" },
         { label: "On ESGF", value: count(r => stepDone(r, "esgf")), sub: "published" },
       ].forEach(t => {
         const tile = document.createElement("div");
@@ -2636,10 +2653,26 @@
             .map(([v, ys]) => `${members.length > 1 ? x.variant + ": " : ""}${v}, years ${yearSpans(ys)}`));
           if (found.length) td.title += "\nFiles in:\n" + found.join("\n");
           const warnings = (p && p.versionWarnings && p.versionWarnings[step.key]) || [];
+          // Each version the files are in, with the issues that give it.
+          const givenBy = v => members.flatMap(x => x.dataVersions).filter(d => d.version === v).map(d => `#${d.issue}`);
+          const foundChecked = members.flatMap(x => Object.entries(x.versions[tool] || {}).map(([v, ys]) => {
+            const by = givenBy(v);
+            return `${members.length > 1 ? x.variant + ": " : ""}${v}, years ${yearSpans(ys)}: `
+              + (by.length ? `✓ given by ${by.join(", ")}` : "⚠ given by no issue");
+          }));
           td.appendChild(m);
           if (warnings.length){
             const w = document.createElement("span");
             w.className = "step-warn"; w.textContent = "⚠";
+            w.title = "The CMOR data versions don't agree. Every case's CMORized files should be in the "
+              + "version directory its issue gives as its CMOR data version, so that all realms' files "
+              + "for a year are one edition of the dataset.\n\n"
+              + warnings.map(x => "• " + x).join("\n")
+              + (given.length ? "\n\nThe issues give:\n" + given.join("\n") : "\n\nNo issue gives a CMOR data version.")
+              + (foundChecked.length ? "\n\nThe files are in:\n" + foundChecked.join("\n") : "")
+              + "\n\nTo fix it, set \"- cmor data version: vYYYYMMDD\" in each issue's description to the "
+              + "version its files are in, or move the files into the issue's version or delete the "
+              + "superseded version. The ⚠ goes away on the next run of nird_progress.py.";
             td.appendChild(w);
             td.title += "\nVersion check:\n" + warnings.join("\n");
           }
@@ -3306,7 +3339,7 @@
       const row = sims.find(r => r.resolution === c.resolution && (c.labels || []).includes(r.experiment));
       c.variant = (c.labels || []).find(l => VARIANT.test(l));
       if (!row) unmatched.push(`#${c.issue}, no label names an experiment in the plan at ${c.resolution}`);
-      else if (!c.variant) unmatched.push(`#${c.issue}, no variant label such as r1i1p1f1`);
+      else if (!c.variant) unmatched.push(`#${c.issue}, the issue needs a variant label, e.g. r1i1p1f1`);
       else { c.runName = row.name; (row.cases = row.cases || []).push(c); }
     });
     const runs = {};

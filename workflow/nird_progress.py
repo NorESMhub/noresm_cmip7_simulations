@@ -18,6 +18,10 @@ import urllib.parse
 import urllib.request
 
 REPO = "NorESMhub/noresm_cmip7_simulations"
+# Where things are on NIRD, the defaults for the options.
+PROGRESS = "/nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json"
+CASE_DIR = "/nird/datalake/NS9560K/noresm3/cases/{case}"
+CMOR4CMIP7_DIR = "/nird/datapeak/NS9034K/.CMIP7/NorESM3-{resolution}/{experiment}/{variant}"
 # compset.resolution.version...: n1850GHGGaxg.LM.nor30b28.011.20261102
 TITLE = re.compile(r"^[A-Za-z0-9-]+\.(LM|MM)\.nor30(b\d+)\.")
 RESOLUTION = {"LM": "LM", "MM": "MM"}
@@ -406,18 +410,19 @@ def case_timing(directory):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("out", help="where to write progress.json")
-    p.add_argument("--dir", required=True, help='each case\'s directory, e.g. "/archive/{case}/atm/hist"')
-    p.add_argument("--cmor-dir", help='each case\'s cmip7-prep output directory, e.g. "/cases/{case}.cmor", '
-                                      'for a case whose issue names no cmip7prep output root')
-    p.add_argument("--case-dir", help='each case\'s archive directory, with <component>/hist and rest, '
-                                      'e.g. "/cases/{case}", to measure its output')
-    p.add_argument("--cmor4cmip7-dir", help='each simulation\'s cmor4cmip7 variant directory, e.g. '
-                                            '"/.CMIP7/NorESM3-{resolution}/{experiment}/{variant}", '
-                                            'for a case whose issue names no cmor4cmip7 output root')
-    p.add_argument("--timing-dir", action="append", default=[],
-                   help='each case\'s timing directory, e.g. "/cases/{case}/timing"; give it more than '
-                        'once for cases laid out differently, and the first that exists is read')
+    p.add_argument("out", nargs="?", default=PROGRESS, help=f"where to write progress.json (default {PROGRESS})")
+    p.add_argument("--case-dir", default=CASE_DIR,
+                   help=f'each case\'s archive directory, with <component>/hist and rest (default "{CASE_DIR}")')
+    p.add_argument("--dir", help='the directory of each case\'s dated files (default "<case-dir>/atm/hist")')
+    p.add_argument("--cmor-dir", help='each case\'s cmip7-prep output directory, for a case whose issue names '
+                                      'no cmip7prep output root (default "<case-dir>.cmor")')
+    p.add_argument("--cmor4cmip7-dir", default=CMOR4CMIP7_DIR,
+                   help='each simulation\'s cmor4cmip7 variant directory, for a case whose issue names no '
+                        f'cmor4cmip7 output root (default "{CMOR4CMIP7_DIR}")')
+    p.add_argument("--timing-dir", action="append",
+                   help='each case\'s timing directory; give it more than once for cases laid out '
+                        'differently, and the first that exists is read (default "<case-dir>/timing" '
+                        'and "<case-dir>/{case}/timing")')
     p.add_argument("--pattern", default="*.cam.i.*.nc", help="dated files that count, as a shell pattern")
     p.add_argument("--repo", default=REPO, help="the repository with the case issues")
     p.add_argument("--issues", help="read the issues from this JSON file instead of GitHub")
@@ -427,6 +432,9 @@ def main():
                    help="measure every case's output again, instead of keeping what the last "
                         "progress.json has for it")
     a = p.parse_args()
+    a.dir = a.dir or a.case_dir + "/atm/hist"
+    a.cmor_dir = a.cmor_dir or a.case_dir + ".cmor"
+    a.timing_dir = a.timing_dir or [a.case_dir + "/timing", a.case_dir + "/{case}/timing"]
 
     # Each case's output as the last run measured it, kept where it covers enough years.
     earlier = {}
@@ -475,17 +483,29 @@ def main():
         else:
             report = "no directory" if last is False else "no dated files"
         body = issue.get("body") or ""
-        output = {tool: m.group(1) for tool, r in OUTPUT_ROOTS.items() if (m := r.search(body))}
-        # Without an entry, each tool's output is looked for in its default place. The experiment
-        # is whichever label names an existing directory there.
-        if "cmip7prep" not in output and a.cmor_dir and os.path.isdir(d := a.cmor_dir.format(case=title)):
-            output["cmip7prep"] = d
-        if "cmor4cmip7" not in output and a.cmor4cmip7_dir:
-            variant = next((l for l in labels if VARIANT.match(l)), None)
-            dirs = [a.cmor4cmip7_dir.format(resolution=case["resolution"], experiment=l, variant=variant)
-                    for l in labels if variant and l != variant]
-            if d := next((d for d in dirs if os.path.isdir(d)), None):
-                output["cmor4cmip7"] = d
+        # Each tool's output root is the issue's entry, or the default without one. Either may
+        # have {case}, {resolution}, {experiment} and {variant} in it, or <case> and so on,
+        # filled in from the issue;
+        # the experiment is whichever label names an existing directory. A default root counts
+        # only where it exists.
+        given = {tool: m.group(1) for tool, r in OUTPUT_ROOTS.items() if (m := r.search(body))}
+        variant = next((l for l in labels if VARIANT.match(l)), None)
+        output = {}
+        for tool, default in (("cmip7prep", a.cmor_dir), ("cmor4cmip7", a.cmor4cmip7_dir)):
+            root = given.get(tool) or default
+            if not root:
+                continue
+            root = re.sub(r"<(case|resolution|experiment|variant)>", r"{\1}", root)
+            if "{variant}" in root and not variant:
+                continue
+            root = (root.replace("{case}", title).replace("{resolution}", case["resolution"])
+                    .replace("{variant}", variant or ""))
+            places = ([root.replace("{experiment}", l) for l in labels if l != variant]
+                      if "{experiment}" in root else [root])
+            if d := next((d for d in places if os.path.isdir(d)), None):
+                output[tool] = d
+            elif tool in given and places:
+                output[tool] = places[0]
         if output:
             case["cmorOutput"] = output
         found = scripts_of_issue.get(num, [])

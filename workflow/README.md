@@ -12,7 +12,8 @@ takes the experiments from `noresm3_experiments_decoded.csv`, gives each a
 configuration from its `COSTS` table, and writes them into
 `scheduler_template.html`. The page reads the runs' progress and timing from
 `progress.json` when it loads, so it needs rebuilding only when the plan or the
-template changes. To publish it, run on NIRD from this repository's clone:
+template changes. To publish it, run on NIRD from this repository's clone,
+`/projects/NS9560K/www/diagnostics/noresm/noresm_cmip7_simulations`:
 
 ```bash
 git pull
@@ -51,13 +52,16 @@ The tracker takes its cases from the issues in this repository, one per case:
   row for each, named by its variant, e.g. `1pctCO2 LM r1i1p1f1` to `r3i1p1f1`,
   so each member's issue counts for its own row.
 
-- **Description:** one entry, `- cmor data version:`, with `TBD` until the
+- **Description:** three entries. `- cmor data version:` has `TBD` until the
   version is decided, which is before CMORization starts, then the version: `v`
-  and its date as YYYYMMDD, the `v` optional. `nird_progress.py` reads `TBD` as
-  not set.
+  and its date as YYYYMMDD, the `v` optional. The two output roots are `default`
+  unless the output is somewhere else (see below). `nird_progress.py` reads `TBD`
+  and `default` as not set.
 
   ```
   - cmor data version: v20261028
+  - cmip7prep output root: default
+  - cmor4cmip7 output root: default
   ```
 
   The script also reads the entry written as a `### cmor data version` heading
@@ -89,10 +93,13 @@ The tracker takes its cases from the issues in this repository, one per case:
     has it, and the tracker counts it once however many issues the simulation
     has.
 
-  Output somewhere else needs an entry giving its root, `- cmip7prep output root:`
-  with the case's directory or `- cmor4cmip7 output root:` with the variant
-  directory. A cmor4cmip7 root above the model directory would mix the LM and MM
-  files of the same experiment and variant.
+  Output somewhere else needs its root in place of `default`: the case's
+  directory for `- cmip7prep output root:`, the variant directory for
+  `- cmor4cmip7 output root:`. A root may have `<case>`, `<resolution>`,
+  `<experiment>` and `<variant>` in it, which the script fills in from the issue,
+  e.g. `- cmip7prep output root: /nird/datalake/NS9560K/someone/<case>.cmor`. A
+  cmor4cmip7 root above the model directory would mix the LM and MM files of the
+  same experiment and variant.
 
 ## The run scripts
 
@@ -154,22 +161,23 @@ CMORized, and the case's cost and throughput from its timing files. The page gro
 into members by variant, and counts the years from each run's start year. A run's
 years done are the mean over its members.
 
-Run it on NIRD, from this repository's clone:
+Run it on NIRD, from this repository's clone,
+`/projects/NS9560K/www/diagnostics/noresm/noresm_cmip7_simulations`:
 
 ```bash
-python3 -I workflow/nird_progress.py \
-    /nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json \
-    --dir "/nird/datalake/NS9560K/noresm3/cases/{case}/atm/hist" \
-    --case-dir "/nird/datalake/NS9560K/noresm3/cases/{case}" \
-    --cmor-dir "/nird/datalake/NS9560K/noresm3/cases/{case}.cmor" \
-    --cmor4cmip7-dir "/nird/datapeak/NS9034K/.CMIP7/NorESM3-{resolution}/{experiment}/{variant}" \
-    --timing-dir "/nird/datalake/NS9560K/noresm3/cases/{case}/timing" \
-    --timing-dir "/nird/datalake/NS9560K/noresm3/cases/{case}/{case}/timing"
+python3 -I workflow/nird_progress.py
 ```
 
-- `--dir` is each case's directory, with `{case}` standing for the case name.
+The script finds each case's directories from its issue title, which is the case
+name, and its options are needed only for output somewhere else. Each option's
+default has `{case}` standing for the case name.
+
+- The output file defaults to the published page's `progress.json`,
+  `/nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json`.
 - `--case-dir` is each case's archive directory, with `<component>/hist` and
-  `rest/`. The script measures the case's output on NIRD in GB per simulated
+  `rest/` (default `/nird/datalake/NS9560K/noresm3/cases/{case}`). The other
+  case directories default to places in it. The script measures the case's
+  output on NIRD in GB per simulated
   year, in four kinds: history, each component's `hist/`; restarts, `rest/`, over
   the years the history covers; time series, the netCDF files in cmip7-prep's
   directory outside `cmor/`; and CMOR, the CMORized files of the case's experiment
@@ -180,17 +188,20 @@ python3 -I workflow/nird_progress.py \
   `progress.json` being replaced and not measured again, so a run only lists the
   files of cases that are new or still short; the kinds a case keeps are named on
   its line.
+- `--dir` is the directory of each case's dated files (default
+  `<case-dir>/atm/hist`).
 - `--remeasure` measures every case's output again, e.g. after restarts are
   thinned out or the time series deleted.
 - `--cmor-dir` is each case's cmip7-prep output directory, for a case whose issue
-  has no cmip7prep output root. The script reads the
+  has no cmip7prep output root (default `<case-dir>.cmor`). The script reads the
   `completed_steps_<first>-<last>.json` files cmip7-prep writes there. A set of
   years counts once it has every `cmor-` step any of the run's sets has, so a set
   where one realm failed does not count; the range ends at the first year missing.
 - `--cmor4cmip7-dir` is each simulation's cmor4cmip7 variant directory, for a
   case whose issue has no cmor4cmip7 output root, with `{resolution}`,
-  `{experiment}` and `{variant}` standing for the issue's. The experiment is the
-  label that names an existing directory.
+  `{experiment}` and `{variant}` standing for the issue's (default
+  `/nird/datapeak/NS9034K/.CMIP7/NorESM3-{resolution}/{experiment}/{variant}`).
+  The experiment is the label that names an existing directory.
 - `--timing-dir` is each case's timing directory. The script reads the Machine,
   Model Cost (pe-hours per simulated year) and Model Throughput (simulated years
   per day) of every `noresm_timing.*` file there, one per job, gzipped or not. For
@@ -203,8 +214,9 @@ python3 -I workflow/nird_progress.py \
   lists the timing of each run with a case issue, a line for each machine (Olivia in
   green, Betzy in orange), and a run's job count opens charts of its SYPD and cost
   job by job. Some cases keep their timing files one level down, in a
-  directory named after the case, so `--timing-dir` is given once for each layout;
-  the first that exists is read.
+  directory named after the case, so `--timing-dir` can be given once for each
+  layout, and the first that exists is read (default `<case-dir>/timing` and
+  `<case-dir>/{case}/timing`).
 - `--pattern` sets which files count (default `*.cam.i.*.nc`).
 - `--issues` reads the issues from a saved copy of the GitHub API's answer
   instead of fetching them.
