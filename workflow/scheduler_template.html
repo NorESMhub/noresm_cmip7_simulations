@@ -557,9 +557,9 @@
   #simTables .th-note{ font-size: 10px; font-weight: 500; color: var(--series-1); white-space: nowrap; }
   #simTables td.step-c .step-range{ display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; white-space: nowrap; padding: 1px 6px; border-radius: 8px; color: var(--text-primary); background: color-mix(in srgb, var(--series-7) 18%, transparent); }
   #simTables td.step-c .step-range.done{ font-weight: 700; }
+  #simTables td.step-c .step-range.partial{ background: transparent; border: 1px dashed currentColor; padding: 0 5px; }
   /* Several cases' cmip7prep chips wrap, one under the other. */
   #simTables td.step-c .step-ranges{ display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
-  #simTables td.step-c .step-warn{ font-size: 11px; font-weight: 700; color: var(--danger); }
   /* A CMORize cell's years open a panel with where the output is and its CMOR data versions;
      the years are red when the versions disagree. */
   #simTables details.cmor-box{ display: inline-block; }
@@ -745,7 +745,7 @@ python3 -I workflow/nird_progress.py</pre>
 - cmor4cmip7 output root: default</pre>
               <div class="wf-indent">
               <p>The CMOR data version, e.g. <code>v20261028</code>, <b>must agree between the two CMORization tools for a given span of years</b>: cmip7-prep, which CMORizes the atmosphere, land, sea ice and land ice (its <code>--data-version</code>), and cmor4cmip7, which CMORizes the ocean and ocean biogeochemistry. That way all the realms for those years are one edition of the dataset.</p>
-              <p>If the version directories on NIRD don't match the issue, or each other, the tracker shows the years in the cmip7prep or cmor4cmip7 column in red, with <span class="wf-warn">⚠</span>. Click the years to see where the output is, the versions, and what disagrees.</p>
+              <p>If the version directories on NIRD don't match the issue, or each other, the case's chip in the cmip7prep or cmor4cmip7 column, its issue and years such as <code>#002 1–170</code>, is red. Click the chip to see the case's output directory, the versions, and what disagrees.</p>
               <p>The progress script finds everything else itself: each tool's output in its default place, explained under <a href="#wf-cmoratm">cmip7-prep</a> and <a href="#wf-cmorocn">cmor4cmip7</a> in CMORize, and the case's run script by the issue number its name starts with (see <a href="#wf-script">Archive the run script</a>).</p>
               </div>
               <ul class="wf-parts">
@@ -2230,6 +2230,68 @@ python3 -I workflow/nird_progress.py</pre>
 
   // A CMORize cell's panel opens under its years, one at a time, and closes on a click
   // elsewhere or Escape.
+  // One case's chip in a CMORize cell, "#002 1–170", and the panel it opens: the case's
+  // years, its output directory, its issue's CMOR data version, the version directories its
+  // files are in, and what disagrees. The chip is dashed while no year is complete: no year
+  // has every realm (cmip7-prep) or every variable (cmor4cmip7).
+  function cmorCaseBox(row, step, { member, c, info }, byVariant){
+    const tool = step.key === "cmoratm" ? "cmip7prep" : "cmor4cmip7";
+    const bad = info.warnings.length > 0;
+    const box = document.createElement("details");
+    box.className = "cmor-box" + (bad ? " bad" : "");
+    const summary = document.createElement("summary");
+    const chip = document.createElement("span");
+    chip.className = "step-range" + (info.years.length ? "" : " partial");
+    chip.textContent = `#${String(c.issue).padStart(3, "0")} ${yearSpans(info.years.length ? info.years : info.files)}`;
+    summary.appendChild(chip);
+    box.appendChild(summary);
+
+    const pop = document.createElement("div");
+    pop.className = "cmor-pop";
+    const add = (tag, cls, text) => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      pop.appendChild(e);
+      return e;
+    };
+    const list = (head, lines) => {
+      add("div", "cp-head", head);
+      const ul = add("ul");
+      lines.forEach(([text, isBad]) => {
+        const li = document.createElement("li");
+        li.textContent = text;
+        if (isBad) li.className = "bad";
+        ul.appendChild(li);
+      });
+    };
+    const versions = Object.entries(info.versions);
+    add("h4", null, `#${c.issue}, ${row.name}${byVariant ? " " + member.variant : ""}: ${tool}`);
+    add("p", "cp-status" + (bad ? " bad" : ""), bad ? "⚠ The CMOR data version doesn't agree."
+      : versions.length ? "✓ The CMOR data version agrees." : "No version directories found yet.");
+    const caseYears = c.shownTo === Infinity ? `from ${c.from}` : `${c.from}–${c.shownTo}`;
+    const what = step.key === "cmoratm" ? "realm" : "variable";
+    list("Years", [
+      [`The case runs years ${caseYears}${c.to === Infinity ? " so far" : ""}.`],
+      [info.years.length ? `CMORized: ${yearSpans(info.years)}`
+        : `No year has every ${what} yet; the files cover ${yearSpans(info.files)}.`],
+    ]);
+    list("Output directory", [[c.output[tool] || "None found yet."]]);
+    list(`CMOR data version in #${c.issue}`, [[c.dataVersion || "Not given yet.", !c.dataVersion && versions.length > 0]]);
+    if (versions.length) list("Version directories of its files", versions.map(([v, ys]) =>
+      [`${v}, years ${yearSpans(ys)}: ${v === c.dataVersion ? "✓ the issue's version" : "⚠ not the issue's version"}`, v !== c.dataVersion]));
+    if (bad){
+      list("What disagrees", info.warnings.map(w => [w, true]));
+      add("p", null, `All realms' files for a year should be in the version directory #${c.issue} gives as its `
+        + "CMOR data version, so that they are one edition of the dataset. To fix it, set "
+        + `"- cmor data version: vYYYYMMDD" in #${c.issue}'s description to the version its files are in, `
+        + "or move the files into the issue's version, or delete the superseded version. The years turn "
+        + "purple on the next run of nird_progress.py.");
+    }
+    box.appendChild(pop);
+    return box;
+  }
+
   function placeCmorPop(box){
     const pop = box.querySelector(".cmor-pop"), r = box.querySelector("summary").getBoundingClientRect();
     const w = pop.offsetWidth, h = pop.offsetHeight;
@@ -2469,7 +2531,7 @@ python3 -I workflow/nird_progress.py</pre>
 
   // Simulation, Owner, Issues, Years, then the step columns: Status, Progress, cmip7prep,
   // cmor4cmip7, ESGF.
-  const SIM_COL_WIDTHS = [19, 8, 12, 5, 15, 20, 8, 8, 5];
+  const SIM_COL_WIDTHS = [18, 7, 12, 5, 15, 17, 11, 11, 4];
 
   function renderSimTable(){
     simTables.innerHTML = "";
@@ -2653,119 +2715,24 @@ python3 -I workflow/nird_progress.py</pre>
         td.title = `${row.name}: ${step.name}`;
         if (step.range){
           const p = autoRun(row);
-          const m = document.createElement("span");
-          const r = p && p.cmor && p.cmor[step.key];
-          const memberYears = x => x.cmor[step.key] ? `${x.cmor[step.key].from}–${x.cmor[step.key].to}` : "nothing yet";
-          if (r){
-            const done = autoSteps(row)[step.key] === true;
-            m.className = "step-range" + (done ? " done" : "");
-            m.textContent = `${r.from}–${r.to}`;
-            td.title += `: years ${r.from}–${r.to} done` + (p.members.length > 1
-              ? " by every member\n" + p.members.map(x => `${x.variant}: ${memberYears(x)}`).join("\n") : "");
-            if (done) td.classList.add("auto-done");
-          } else {
-            m.className = "step-mark"; m.textContent = "·";
-            const some = p && p.members ? p.members.filter(x => x.cmor[step.key]) : [];
-            td.title += some.length ? ": not every member CMORized yet\n" + p.members.map(x => `${x.variant}: ${memberYears(x)}`).join("\n")
-              : ": nothing CMORized yet";
-          }
-          // cmip7-prep's years are shown case by case, one chip for each case that has any.
-          if (step.key === "cmoratm" && p && p.members.length === 1){
-            const perCase = p.members[0].prepByCase;
-            const withYears = perCase.filter(x => x.years.length);
-            td.title = `${row.name}: ${step.name}`;
-            if (withYears.length){
-              m.className = "step-ranges"; m.textContent = "";
-              withYears.forEach(x => {
-                const chip = document.createElement("span");
-                chip.className = "step-range";
-                chip.textContent = yearSpans(x.years);
-                m.appendChild(chip);
-              });
-            }
-            td.title += "\n" + perCase.map(x => `#${x.issue}: ${x.years.length ? `years ${yearSpans(x.years)}` : "nothing CMORized yet"}`).join("\n");
-          }
-          // Where the progress script found each case's output.
-          const tool = step.key === "cmoratm" ? "cmip7prep" : "cmor4cmip7";
-          const dirs = p && p.members ? p.members.flatMap(x => x.outputs).filter(o => o[tool]).map(o => `#${o.issue}: ${o[tool]}`) : [];
-          td.title += dirs.length ? "\nOutput root:\n" + dirs.join("\n") : "\nNo output found yet.";
-          // The CMOR data version each issue gives, the versions the files are in, and what disagrees.
           const members = p && p.members ? p.members : [];
-          const given = members.flatMap(x => x.dataVersions).map(d => `#${d.issue}: ${d.version}`);
-          if (given.length) td.title += "\nCMOR data version:\n" + given.join("\n");
-          const found = members.flatMap(x => Object.entries(x.versions[tool] || {})
-            .map(([v, ys]) => `${members.length > 1 ? x.variant + ": " : ""}${v}, years ${yearSpans(ys)}`));
-          if (found.length) td.title += "\nFiles in:\n" + found.join("\n");
-          const warnings = (p && p.versionWarnings && p.versionWarnings[step.key]) || [];
-          // Each version the files are in, with the issues that give it.
-          const givenBy = v => members.flatMap(x => x.dataVersions).filter(d => d.version === v).map(d => `#${d.issue}`);
-          const foundChecked = members.flatMap(x => Object.entries(x.versions[tool] || {}).map(([v, ys]) => {
-            const by = givenBy(v);
-            return `${members.length > 1 ? x.variant + ": " : ""}${v}, years ${yearSpans(ys)}: `
-              + (by.length ? `✓ given by ${by.join(", ")}` : "⚠ given by no issue");
-          }));
-          if (!dirs.length && !found.length && !warnings.length){
+          if (autoSteps(row)[step.key] === true) td.classList.add("auto-done");
+          // A chip for each case with output: its issue and the years it has CMORized, red when
+          // its CMOR data versions disagree; clicking it opens what the script found.
+          const parts = members.flatMap(x => x.byCase.map(c => ({ member: x, c, info: c[step.key] })))
+            .filter(o => o.info.files.length || o.info.warnings.length);
+          if (!parts.length){
+            const m = document.createElement("span");
+            m.className = "step-mark"; m.textContent = "·";
+            td.title += ": nothing CMORized yet";
             td.appendChild(m);
             return td;
           }
-          // The years open a panel with where the output is, the CMOR data versions and what disagrees.
-          const box = document.createElement("details");
-          box.className = "cmor-box" + (warnings.length ? " bad" : "");
-          const summary = document.createElement("summary");
-          summary.appendChild(m);
-          if (warnings.length){
-            const w = document.createElement("span");
-            w.className = "step-warn"; w.textContent = "⚠";
-            summary.appendChild(w);
-          }
-          box.appendChild(summary);
-          td.title = `${row.name}: ${step.name}. Click the years for where the output is and its CMOR data versions.`;
-          const pop = document.createElement("div");
-          pop.className = "cmor-pop";
-          const add = (tag, cls, text) => {
-            const e = document.createElement(tag);
-            if (cls) e.className = cls;
-            if (text != null) e.textContent = text;
-            pop.appendChild(e);
-            return e;
-          };
-          const list = (head, lines, isBad) => {
-            add("div", "cp-head", head);
-            const ul = add("ul");
-            lines.forEach(t => {
-              const li = document.createElement("li");
-              li.textContent = t;
-              if (isBad && isBad(t)) li.className = "bad";
-              ul.appendChild(li);
-            });
-          };
-          add("h4", null, `${row.name}: ${tool}`);
-          add("p", "cp-status" + (warnings.length ? " bad" : ""), warnings.length
-            ? "⚠ The CMOR data versions don't agree."
-            : found.length ? "✓ The CMOR data versions agree." : "No version directories found yet.");
-          const yearLines = step.key === "cmoratm" && members.length === 1
-            ? members[0].prepByCase.map(x => `#${x.issue}: ${x.years.length ? `years ${yearSpans(x.years)}` : "nothing CMORized yet"}`)
-            : members.map(x => {
-                const anyYears = [...new Set(Object.values(x.versions[tool] || {}).flat())].sort((a, b) => a - b);
-                return (members.length > 1 ? x.variant + ": " : "") + (x.cmor[step.key]
-                  ? `years ${x.cmor[step.key].from}–${x.cmor[step.key].to}`
-                  : anyYears.length ? `no year has a file for every variable yet; the files cover years ${yearSpans(anyYears)}`
-                  : "nothing CMORized yet");
-              });
-          if (yearLines.length) list("Years CMORized", yearLines);
-          list("Output directory", dirs.length ? dirs : ["None found yet."]);
-          list("CMOR data version in the issues", given.length ? given : ["No issue gives one yet."]);
-          if (foundChecked.length) list("Version directories the files are in", foundChecked, t => t.includes("⚠"));
-          if (warnings.length){
-            list("What disagrees", warnings, () => true);
-            add("p", null, "Every case's CMORized files should be in the version directory its issue gives as "
-              + "its CMOR data version, so that all realms' files for a year are one edition of the dataset. "
-              + "To fix it, set \"- cmor data version: vYYYYMMDD\" in each issue's description to the version "
-              + "its files are in, or move the files into the issue's version, or delete the superseded version. "
-              + "The years turn purple on the next run of nird_progress.py.");
-          }
-          box.appendChild(pop);
-          td.appendChild(box);
+          const wrap = document.createElement("span");
+          wrap.className = "step-ranges";
+          parts.forEach(o => wrap.appendChild(cmorCaseBox(row, step, o, members.length > 1)));
+          td.appendChild(wrap);
+          td.title = `${row.name}: ${step.name}. Click a case's years for where its output is and its CMOR data version.`;
           return td;
         }
         const m = document.createElement("span");
@@ -3277,7 +3244,6 @@ python3 -I workflow/nird_progress.py</pre>
     // version in a case's cmip7-prep directory other than its issue's, a cmor4cmip7 version
     // no issue gives, and years the two tools wrote into different versions.
     m.dataVersions = cases.filter(c => c.dataVersion).map(c => ({ issue: c.issue, version: c.dataVersion }));
-    const given = new Set(m.dataVersions.map(d => d.version));
     const byYear = { cmip7prep: {}, cmor4cmip7: {} };
     cases.forEach(c => Object.entries(c.cmorVersions || {}).forEach(([tool, vs]) =>
       Object.entries(vs).forEach(([v, ranges]) => ranges.forEach(([a, b]) => {
@@ -3289,31 +3255,78 @@ python3 -I workflow/nird_progress.py</pre>
       Object.entries(years).forEach(([y, set]) => set.forEach(v => (vs[v] = vs[v] || []).push(Number(y))));
       m.versions[tool] = vs;
     });
-    const warn = { cmoratm: [], cmorocn: [] };
-    cases.forEach(c => {
-      const vs = Object.keys((c.cmorVersions || {}).cmip7prep || {});
-      if (!vs.length) return;
-      if (!c.dataVersion) warn.cmoratm.push(`#${c.issue} gives no CMOR data version; its cmip7-prep files are in ${vs.join(", ")}`);
-      else {
-        const other = vs.filter(v => v !== c.dataVersion);
-        if (other.length) warn.cmoratm.push(`#${c.issue}: cmip7-prep files in ${other.join(", ")}, but the issue gives ${c.dataVersion}`);
+    // Case by case: the years of the run each case covers, from its start year to the year
+    // before the next case's, and for each tool the years it has CMORized, the version
+    // directories its files for those years are in, and what disagrees with its issue's
+    // CMOR data version. cmip7-prep writes each case to its own directory; cmor4cmip7 writes
+    // the whole simulation, so its files are shared out by the cases' years.
+    const firstYear = c => c.start && c.start.startdate ? Number(c.start.startdate.slice(0, 4)) : start;
+    const ordered = [...cases].sort((a, b) => firstYear(a) - firstYear(b) || a.issue - b.issue);
+    const sorted = ys => [...new Set(ys)].sort((a, b) => a - b);
+    const versionYears = (vs, keep) => {
+      const out = {};
+      Object.entries(vs || {}).forEach(([v, ranges]) => ranges.forEach(([a, b]) => {
+        for (let y = a; y <= b; y++) if (keep(y)) (out[v] = out[v] || []).push(y);
+      }));
+      Object.keys(out).forEach(v => (out[v] = sorted(out[v])));
+      return out;
+    };
+    const clashes = keep => {
+      const found = {};
+      Object.entries(byYear.cmip7prep).forEach(([y, a]) => {
+        const b = byYear.cmor4cmip7[y];
+        if (!b || !keep(Number(y))) return;
+        const ka = [...a].sort().join(", "), kb = [...b].sort().join(", ");
+        if (ka !== kb) (found[`cmip7-prep in ${ka}, cmor4cmip7 in ${kb}`] = found[`cmip7-prep in ${ka}, cmor4cmip7 in ${kb}`] || []).push(Number(y));
+      });
+      return Object.entries(found).map(([k, ys]) => `years ${yearSpans(ys)} are in different versions: ${k}`);
+    };
+    const versionWarnings = (c, label, versions) => {
+      const vs = Object.keys(versions);
+      if (!vs.length) return [];
+      if (!c.dataVersion) return [`#${c.issue} gives no CMOR data version, and its ${label} files are in ${vs.join(", ")}`];
+      return vs.filter(v => v !== c.dataVersion)
+        .map(v => `${label} files for years ${yearSpans(versions[v])} are in ${v}, but #${c.issue} gives ${c.dataVersion}`);
+    };
+    m.byCase = ordered.map((c, i) => {
+      const from = firstYear(c);
+      const next = ordered[i + 1];
+      const to = next ? firstYear(next) - 1 : Infinity;
+      const inCase = y => y >= from && y <= to;
+      let shownTo = to;
+      if (!next && c.modelDate){
+        const [y, mo, d] = c.modelDate.split("-").map(Number);
+        shownTo = mo === 1 && d === 1 ? y - 1 : y;
       }
+      const prepComplete = [], prepAny = [];
+      (c.cmor || []).forEach(s => {
+        const ok = expected.length && expected.every(k => (s.steps || []).includes(k));
+        for (let y = s.first; y <= s.last; y++){ prepAny.push(y); if (ok) prepComplete.push(y); }
+      });
+      const prepVersions = versionYears((c.cmorVersions || {}).cmip7prep, () => true);
+      const ocnVersions = versionYears(Object.fromEntries(Object.entries(m.versions.cmor4cmip7)
+        .map(([v, ys]) => [v, ys.map(y => [y, y])])), inCase);
+      const ownPrep = y => Object.values(prepVersions).some(ys => ys.includes(y));
+      return {
+        issue: c.issue, from, to, shownTo, dataVersion: c.dataVersion, output: c.cmorOutput || {},
+        cmoratm: {
+          years: sorted(prepComplete),
+          files: sorted(prepAny.concat(Object.values(prepVersions).flat())),
+          versions: prepVersions,
+          warnings: versionWarnings(c, "cmip7-prep", prepVersions).concat(clashes(ownPrep)),
+        },
+        cmorocn: {
+          years: sorted([...ocn].filter(inCase)),
+          files: sorted(Object.values(ocnVersions).flat()),
+          versions: ocnVersions,
+          warnings: versionWarnings(c, "cmor4cmip7", ocnVersions).concat(clashes(inCase)),
+        },
+      };
     });
-    Object.entries(m.versions.cmor4cmip7).forEach(([v, ys]) => {
-      if (!given.has(v)) warn.cmorocn.push(`cmor4cmip7 files in ${v} (years ${yearSpans(ys)}), which no issue gives as its CMOR data version`);
-    });
-    const clash = {};
-    Object.entries(byYear.cmip7prep).forEach(([y, a]) => {
-      const b = byYear.cmor4cmip7[y];
-      if (!b) return;
-      const ka = [...a].sort().join(", "), kb = [...b].sort().join(", ");
-      if (ka !== kb) (clash[`cmip7-prep in ${ka}, cmor4cmip7 in ${kb}`] = clash[`cmip7-prep in ${ka}, cmor4cmip7 in ${kb}`] || []).push(Number(y));
-    });
-    Object.entries(clash).forEach(([k, ys]) => {
-      const msg = `years ${yearSpans(ys)}: ${k}`;
-      warn.cmoratm.push(msg); warn.cmorocn.push(msg);
-    });
-    m.versionWarnings = warn;
+    m.versionWarnings = {
+      cmoratm: m.byCase.flatMap(c => c.cmoratm.warnings),
+      cmorocn: m.byCase.flatMap(c => c.cmorocn.warnings),
+    };
     return m;
   }
 

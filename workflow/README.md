@@ -73,12 +73,16 @@ The tracker takes its cases from the issues in this repository, one per case:
   the case's years into. cmip7-prep's `--data-version` and cmor4cmip7's version
   must be the same, so that every realm's files for those years are one edition
   of the dataset. `nird_progress.py` records the version directories each tool's
-  files for the case are in. In the tracker's CMORize columns the years are purple
-  when the versions agree and red, with ⚠, when they don't: a case's cmip7-prep
-  files in a version other than its issue's, cmor4cmip7 files in a version no
-  issue of the simulation gives, or years the two tools wrote into different
-  versions. Clicking the years opens a panel with the output directory, the
-  version each issue gives, the versions the files are in, and what disagrees.
+  files for the case are in. The tracker's CMORize columns have a chip for each
+  case with output, its issue and its years, e.g. `#002 1–170`. Each case covers
+  the run's years from its `RUN_STARTDATE` to the year before the next case's;
+  cmip7-prep writes each case's own files, and cmor4cmip7's files for the whole
+  simulation are shared out by those years. A chip is purple when its files are
+  in its issue's version and red when they aren't: files in another version, or
+  years the two tools wrote into different versions. It is dashed while no year
+  has every realm or variable. Clicking it opens a panel with the case's years,
+  its output directory, its issue's version, the versions its files are in, and
+  what disagrees.
 
   The cmip7prep and cmor4cmip7 columns need no label: `nird_progress.py` reads
   the years each tool has CMORized under its output root:
