@@ -559,7 +559,28 @@
   #simTables td.step-c .step-range.done{ font-weight: 700; }
   /* Several cases' cmip7prep chips wrap, one under the other. */
   #simTables td.step-c .step-ranges{ display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
-  #simTables td.step-c .step-warn{ margin-left: 3px; font-size: 11px; font-weight: 700; color: var(--danger); }
+  #simTables td.step-c .step-warn{ font-size: 11px; font-weight: 700; color: var(--danger); }
+  /* A CMORize cell's years open a panel with where the output is and its CMOR data versions;
+     the years are red when the versions disagree. */
+  #simTables details.cmor-box{ display: inline-block; }
+  #simTables details.cmor-box > summary{ list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
+  #simTables details.cmor-box > summary::-webkit-details-marker{ display: none; }
+  #simTables details.cmor-box > summary::after{ content: "▸"; font-size: 9px; color: var(--text-muted); }
+  #simTables details.cmor-box[open] > summary::after{ content: "▾"; }
+  #simTables details.cmor-box.bad .step-range{ color: var(--danger); background: color-mix(in srgb, var(--danger) 16%, transparent); }
+  .cmor-pop{ position: fixed; z-index: 45; width: min(480px, calc(100vw - 16px)); max-height: 60vh; overflow: auto;
+    text-align: left; white-space: normal; padding: 10px 12px; font-size: 12px; line-height: 1.45;
+    background: var(--surface-raised); border: 1px solid var(--border-strong); border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18); color: var(--text-primary); cursor: auto; }
+  .cmor-pop h4{ margin: 0 0 4px; font-size: 13px; }
+  .cmor-pop .cp-status{ margin: 0 0 6px; font-weight: 600; color: var(--series-1); }
+  .cmor-pop .cp-status.bad{ color: var(--danger); }
+  .cmor-pop .cp-head{ margin: 8px 0 2px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
+  .cmor-pop ul{ margin: 0; padding-left: 16px; }
+  .cmor-pop li{ margin: 1px 0; overflow-wrap: anywhere; }
+  .cmor-pop li.bad{ color: var(--danger); }
+  .cmor-pop code{ font-family: "JetBrains Mono", monospace; font-size: 11px; }
+  .cmor-pop p{ margin: 4px 0 0; }
   #simTables td.step-c.auto-done{ background: color-mix(in srgb, var(--series-1) 10%, transparent); }
   #simTables thead th[rowspan]:not(:first-child):not(.col-narrow),
   #simTables tbody td:not(:first-child):not(.step-c):not(.col-narrow):not(.phase-start){ border-left: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent); }
@@ -724,7 +745,7 @@ python3 -I workflow/nird_progress.py</pre>
 - cmor4cmip7 output root: default</pre>
               <div class="wf-indent">
               <p>The CMOR data version, e.g. <code>v20261028</code>, <b>must agree between the two CMORization tools for a given span of years</b>: cmip7-prep, which CMORizes the atmosphere, land, sea ice and land ice (its <code>--data-version</code>), and cmor4cmip7, which CMORizes the ocean and ocean biogeochemistry. That way all the realms for those years are one edition of the dataset.</p>
-              <p>If the version directories on NIRD don't match the issue, or each other, the tracker puts <span class="wf-warn">⚠</span> in the cmip7prep or cmor4cmip7 column. Hover the cell to see why.</p>
+              <p>If the version directories on NIRD don't match the issue, or each other, the tracker shows the years in the cmip7prep or cmor4cmip7 column in red, with <span class="wf-warn">⚠</span>. Click the years to see where the output is, the versions, and what disagrees.</p>
               <p>The progress script finds everything else itself: each tool's output in its default place, explained under <a href="#wf-cmoratm">cmip7-prep</a> and <a href="#wf-cmorocn">cmor4cmip7</a> in CMORize, and the case's run script by the issue number its name starts with (see <a href="#wf-script">Archive the run script</a>).</p>
               </div>
               <ul class="wf-parts">
@@ -2207,6 +2228,29 @@ python3 -I workflow/nird_progress.py</pre>
   }
   function hideTooltip(){ tooltip.hidden = true; }
 
+  // A CMORize cell's panel opens under its years, one at a time, and closes on a click
+  // elsewhere or Escape.
+  function placeCmorPop(box){
+    const pop = box.querySelector(".cmor-pop"), r = box.querySelector("summary").getBoundingClientRect();
+    const w = pop.offsetWidth, h = pop.offsetHeight;
+    pop.style.left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, window.innerWidth - w - 8)) + "px";
+    const below = r.bottom + 4, above = r.top - h - 4;
+    pop.style.top = (below + h > window.innerHeight - 8 && above > 8 ? above : below) + "px";
+  }
+  const closeCmorPops = except => document.querySelectorAll("details.cmor-box[open]")
+    .forEach(b => { if (b !== except) b.open = false; });
+  document.addEventListener("toggle", e => {
+    const box = e.target;
+    if (!(box instanceof HTMLDetailsElement) || !box.classList.contains("cmor-box") || !box.open) return;
+    closeCmorPops(box);
+    placeCmorPop(box);
+  }, true);
+  document.addEventListener("click", e => { if (!e.target.closest("details.cmor-box")) closeCmorPops(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeCmorPops(); });
+  const placeOpenCmorPops = () => document.querySelectorAll("details.cmor-box[open]").forEach(placeCmorPop);
+  window.addEventListener("scroll", placeOpenCmorPops, { capture: true, passive: true });
+  window.addEventListener("resize", placeOpenCmorPops);
+
   // ---------------- editable tables ----------------
   function configOptionsHTML(selectedId){
     return configs.map(c => `<option value="${escapeAttr(c.id)}"${c.id===selectedId?" selected":""}></option>`).join("");
@@ -2660,22 +2704,68 @@ python3 -I workflow/nird_progress.py</pre>
             return `${members.length > 1 ? x.variant + ": " : ""}${v}, years ${yearSpans(ys)}: `
               + (by.length ? `✓ given by ${by.join(", ")}` : "⚠ given by no issue");
           }));
-          td.appendChild(m);
+          if (!dirs.length && !found.length && !warnings.length){
+            td.appendChild(m);
+            return td;
+          }
+          // The years open a panel with where the output is, the CMOR data versions and what disagrees.
+          const box = document.createElement("details");
+          box.className = "cmor-box" + (warnings.length ? " bad" : "");
+          const summary = document.createElement("summary");
+          summary.appendChild(m);
           if (warnings.length){
             const w = document.createElement("span");
             w.className = "step-warn"; w.textContent = "⚠";
-            w.title = "The CMOR data versions don't agree. Every case's CMORized files should be in the "
-              + "version directory its issue gives as its CMOR data version, so that all realms' files "
-              + "for a year are one edition of the dataset.\n\n"
-              + warnings.map(x => "• " + x).join("\n")
-              + (given.length ? "\n\nThe issues give:\n" + given.join("\n") : "\n\nNo issue gives a CMOR data version.")
-              + (foundChecked.length ? "\n\nThe files are in:\n" + foundChecked.join("\n") : "")
-              + "\n\nTo fix it, set \"- cmor data version: vYYYYMMDD\" in each issue's description to the "
-              + "version its files are in, or move the files into the issue's version or delete the "
-              + "superseded version. The ⚠ goes away on the next run of nird_progress.py.";
-            td.appendChild(w);
-            td.title += "\nVersion check:\n" + warnings.join("\n");
+            summary.appendChild(w);
           }
+          box.appendChild(summary);
+          td.title = `${row.name}: ${step.name}. Click the years for where the output is and its CMOR data versions.`;
+          const pop = document.createElement("div");
+          pop.className = "cmor-pop";
+          const add = (tag, cls, text) => {
+            const e = document.createElement(tag);
+            if (cls) e.className = cls;
+            if (text != null) e.textContent = text;
+            pop.appendChild(e);
+            return e;
+          };
+          const list = (head, lines, isBad) => {
+            add("div", "cp-head", head);
+            const ul = add("ul");
+            lines.forEach(t => {
+              const li = document.createElement("li");
+              li.textContent = t;
+              if (isBad && isBad(t)) li.className = "bad";
+              ul.appendChild(li);
+            });
+          };
+          add("h4", null, `${row.name}: ${tool}`);
+          add("p", "cp-status" + (warnings.length ? " bad" : ""), warnings.length
+            ? "⚠ The CMOR data versions don't agree."
+            : found.length ? "✓ The CMOR data versions agree." : "No version directories found yet.");
+          const yearLines = step.key === "cmoratm" && members.length === 1
+            ? members[0].prepByCase.map(x => `#${x.issue}: ${x.years.length ? `years ${yearSpans(x.years)}` : "nothing CMORized yet"}`)
+            : members.map(x => {
+                const anyYears = [...new Set(Object.values(x.versions[tool] || {}).flat())].sort((a, b) => a - b);
+                return (members.length > 1 ? x.variant + ": " : "") + (x.cmor[step.key]
+                  ? `years ${x.cmor[step.key].from}–${x.cmor[step.key].to}`
+                  : anyYears.length ? `no year has a file for every variable yet; the files cover years ${yearSpans(anyYears)}`
+                  : "nothing CMORized yet");
+              });
+          if (yearLines.length) list("Years CMORized", yearLines);
+          list("Output directory", dirs.length ? dirs : ["None found yet."]);
+          list("CMOR data version in the issues", given.length ? given : ["No issue gives one yet."]);
+          if (foundChecked.length) list("Version directories the files are in", foundChecked, t => t.includes("⚠"));
+          if (warnings.length){
+            list("What disagrees", warnings, () => true);
+            add("p", null, "Every case's CMORized files should be in the version directory its issue gives as "
+              + "its CMOR data version, so that all realms' files for a year are one edition of the dataset. "
+              + "To fix it, set \"- cmor data version: vYYYYMMDD\" in each issue's description to the version "
+              + "its files are in, or move the files into the issue's version, or delete the superseded version. "
+              + "The years turn purple on the next run of nird_progress.py.");
+          }
+          box.appendChild(pop);
+          td.appendChild(box);
           return td;
         }
         const m = document.createElement("span");
