@@ -176,7 +176,12 @@ python3 -I workflow/nird_progress.py \
   and variant under cmip7-prep's `cmor/` and the cmor4cmip7 root. The years come
   from the model dates in the file names, and the CMOR files count each version's
   years. The Cost plan multiplies each run's rate, or its configuration's, by its
-  members and years.
+  members and years. A kind measured over at least 5 years is kept from the
+  `progress.json` being replaced and not measured again, so a run only lists the
+  files of cases that are new or still short; the kinds a case keeps are named on
+  its line.
+- `--remeasure` measures every case's output again, e.g. after restarts are
+  thinned out or the time series deleted.
 - `--cmor-dir` is each case's cmip7-prep output directory, for a case whose issue
   has no cmip7prep output root. The script reads the
   `completed_steps_<first>-<last>.json` files cmip7-prep writes there. A set of

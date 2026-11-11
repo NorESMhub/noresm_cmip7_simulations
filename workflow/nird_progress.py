@@ -29,6 +29,8 @@ COMPLETED = re.compile(r"completed_steps_(\d+)-(\d+)\.json$")
 # so_Omon_NorESM3_piControl_r1i1p1f1_gn_000101-001012.nc
 CMOR_FILE = re.compile(r"^(.+)_(\d{4})\d*-(\d{4})\d*\.nc$")
 # A model date in a file name, its year first: 0001, 0001-01, 0001-01-01-00000, 000101.
+# A kind of output measured over at least this many years is not measured again.
+STORAGE_YEARS = 5
 NAME_DATE = re.compile(r"(?<!\d)(\d{4})(?:\d{2}|\d{4})?(?:-\d{2}(?:-\d{2}(?:-\d{5})?)?)?(?!\d)")
 def entry(label, value):
     """An entry of an issue's description: "- entry: value" on one line, the label in bold or
@@ -255,30 +257,46 @@ def files_below(directory, skip=None):
     return paths
 
 
-def case_storage(case_dir, case, prep_dir, cmor4cmip7_dir, labels):
+def settled_storage(storage):
+    """The kinds of a case's earlier measurement to keep: those with at least
+    STORAGE_YEARS years, by then a steady rate. History counts its longest component, and
+    CMOR is kept tool by tool."""
+    storage = storage if isinstance(storage, dict) else {}
+    kept = {k: v for k, v in storage.items()
+            if k in ("rest", "timeseries") and isinstance(v, dict) and v.get("years", 0) >= STORAGE_YEARS}
+    if max((s.get("years", 0) for s in storage.get("hist", {}).values()), default=0) >= STORAGE_YEARS:
+        kept["hist"] = storage["hist"]
+    if cmor := {t: s for t, s in storage.get("cmor", {}).items() if s.get("years", 0) >= STORAGE_YEARS}:
+        kept["cmor"] = cmor
+    return kept
+
+
+def case_storage(case_dir, case, prep_dir, cmor4cmip7_dir, labels, kept=None):
     """How much output the case has on NIRD, as {gb, years} for each kind: hist, a dict by
     component of the <component>/hist directories; rest, the restart sets in rest/, over the
     years the history covers; timeseries, cmip7-prep's time series, the files in its
     directory outside cmor/; and cmor, by tool, the CMOR files, each version's years
-    counted. A kind with nothing on NIRD is left out."""
-    storage = {}
-    hist = {}
+    counted. The kinds in kept, from an earlier run, are not measured again. A kind with
+    nothing on NIRD is left out."""
+    kept = kept or {}
+    storage = {k: v for k, v in kept.items() if k != "cmor"}
     if case_dir and os.path.isdir(case_dir):
-        for comp in sorted(os.listdir(case_dir)):
-            if os.path.isdir(d := os.path.join(case_dir, comp, "hist")) and (s := output_size(files_below(d), case)):
-                hist[comp] = s
-        if hist:
-            storage["hist"] = hist
-        rest = files_below(os.path.join(case_dir, "rest"))
-        years = max(s["years"] for s in hist.values()) if hist else 0
-        if rest and years:
+        if "hist" not in storage:
+            hist = {}
+            for comp in sorted(os.listdir(case_dir)):
+                if os.path.isdir(d := os.path.join(case_dir, comp, "hist")) and (s := output_size(files_below(d), case)):
+                    hist[comp] = s
+            if hist:
+                storage["hist"] = hist
+        years = max((s["years"] for s in storage.get("hist", {}).values()), default=0)
+        if "rest" not in storage and years and (rest := files_below(os.path.join(case_dir, "rest"))):
             storage["rest"] = {"gb": round(sum(map(size, rest)) / 1e9, 3), "years": years}
-    if prep_dir and (s := output_size(files_below(prep_dir, skip="cmor"), case)):
+    if "timeseries" not in storage and prep_dir and (s := output_size(files_below(prep_dir, skip="cmor"), case)):
         storage["timeseries"] = s
-    cmor = {}
+    cmor = dict(kept.get("cmor", {}))
     prep_cmor = os.path.join(prep_dir, "cmor") if prep_dir else None
     for tool, d in (("cmip7prep", prep_cmor), ("cmor4cmip7", cmor4cmip7_dir)):
-        if d and os.path.isdir(d):
+        if tool not in cmor and d and os.path.isdir(d):
             by_version, total = {}, 0
             for m, v, b in case_files(d, labels):
                 by_version.setdefault(v, set()).update(range(int(m.group(2)), int(m.group(3)) + 1))
@@ -405,7 +423,19 @@ def main():
     p.add_argument("--issues", help="read the issues from this JSON file instead of GitHub")
     p.add_argument("--scripts", help="read the run scripts from this scripts/ directory, e.g. in a "
                                      "checkout of the CMIP7_Runscripts branch, instead of GitHub")
+    p.add_argument("--remeasure", action="store_true",
+                   help="measure every case's output again, instead of keeping what the last "
+                        "progress.json has for it")
     a = p.parse_args()
+
+    # Each case's output as the last run measured it, kept where it covers enough years.
+    earlier = {}
+    if a.case_dir and not a.remeasure:
+        try:
+            with open(a.out, encoding="utf-8") as f:
+                earlier = {c["issue"]: settled_storage(c.get("storage")) for c in json.load(f)["cases"]}
+        except (OSError, ValueError, KeyError, TypeError):
+            pass
 
     if a.issues:
         with open(a.issues, encoding="utf-8") as f:
@@ -496,14 +526,19 @@ def main():
         if versions:
             case["cmorVersions"] = versions
             report += "".join(f"; {tool} in " + ", ".join(v) for tool, v in versions.items())
+        kept = earlier.get(num, {})
         storage = case_storage(a.case_dir.format(case=title) if a.case_dir else None, title,
-                               prep_dir, output.get("cmor4cmip7"), labels)
+                               prep_dir, output.get("cmor4cmip7"), labels, kept)
         if storage:
             case["storage"] = storage
             sizes = {"history": list(storage.get("hist", {}).values()), "restarts": [storage.get("rest")],
                      "time series": [storage.get("timeseries")], "CMOR": list(storage.get("cmor", {}).values())}
             report += "".join(f"; {kind} {sum(s['gb'] for s in found if s):.1f} GB"
                               for kind, found in sizes.items() if any(found))
+            if kept:
+                names = {"hist": "history", "rest": "restarts", "timeseries": "time series", "cmor": "CMOR"}
+                report += " (kept from the last run: " + ", ".join(
+                    names[k] + (" of " + " and ".join(kept[k]) if k == "cmor" else "") for k in kept) + ")"
         timing_dir = next((d for d in (t.format(case=title) for t in a.timing_dir) if os.path.isdir(d)), None)
         if timing_dir:
             timing, machine = case_timing(timing_dir)
