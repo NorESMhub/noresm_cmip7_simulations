@@ -536,7 +536,7 @@
   .wf-parts{ margin: 3px 0 0; padding-left: 18px; font-size: 13px; color: var(--text-secondary); }
   .wf-parts code{ overflow-wrap: anywhere; }
   .wf-tag{ display:inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 9px; margin-left: 6px; vertical-align: 1px; }
-  /* An entry in an issue's description, e.g. - cmor data version: v20261028. */
+  /* An entry in an issue's description, e.g. - cmor data version: 20261028. */
   /* A script's path, e.g. workflow/nird_progress.py. */
   code.wf-script{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-2) 18%, transparent); color: var(--text-primary); }
   /* A GitHub label's name, e.g. esgf. */
@@ -738,13 +738,13 @@ python3 -I workflow/nird_progress.py</pre>
                 <li><b><code class="wf-labelname">completed</code>:</b> add this label when the run has finished;</li>
                 <li><b><code class="wf-labelname">test</code>:</b> add this label to a case that is not a CMIP7 run, to leave it out;</li>
                 <li><b><code class="wf-labelname">esgf</code>:</b> add this label when the data is on ESGF;</li>
-                <li><b>description:</b> three entries. <code class="wf-entry">- cmor data version:</code> has <code>TBD</code> until the version is decided, which is before CMORization starts, then the version: <code>v</code> and its date as YYYYMMDD, the <code>v</code> optional. The two output roots are <code>default</code> unless the output is somewhere else:</li>
+                <li><b>description:</b> three entries. <code class="wf-entry">- cmor data version:</code> has <code>TBD</code> until the version is decided, which is before CMORization starts, then just its date, YYYYMMDD. The two output roots are the standard places, as in the issue template, with <code>&lt;case&gt;</code>, <code>&lt;resolution&gt;</code>, <code>&lt;experiment&gt;</code> and <code>&lt;variant&gt;</code> filled in from the issue; change them only for output somewhere else:</li>
               </ul>
-              <pre class="wf-pre wf-pre-entries">- cmor data version: v20261028
-- cmip7prep output root: default
-- cmor4cmip7 output root: default</pre>
+              <pre class="wf-pre wf-pre-entries">- cmor data version: 20261028
+- cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/&lt;case&gt;.cmor
+- cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-&lt;resolution&gt;/&lt;experiment&gt;/&lt;variant&gt;</pre>
               <div class="wf-indent">
-              <p>The CMOR data version, e.g. <code>v20261028</code>, <b>must agree between the two CMORization tools for a given span of years</b>: cmip7-prep, which CMORizes the atmosphere, land, sea ice and land ice (its <code>--data-version</code>), and cmor4cmip7, which CMORizes the ocean and ocean biogeochemistry. That way all the realms for those years are one edition of the dataset.</p>
+              <p>The CMOR data version, e.g. <code>20261028</code>, which is the version directory <code>v20261028</code> on NIRD, <b>must agree between the two CMORization tools for a given span of years</b>: cmip7-prep, which CMORizes the atmosphere, land, sea ice and land ice (its <code>--data-version</code>), and cmor4cmip7, which CMORizes the ocean and ocean biogeochemistry. That way all the realms for those years are one edition of the dataset.</p>
               <p>If the version directories on NIRD don't match the issue, or each other, the case's chip in the cmip7prep or cmor4cmip7 column, its issue and years such as <code>#002 1–170</code>, is red. Click the chip to see the case's output directory, the versions, and what disagrees.</p>
               <p>The progress script finds everything else itself: each tool's output in its default place, explained under <a href="#wf-cmoratm">cmip7-prep</a> and <a href="#wf-cmorocn">cmor4cmip7</a> in CMORize, and the case's run script by the issue number its name starts with (see <a href="#wf-script">Archive the run script</a>).</p>
               </div>
@@ -805,10 +805,10 @@ python3 -I workflow/nird_progress.py</pre>
           <li id="wf-cmorissue"><div class="wf-title">Make the CMORization issue</div>
             <p>Once the simulation has finished, open an issue in <a href="https://github.com/NorESMhub/CMIP7_CMOR-Publish/issues" target="_blank" rel="noopener">NorESMhub/CMIP7_CMOR-Publish</a> from its template, which is like the CMIP6 one, and label it <code class="wf-labelname">cmorization</code>. The repository's other labels are <code class="wf-labelname">publication</code>, <code class="wf-labelname">archive</code>, <code class="wf-labelname">cmor_bug</code>, <code class="wf-labelname">publication_bug</code> and <code class="wf-labelname">retract</code>.</p>
             <p>Before either tool starts, set the CMOR data version in the description of the case's issue in noresm_cmip7_simulations. Both tools write the case's years into that version, cmip7-prep with <code>--data-version</code>:</p>
-            <pre class="wf-pre wf-pre-entries">- cmor data version: v20261028
-- cmip7prep output root: default
-- cmor4cmip7 output root: default</pre>
-            <p>The progress script reads each tool's progress in its default place, as the two steps below explain, and the tracker shows where when you hover the cmip7prep or cmor4cmip7 column. Output somewhere else needs its directory in place of <code>default</code> in the issue's <code class="wf-entry">- cmip7prep output root:</code> or <code class="wf-entry">- cmor4cmip7 output root:</code>. The directory may have <code>&lt;case&gt;</code>, <code>&lt;resolution&gt;</code>, <code>&lt;experiment&gt;</code> and <code>&lt;variant&gt;</code> in it, which the script fills in from the issue, e.g. <code>/nird/datalake/NS9560K/someone/&lt;case&gt;.cmor</code>.</p>
+            <pre class="wf-pre wf-pre-entries">- cmor data version: 20261028
+- cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/&lt;case&gt;.cmor
+- cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-&lt;resolution&gt;/&lt;experiment&gt;/&lt;variant&gt;</pre>
+            <p>These are the standard places, as the two steps below explain, and clicking a case's chip in the cmip7prep or cmor4cmip7 column shows the directory the progress script read. Output somewhere else needs its own directory in the issue's <code class="wf-entry">- cmip7prep output root:</code> or <code class="wf-entry">- cmor4cmip7 output root:</code>. The directory may have <code>&lt;case&gt;</code>, <code>&lt;resolution&gt;</code>, <code>&lt;experiment&gt;</code> and <code>&lt;variant&gt;</code> in it, which the script fills in from the issue, e.g. <code>/nird/datalake/NS9560K/someone/&lt;case&gt;.cmor</code>.</p>
             <div class="wf-decide"><b>To decide:</b> how urgency is shown.</div></li>
           <li id="wf-cmoratm"><div class="wf-title">CMORize the atmosphere, land, sea ice and land ice using cmip7-prep</div>
             <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K</code> with the cmor4cmip7 output. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>.</p>
@@ -2282,7 +2282,7 @@ python3 -I workflow/nird_progress.py</pre>
       list("What disagrees", info.warnings.map(w => [w, true]));
       add("p", null, `All realms' files for a year should be in the version directory #${c.issue} gives as its `
         + "CMOR data version, so that they are one edition of the dataset. To fix it, set "
-        + `"- cmor data version: vYYYYMMDD" in #${c.issue}'s description to the version its files are in, `
+        + `"- cmor data version: YYYYMMDD" in #${c.issue}'s description to the version its files are in, `
         + "or move the files into the issue's version, or delete the superseded version. The years turn "
         + "purple on the next run of nird_progress.py.");
     }

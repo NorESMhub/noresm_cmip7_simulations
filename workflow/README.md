@@ -53,23 +53,24 @@ The tracker takes its cases from the issues in this repository, one per case:
   so each member's issue counts for its own row.
 
 - **Description:** three entries. `- cmor data version:` has `TBD` until the
-  version is decided, which is before CMORization starts, then the version: `v`
-  and its date as YYYYMMDD, the `v` optional. The two output roots are `default`
-  unless the output is somewhere else (see below). `nird_progress.py` reads `TBD`
-  and `default` as not set.
+  version is decided, which is before CMORization starts, then just its date,
+  YYYYMMDD. The two output roots are the standard places, as in the issue
+  template; `nird_progress.py` fills in `<case>`, `<resolution>`, `<experiment>`
+  and `<variant>` from the issue. Change them only for output somewhere else (see
+  below). `nird_progress.py` reads `TBD` as not set.
 
   ```
-  - cmor data version: v20261028
-  - cmip7prep output root: default
-  - cmor4cmip7 output root: default
+  - cmor data version: 20261028
+  - cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/<case>.cmor
+  - cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-<resolution>/<experiment>/<variant>
   ```
 
   The script also reads the entry written as a `### cmor data version` heading
   with the value on the next line. It finds everything else itself: each tool's
-  output in its default place (see below), and the case's run script by its issue
+  output in the standard place without an output root, and the case's run script by its issue
   number (see the run scripts below).
 
-  The CMOR data version is the version directory, `vYYYYMMDD`, that both tools write
+  The CMOR data version names the version directory, `vYYYYMMDD`, that both tools write
   the case's years into. cmip7-prep's `--data-version` and cmor4cmip7's version
   must be the same, so that every realm's files for those years are one edition
   of the dataset. `nird_progress.py` records the version directories each tool's
@@ -99,7 +100,7 @@ The tracker takes its cases from the issues in this repository, one per case:
     has it, and the tracker counts it once however many issues the simulation
     has.
 
-  Output somewhere else needs its root in place of `default`: the case's
+  Output somewhere else needs its own root in the issue: the case's
   directory for `- cmip7prep output root:`, the variant directory for
   `- cmor4cmip7 output root:`. A root may have `<case>`, `<resolution>`,
   `<experiment>` and `<variant>` in it, which the script fills in from the issue,
