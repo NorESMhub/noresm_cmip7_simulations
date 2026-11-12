@@ -1,6 +1,6 @@
 """Write progress.json for the tracker from the GitHub issues and the files on NIRD.
 
-workflow/README.md describes the case issues, the run scripts and how to run it.
+workflow/README.md describes what it reads and records.
 """
 
 import argparse
