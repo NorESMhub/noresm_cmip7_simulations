@@ -22,7 +22,8 @@ REPO = "NorESMhub/noresm_cmip7_simulations"
 PROGRESS = "/nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json"
 CASE_DIR = "/nird/datalake/NS9560K/noresm3/cases/{case}"
 CMOR4CMIP7_DIR = "/nird/datapeak/NS9034K/.CMIP7/NorESM3-{resolution}/{experiment}/{variant}"
-# compset.resolution.version...: n1850GHGGaxg.LM.nor30b28.011.20261102
+# compset.resolution.version...: n1850GHGGaxg.LM.nor30b28.r1i1p1f1.011.20261102, or without
+# the variant, n1850GHGGaxg.LM.nor30b28.011.20261102
 TITLE = re.compile(r"^[A-Za-z0-9-]+\.(LM|MM)\.nor30(b\d+)\.")
 RESOLUTION = {"LM": "LM", "MM": "MM"}
 # YYYY-MM, YYYY-MM-DD or YYYY-MM-DD-SSSSS just before .nc
@@ -32,6 +33,8 @@ COMPLETED = re.compile(r"completed_steps_(\d+)-(\d+)\.json$")
 # A CMOR file's variable and the years of its time range, before .nc:
 # so_Omon_NorESM3_piControl_r1i1p1f1_gn_000101-001012.nc
 CMOR_FILE = re.compile(r"^(.+)_(\d{4})\d*-(\d{4})\d*\.nc$")
+# The full start and end dates of a CMOR file's time range, e.g. 185001 and 185912.
+CMOR_TIME = re.compile(r"_(\d{4,14})-(\d{4,14})\.nc$")
 # A model date in a file name, its year first: 0001, 0001-01, 0001-01-01-00000, 000101.
 # A kind of output measured over at least this many years is not measured again.
 STORAGE_YEARS = 5
@@ -51,6 +54,10 @@ OUTPUT_ROOTS = {tool: entry(tool + r"[ \t]+output(?:[ \t]+root)?", r"/[^\s`]+")
 # The version the case's years are CMORized into, with or without the v:
 # "- cmor data version: v20261028".
 DATA_VERSION = entry(r"cmor[ \t]+data[ \t]+version", r"v?\d{8}\b")
+# The CMORization issues, each naming the cases it CMORizes, and the CMOR tag version in its
+# description, on the line after its label: "**cmor tag version (decided by ...)**\n20261109".
+CMOR_REPO = "NorESMhub/CMIP7_CMOR-Publish"
+CMOR_TAG_VERSION = re.compile(r"cmor[ \t]+tag[ \t]+version[^\d]{0,300}?\bv?(\d{8})\b", re.I)
 # The run scripts are on this branch, below scripts/, each named after its case's issue:
 # DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh is #11's.
 RUNSCRIPTS_BRANCH = "CMIP7_Runscripts"
@@ -344,6 +351,47 @@ def cmor_file_years(directory, labels):
     return year_ranges(set.intersection(*by_var.values())) if by_var else []
 
 
+def variable_name(prefix):
+    """A CMOR file's variable as its first two name fields, e.g. tos_tavg-u-hxy-sea or so_Omon."""
+    return "_".join(prefix.split("_")[:2])
+
+
+def cmor_problems(directory, labels):
+    """What is wrong with the case's CMOR files under the directory, each kind grouped by the
+    years it affects: missing, the variables with no file for years other variables have;
+    overlaps, the variables with a year in more than one file of the same version, by
+    version. None if nothing is wrong."""
+    by_var, files = {}, {}
+    for m, v, _ in case_files(directory, labels):
+        by_var.setdefault(m.group(1), set()).update(range(int(m.group(2)), int(m.group(3)) + 1))
+        t = CMOR_TIME.search(m.group(0))
+        start, end = t.group(1).ljust(14, "0"), t.group(2).ljust(14, "9")
+        files.setdefault((m.group(1), v), []).append((start, end))
+    every = set().union(*by_var.values()) if by_var else set()
+    missing = {}
+    for var, years in by_var.items():
+        if gap := every - years:
+            missing.setdefault(tuple(map(tuple, year_ranges(gap))), set()).add(variable_name(var))
+    overlaps = {}
+    for (var, v), spans in files.items():
+        spans.sort()
+        years, end = set(), None
+        for s, e in spans:
+            if end is not None and s <= end:
+                years.update(range(int(s[:4]), int(min(e, end)[:4]) + 1))
+            end = e if end is None else max(end, e)
+        if years:
+            overlaps.setdefault((v, tuple(map(tuple, year_ranges(years)))), set()).add(variable_name(var))
+    problems = {}
+    if missing:
+        problems["missing"] = [{"years": [list(r) for r in ys], "variables": sorted(vs)}
+                               for ys, vs in sorted(missing.items())]
+    if overlaps:
+        problems["overlaps"] = [{"version": v, "years": [list(r) for r in ys], "variables": sorted(vs)}
+                                for (v, ys), vs in sorted(overlaps.items(), key=lambda kv: (kv[0][0] or "", kv[0][1]))]
+    return problems or None
+
+
 def cmor_versions(directory, labels):
     """{version: [[first, last], ...]}: the years of the case's CMOR files under the
     directory, by the version directory they are in."""
@@ -451,6 +499,12 @@ def main():
     else:
         issues = fetch_issues(a.repo)
 
+    # A case's CMORization issues are those in CMIP7_CMOR-Publish that name the case.
+    try:
+        cmor_issues = fetch_issues(CMOR_REPO)
+    except (OSError, ValueError, http.client.HTTPException) as e:
+        print(f"The CMORization issues in {CMOR_REPO} could not be read: {e}")
+        cmor_issues = []
     # A case's parent is the issue whose title is its RUN_REFCASE.
     issue_of_case = {i["title"].strip(): i["number"] for i in issues}
     # A case's run script is the one whose name starts with its issue number.
@@ -526,6 +580,14 @@ def main():
         if m := DATA_VERSION.search(body):
             case["dataVersion"] = "v" + m.group(1).lstrip("vV")
             report += "; CMOR data version " + case["dataVersion"]
+        if found := [i for i in cmor_issues if title in i["title"] + "\n" + (i.get("body") or "")]:
+            case["cmorIssues"] = []
+            for i in found:
+                ci = {"number": i["number"], "state": i["state"]}
+                if t := CMOR_TAG_VERSION.search(i.get("body") or ""):
+                    ci["tagVersion"] = "v" + t.group(1)
+                case["cmorIssues"].append(ci)
+            report += "; CMORization " + ", ".join(f"{CMOR_REPO}#{i['number']}" for i in found)
         versions = {}
         if prep_dir := output.get("cmip7prep"):
             sets = cmor_sets(prep_dir)
@@ -541,6 +603,12 @@ def main():
             if ranges:
                 case["cmor4cmip7"] = ranges
             report += "; cmor4cmip7 " + (", ".join(f"{f}-{l}" for f, l in ranges) or "nothing yet")
+            if problems := cmor_problems(output["cmor4cmip7"], labels):
+                case["cmor4cmip7Problems"] = problems
+                report += "".join(f"; cmor4cmip7 {len(g['variables'])} variables {what} "
+                                  + ", ".join(f"{f}-{l}" for f, l in g["years"])
+                                  for kind, what in (("missing", "missing"), ("overlaps", "overlapping in"))
+                                  for g in problems.get(kind, []))
             if v := cmor_versions(output["cmor4cmip7"], labels):
                 versions["cmor4cmip7"] = v
         if versions:

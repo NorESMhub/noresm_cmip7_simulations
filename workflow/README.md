@@ -40,8 +40,10 @@ for a configuration with nothing running yet.
 
 The tracker takes its cases from the issues in this repository, one per case:
 
-- **Title:** the case name and nothing else, e.g.
-  `nHistEsmGHGGaxg.LM.nor30b28.008.20261029`. `LM` is ne16pg3_tn14 and `MM` is ne30pg3_tn14; the tracker names runs by them, e.g. `esm-hist LM`.
+- **Title:** the case name and nothing else,
+  `compset.resolution.version.variant.issue.date`, e.g.
+  `nHistEsmGHGGaxg.LM.nor30b28.r1i1p1f1.008.20261029`. Names without the
+  variant, such as `nHistEsmGHGGaxg.LM.nor30b28.008.20261029`, are read too. `LM` is ne16pg3_tn14 and `MM` is ne30pg3_tn14; the tracker names runs by them, e.g. `esm-hist LM`.
 - **Experiment label:** the CMIP7 experiment, e.g. `esm-hist`, spelt as in the tracker.
 - **Variant label:** the ensemble member, e.g. `r1i1p1f1`.
 - **Assignee:** whoever runs it; the issue's author if nobody is assigned.
@@ -70,35 +72,50 @@ The tracker takes its cases from the issues in this repository, one per case:
   output in the standard place without an output root, and the case's run script by its issue
   number (see the run scripts below).
 
-  The CMOR data version names the version directory, `vYYYYMMDD`, that both tools write
-  the case's years into. cmip7-prep's `--data-version` and cmor4cmip7's version
-  must be the same, so that every realm's files for those years are one edition
-  of the dataset. `nird_progress.py` records the version directories each tool's
-  files for the case are in. The tracker's CMORize columns have a chip for each
-  case with output, its issue and its years, e.g. `#002 1–170`. Each case covers
-  the run's years from its `RUN_STARTDATE` to the year before the next case's;
-  cmip7-prep writes each case's own files, and cmor4cmip7's files for the whole
-  simulation are shared out by those years. A chip is purple when its files are
-  in its issue's version and red when they aren't: files in another version, or
-  years the two tools wrote into different versions. It is dashed while no year
-  has every realm or variable. Clicking it opens a panel with the case's years,
-  its output directory, its issue's version, the versions its files are in, and
-  what disagrees.
+  The CMOR data version names the version directory, `vYYYYMMDD`, that cmip7-prep
+  writes the case's years into with `--data-version`. cmor4cmip7 need not use the
+  same version. `nird_progress.py` records the version directories each tool's
+  files for the case are in.
 
-  The cmip7prep and cmor4cmip7 columns need no label: `nird_progress.py` reads
-  the years each tool has CMORized under its output root:
+  The cmip7prep and cmor4cmip7 columns need no label. Each has a chip for each
+  case with output, its issue and its years, e.g. `#002 1–170`. Clicking a chip
+  opens a panel with the case's years, its output directory, its issue's CMOR
+  data version and the version directories its files are in. `nird_progress.py`
+  reads the two tools differently.
 
-  - **cmip7prep:** `--cmor-dir`, the case's own `.cmor` directory, the one that
-    holds cmip7-prep's `completed_steps_*.json` files. Only that directory is
-    read, not the ones below it.
-  - **cmor4cmip7:** `--cmor4cmip7-dir`, the simulation's variant directory,
-    named from the issue's resolution, experiment and variant labels, e.g.
+  **cmip7prep**
+
+  - **Where:** `--cmor-dir`, the case's own `.cmor` directory, which holds
+    cmip7-prep's `completed_steps_*.json` files. Only that directory is read,
+    not the ones below it.
+  - **Which issue:** each case has its own `.cmor` directory, named after its
+    issue's title, so everything in it belongs to that issue.
+  - **Years:** cmip7-prep writes a `completed_steps_<first>-<last>.json` file for
+    each set of years it has CMORized. A set counts once its file lists every
+    `cmor-` step that any of the simulation's files lists, so a set where one
+    realm failed doesn't count. The chip shows the years of the sets that count.
+  - **Dashed chip:** no set counts yet; the chip shows the years of all the sets.
+
+  **cmor4cmip7**
+
+  - **Where:** `--cmor4cmip7-dir`, the simulation's variant directory, named
+    from the issue's resolution, experiment and variant labels, e.g.
     `/nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1`. Every
-    directory below it is read, so every version is, and the years come from the
-    time ranges in the names of the files whose name has the issue's experiment
-    and variant, e.g. `_piControl_r1i1p1f1_`. A year counts once every variable
-    has it, and the tracker counts it once however many issues the simulation
-    has.
+    directory below it is read, so every version is. Only the files whose name
+    has the issue's experiment and variant, e.g. `_piControl_r1i1p1f1_`, count.
+  - **Which issue:** the variant directory holds the whole simulation, so every
+    issue with the same experiment and variant shares it. Each file goes to an
+    issue by its years, from the time range in its name, e.g.
+    `_185001-185912.nc`. An issue covers the years from its run script's
+    `RUN_STARTDATE` to the year before the next issue's. A simulation with one
+    issue gets all the files.
+  - **Years:** a year counts once every variable has a file for it. The chip
+    shows the years that count, or the years the files cover while no year
+    counts.
+  - **Red chip:** something is wrong with the files for the issue's years. Either
+    some variables have no files for years other variables have, or a variable
+    has a year in more than one file of the same version. The chip's panel lists
+    the years and variables.
 
   Output somewhere else needs its own root in the issue: the case's
   directory for `- cmip7prep output root:`, the variant directory for
@@ -107,6 +124,14 @@ The tracker takes its cases from the issues in this repository, one per case:
   e.g. `- cmip7prep output root: /nird/datalake/NS9560K/someone/<case>.cmor`. A
   cmor4cmip7 root above the model directory would mix the LM and MM files of the
   same experiment and variant.
+
+  The CMORization issues are in
+  [NorESMhub/CMIP7_CMOR-Publish](https://github.com/NorESMhub/CMIP7_CMOR-Publish/issues).
+  Each names the cases it CMORizes by their case names, e.g.
+  `n1850GHGGaxg.LM.nor30b27.002.20261016`. `nird_progress.py` finds the
+  CMORization issues that name a case, and the tracker links each after the
+  case's issue as `cmor`. A CMORize chip's panel shows the CMORization issue and
+  the cmor tag version in it.
 
 ## The run scripts
 

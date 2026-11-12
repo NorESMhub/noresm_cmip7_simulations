@@ -504,6 +504,7 @@
   /* A case's run script, a small chip after its issue, in the issue's colour. */
   a.script-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 1px 5px; margin-right: 5px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); text-decoration: none; }
   a.script-chip:hover{ text-decoration: underline; }
+  a.script-chip.cmor-chip{ background: color-mix(in srgb, var(--series-1) 16%, transparent); }
   .case-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 6px; margin-right: 3px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); cursor: default; }
   .tab-nav{ display:flex; gap:4px; margin: 4px 0 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .tab-nav a{ padding: 9px 16px; font-weight: 600; font-size: 14px; color: var(--text-secondary); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
@@ -561,7 +562,7 @@
   /* Several cases' cmip7prep chips wrap, one under the other. */
   #simTables td.step-c .step-ranges{ display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
   /* A CMORize cell's years open a panel with where the output is and its CMOR data versions;
-     the years are red when the versions disagree. */
+     the years are red when the progress script found something wrong with the files. */
   #simTables details.cmor-box{ display: inline-block; }
   #simTables details.cmor-box > summary{ list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
   #simTables details.cmor-box > summary::-webkit-details-marker{ display: none; }
@@ -573,12 +574,10 @@
     background: var(--surface-raised); border: 1px solid var(--border-strong); border-radius: 8px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.18); color: var(--text-primary); cursor: auto; }
   .cmor-pop h4{ margin: 0 0 4px; font-size: 13px; }
-  .cmor-pop .cp-status{ margin: 0 0 6px; font-weight: 600; color: var(--series-1); }
-  .cmor-pop .cp-status.bad{ color: var(--danger); }
   .cmor-pop .cp-head{ margin: 8px 0 2px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
   .cmor-pop ul{ margin: 0; padding-left: 16px; }
   .cmor-pop li{ margin: 1px 0; overflow-wrap: anywhere; }
-  .cmor-pop li.bad{ color: var(--danger); }
+  .cmor-pop .bad{ color: var(--danger); }
   .cmor-pop code{ font-family: "JetBrains Mono", monospace; font-size: 11px; }
   .cmor-pop p{ margin: 4px 0 0; }
   #simTables td.step-c.auto-done{ background: color-mix(in srgb, var(--series-1) 10%, transparent); }
@@ -695,7 +694,7 @@
         It is run on NIRD from the clone in <code>/projects/NS9560K/www/diagnostics/noresm/noresm_cmip7_simulations</code>.<br>
         The script uses information from the GitHub issues, the run scripts on GitHub that go with the issues, the case directories on NIRD and the CMORization directories:</p>
       <ul class="editor-caption wf-parts">
-        <li>The <b>GitHub issues</b> determine each case's labels, assignee and CMOR data version.</li>
+        <li>The <b>GitHub issues</b> determine each case's labels, assignee and CMOR data version, and the CMORization issues in CMIP7_CMOR-Publish that name the case.</li>
         <li>The <b>run scripts</b> on the <code>CMIP7_Runscripts</code> branch determine how each case started and which case it continues or branches from.</li>
         <li>The <b>case directories on NIRD</b> determine each case's latest model date, its cost and throughput, and the size of its history and restart output.</li>
         <li>The <b>CMORization directories</b> of cmip7-prep and cmor4cmip7 determine the years each tool has CMORized and the size of the time series and CMOR output.</li>
@@ -718,11 +717,12 @@ python3 -I workflow/nird_progress.py</pre>
           <li id="wf-prepare">
             <details class="wf-more" id="wf-casename">
               <summary>Determine the case name</summary>
-              <p>A case is named <code>compset.resolution.version.issue.date</code>, for example <code>n1850Gaxg.LM.nor30b22.502.20260801</code>:</p>
+              <p>A case is named <code>compset.resolution.version.variant.issue.date</code>, for example <code>n1850GHGGaxg.LM.nor30b28.r1i1p1f1.011.20261102</code>. Names without the variant, such as piControl's #11, <code>n1850GHGGaxg.LM.nor30b28.011.20261102</code>, are read too.</p>
               <ul class="wf-parts">
               <li><b>compset:</b> see column M of the <a href="https://docs.google.com/spreadsheets/d/1qps0xZDkEy1M3GZgjt9mAqAFj2NUK_xd/edit?gid=13331701#gid=13331701" target="_blank" rel="noopener">NorESM3 CMIP7 experiments spreadsheet</a>;</li>
               <li><b>resolution:</b> <code>LM</code> for ne16pg3_tn14, <code>MM</code> for ne30pg3_tn14;</li>
-              <li><b>version:</b> <code>nor30</code> for noresm3_0_, followed by the beta, e.g. <code>b22</code> for beta22;</li>
+              <li><b>version:</b> <code>nor30</code> for noresm3_0_, followed by the beta, e.g. <code>b28</code> for beta28;</li>
+              <li><b>variant:</b> the ensemble member, as in the issue's <a href="#wf-issue">variant label</a>, e.g. <code>r1i1p1f1</code>;</li>
               <li><b>issue:</b> the number the case's <a href="#wf-issue">GitHub issue</a> will have;</li>
               <li><b>date:</b> the date the case is made, as YYYYMMDD.</li>
               </ul>
@@ -744,8 +744,8 @@ python3 -I workflow/nird_progress.py</pre>
 - cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/&lt;case&gt;.cmor
 - cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-&lt;resolution&gt;/&lt;experiment&gt;/&lt;variant&gt;</pre>
               <div class="wf-indent">
-              <p>The CMOR data version, e.g. <code>20261028</code>, which is the version directory <code>v20261028</code> on NIRD, <b>must agree between the two CMORization tools for a given span of years</b>: cmip7-prep, which CMORizes the atmosphere, land, sea ice and land ice (its <code>--data-version</code>), and cmor4cmip7, which CMORizes the ocean and ocean biogeochemistry. That way all the realms for those years are one edition of the dataset.</p>
-              <p>If the version directories on NIRD don't match the issue, or each other, the case's chip in the cmip7prep or cmor4cmip7 column, its issue and years such as <code>#002 1–170</code>, is red. Click the chip to see the case's output directory, the versions, and what disagrees.</p>
+              <p>The CMOR data version, e.g. <code>20261028</code>, is the version directory <code>v20261028</code> on NIRD. cmip7-prep, which CMORizes the atmosphere, land, sea ice and land ice, is given it with <code>--data-version</code>; cmor4cmip7, which CMORizes the ocean and ocean biogeochemistry, need not use the same version.</p>
+              <p>The case's chip in the cmip7prep or cmor4cmip7 column shows its issue and years, such as <code>#002 1–170</code>. Click the chip to see the case's output directory and the version directories its files are in. The two tools are read differently, as <a href="#wf-cmoratm">cmip7-prep</a> and <a href="#wf-cmorocn">cmor4cmip7</a> in CMORize explain.</p>
               <p>The progress script finds everything else itself: each tool's output in its default place, explained under <a href="#wf-cmoratm">cmip7-prep</a> and <a href="#wf-cmorocn">cmor4cmip7</a> in CMORize, and the case's run script by the issue number its name starts with (see <a href="#wf-script">Archive the run script</a>).</p>
               </div>
               <ul class="wf-parts">
@@ -804,19 +804,24 @@ python3 -I workflow/nird_progress.py</pre>
         <ul class="wf-steps">
           <li id="wf-cmorissue"><div class="wf-title">Make the CMORization issue</div>
             <p>Once the simulation has finished, open an issue in <a href="https://github.com/NorESMhub/CMIP7_CMOR-Publish/issues" target="_blank" rel="noopener">NorESMhub/CMIP7_CMOR-Publish</a> from its template, which is like the CMIP6 one, and label it <code class="wf-labelname">cmorization</code>. The repository's other labels are <code class="wf-labelname">publication</code>, <code class="wf-labelname">archive</code>, <code class="wf-labelname">cmor_bug</code>, <code class="wf-labelname">publication_bug</code> and <code class="wf-labelname">retract</code>.</p>
-            <p>Before either tool starts, set the CMOR data version in the description of the case's issue in noresm_cmip7_simulations. Both tools write the case's years into that version, cmip7-prep with <code>--data-version</code>:</p>
-            <pre class="wf-pre wf-pre-entries">- cmor data version: 20261028
-- cmip7prep output root: /nird/datalake/NS9560K/noresm3/cases/&lt;case&gt;.cmor
-- cmor4cmip7 output root: /nird/datapeak/NS9034K/.CMIP7/NorESM3-&lt;resolution&gt;/&lt;experiment&gt;/&lt;variant&gt;</pre>
-            <p>These are the standard places, as the two steps below explain, and clicking a case's chip in the cmip7prep or cmor4cmip7 column shows the directory the progress script read. Output somewhere else needs its own directory in the issue's <code class="wf-entry">- cmip7prep output root:</code> or <code class="wf-entry">- cmor4cmip7 output root:</code>. The directory may have <code>&lt;case&gt;</code>, <code>&lt;resolution&gt;</code>, <code>&lt;experiment&gt;</code> and <code>&lt;variant&gt;</code> in it, which the script fills in from the issue, e.g. <code>/nird/datalake/NS9560K/someone/&lt;case&gt;.cmor</code>.</p>
+            <p>Name each case the issue CMORizes by its case name, e.g. <code>n1850GHGGaxg.LM.nor30b27.002.20261016</code>, as the template asks. The progress script finds the CMORization issues that name a case, and the tracker links each after the case's issue as <a class="script-chip cmor-chip">cmor</a>. Clicking a case's chip in the cmip7prep or cmor4cmip7 column shows the CMORization issue and its cmor tag version too.</p>
             <div class="wf-decide"><b>To decide:</b> how urgency is shown.</div></li>
           <li id="wf-cmoratm"><div class="wf-title">CMORize the atmosphere, land, sea ice and land ice using cmip7-prep</div>
-            <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K</code> with the cmor4cmip7 output. The progress script reads the <code>completed_steps_*.json</code> files cmip7-prep writes there, and the tracker shows the years CMORized so far, e.g. <code>1–50</code>.</p>
-            <p>The script reads only the case's <code>.cmor</code> directory, not the ones below it. Each case has its own, with its own time series and logs. For output elsewhere, the <code>cmip7prep output root</code> entry gives the directory that holds the case's <code>completed_steps_*.json</code> files.</p>
-            <p>The tracker shows the cmip7prep years case by case, a chip for each case with CMORized years, since each case has its own directory: piControl's #2 can be done while #11 is not.</p></li>
+            <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K</code> with the cmor4cmip7 output. The tracker's cmip7prep column shows it as follows:</p>
+            <ul class="wf-parts">
+              <li><b>where:</b> the progress script reads the case's own <code>.cmor</code> directory, not the ones below it. For output elsewhere, the <code>cmip7prep output root</code> entry gives the directory that holds the case's <code>completed_steps_*.json</code> files;</li>
+              <li><b>which issue:</b> each case has its own <code>.cmor</code> directory, named after its issue's title, so everything in it belongs to that issue. piControl's #2 can be done while #11 is not;</li>
+              <li><b>years:</b> cmip7-prep writes a <code>completed_steps_&lt;first&gt;-&lt;last&gt;.json</code> file for each set of years it has CMORized. A set counts once its file lists every <code>cmor-</code> step that any of the simulation's files lists, so a set where one realm failed doesn't count. The chip shows the years of the sets that count, e.g. <code>#002 1–50</code>;</li>
+              <li><b>dashed chip:</b> no set counts yet; the chip shows the years of all the sets.</li>
+            </ul></li>
           <li id="wf-cmorocn"><div class="wf-title">CMORize the ocean and ocean biogeochemistry using cmor4cmip7</div>
-            <p>The CMORized output goes in <code>/nird/datapeak/NS9034K/.CMIP7</code>, under the model, experiment, variant and version, e.g. <code>NorESM3-LM/piControl/r1i1p1f1/v20261028</code>. The first 100 years of piControl's ocean are being CMORized there now. The progress script reads the time ranges in the names of the files there, e.g. <code>_000101-001012.nc</code>, and the tracker shows the years every variable has, e.g. <code>1–10</code>.</p>
-            <p>The script reads the simulation's variant directory, named from the issue's resolution, experiment and variant, e.g. <code>/nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</code>, and every version below it, so a later version is read too. It takes the files whose names have the issue's experiment and variant, e.g. <code>_piControl_r1i1p1f1_</code>. These hold all the simulation's years, so the tracker counts each year once however many issues the simulation has. For output elsewhere, the <code>cmor4cmip7 output root</code> entry gives the variant directory; a root above the model directory would mix the LM and MM files of the same experiment and variant.</p></li>
+            <p>The CMORized output goes in <code>/nird/datapeak/NS9034K/.CMIP7</code>, under the model, experiment, variant and version, e.g. <code>NorESM3-LM/piControl/r1i1p1f1/v20261028</code>. The tracker's cmor4cmip7 column shows it as follows:</p>
+            <ul class="wf-parts">
+              <li><b>where:</b> the progress script reads the simulation's variant directory, named from the issue's resolution, experiment and variant, e.g. <code>/nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</code>, and every version below it. It takes the files whose names have the issue's experiment and variant, e.g. <code>_piControl_r1i1p1f1_</code>. For output elsewhere, the <code>cmor4cmip7 output root</code> entry gives the variant directory; a root above the model directory would mix the LM and MM files of the same experiment and variant;</li>
+              <li><b>which issue:</b> the variant directory holds the whole simulation, so every issue with the same experiment and variant shares it. Each file goes to an issue by its years, from the time range in its name, e.g. <code>_185001-185912.nc</code>. An issue covers the years from its run script's <code>RUN_STARTDATE</code> to the year before the next issue's. A simulation with one issue gets all the files;</li>
+              <li><b>years:</b> a year counts once every variable has a file for it. The chip shows the years that count, e.g. <code>#002 1–170</code>, or the years the files cover while no year counts;</li>
+              <li><b>red chip:</b> something is wrong with the files for the issue's years. Either some variables have no files for years other variables have, or a variable has a year in more than one file of the same version. The chip's panel lists the years and variables.</li>
+            </ul></li>
         </ul>
         <p class="wf-note">cmip7-prep and cmor4cmip7 lay out their output differently. That doesn't matter for publication: esg-prep links both into the structure ESGF needs. The CMORization and publication workflow, and the esg-prep command, will be added here as they are settled.</p>
         </details>
@@ -1056,6 +1061,10 @@ python3 -I workflow/nird_progress.py</pre>
     return `Starts from ${s.refcase} (${how})`;
   }
   const runScriptUrl = path => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/blob/${RUNSCRIPTS_BRANCH}/scripts/${path}`;
+  // The CMORization issues in CMIP7_CMOR-Publish that name the case.
+  const CMOR_REPO = "NorESMhub/CMIP7_CMOR-Publish";
+  const cmorIssueUrl = n => `https://github.com/${CMOR_REPO}/issues/${n}`;
+  const cmorIssueText = ci => `${CMOR_REPO}#${ci.number}, ${ci.state}; cmor tag version ${ci.tagVersion || "not given"}`;
   const WORKFLOW_STEPS = [
     { key: "run",       short: "Run",        name: "Run: Status and Progress", phase: "Run", derived: true, cols: 2 },
     { key: "cmoratm",   short: "cmip7prep",  name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", phase: "CMORize", auto: true, range: true },
@@ -2228,18 +2237,18 @@ python3 -I workflow/nird_progress.py</pre>
 
   // A CMORize cell's panel opens under its years, one at a time, and closes on a click
   // elsewhere or Escape.
-  // One case's chip in a CMORize cell, "#002 1–170", and the panel it opens: the case's
-  // years, its output directory, its issue's CMOR data version, the version directories its
-  // files are in, and what disagrees. The chip is dashed while no year is complete: no year
-  // has every realm (cmip7-prep) or every variable (cmor4cmip7).
+  // One case's chip in a CMORize cell, "#002 1–170", and the panel it opens: what is wrong
+  // with its files, if anything, its years, its output directory, its issue's CMOR data
+  // version and the version directories its files are in. A cmip7-prep chip is dashed while
+  // no year has every realm. A cmor4cmip7 chip is red when the script found something wrong.
   function cmorCaseBox(row, step, { member, c, info }, byVariant){
     const tool = step.key === "cmoratm" ? "cmip7prep" : "cmor4cmip7";
-    const bad = info.warnings.length > 0;
+    const problems = info.problems || [];
     const box = document.createElement("details");
-    box.className = "cmor-box" + (bad ? " bad" : "");
+    box.className = "cmor-box" + (problems.length ? " bad" : "");
     const summary = document.createElement("summary");
     const chip = document.createElement("span");
-    chip.className = "step-range" + (info.years.length ? "" : " partial");
+    chip.className = "step-range" + (info.years.length || tool === "cmor4cmip7" ? "" : " partial");
     chip.textContent = `#${String(c.issue).padStart(3, "0")} ${yearSpans(info.years.length ? info.years : info.files)}`;
     summary.appendChild(chip);
     box.appendChild(summary);
@@ -2256,36 +2265,41 @@ python3 -I workflow/nird_progress.py</pre>
     const list = (head, lines) => {
       add("div", "cp-head", head);
       const ul = add("ul");
-      lines.forEach(([text, isBad]) => {
+      lines.forEach(text => {
         const li = document.createElement("li");
         li.textContent = text;
-        if (isBad) li.className = "bad";
         ul.appendChild(li);
       });
     };
     const versions = Object.entries(info.versions);
     add("h4", null, `#${c.issue}, ${row.name}${byVariant ? " " + member.variant : ""}: ${tool}`);
-    add("p", "cp-status" + (bad ? " bad" : ""), bad ? "⚠ The CMOR data version doesn't agree."
-      : versions.length ? "✓ The CMOR data version agrees." : "No version directories found yet.");
+    if (problems.length){
+      add("div", "cp-head bad", "Problems");
+      const ul = add("ul", "bad");
+      problems.forEach(p => { const li = document.createElement("li"); li.textContent = p; ul.appendChild(li); });
+    }
     const caseYears = c.shownTo === Infinity ? `from ${c.from}` : `${c.from}–${c.shownTo}`;
     const what = step.key === "cmoratm" ? "realm" : "variable";
     list("Years", [
-      [`The case runs years ${caseYears}${c.to === Infinity ? " so far" : ""}.`],
-      [info.years.length ? `CMORized: ${yearSpans(info.years)}`
-        : `No year has every ${what} yet; the files cover ${yearSpans(info.files)}.`],
+      `The case runs years ${caseYears}${c.to === Infinity ? " so far" : ""}.`,
+      info.years.length ? `CMORized: ${yearSpans(info.years)}`
+        : `No year has every ${what} yet; the files cover ${yearSpans(info.files)}.`,
     ]);
-    list("Output directory", [[c.output[tool] || "None found yet."]]);
-    list(`CMOR data version in #${c.issue}`, [[c.dataVersion || "Not given yet.", !c.dataVersion && versions.length > 0]]);
-    if (versions.length) list("Version directories of its files", versions.map(([v, ys]) =>
-      [`${v}, years ${yearSpans(ys)}: ${v === c.dataVersion ? "✓ the issue's version" : "⚠ not the issue's version"}`, v !== c.dataVersion]));
-    if (bad){
-      list("What disagrees", info.warnings.map(w => [w, true]));
-      add("p", null, `All realms' files for a year should be in the version directory #${c.issue} gives as its `
-        + "CMOR data version, so that they are one edition of the dataset. To fix it, set "
-        + `"- cmor data version: YYYYMMDD" in #${c.issue}'s description to the version its files are in, `
-        + "or move the files into the issue's version, or delete the superseded version. The years turn "
-        + "purple on the next run of nird_progress.py.");
-    }
+    list("Output directory", [c.output[tool] || "None found yet."]);
+    add("div", "cp-head", "CMORization issue");
+    const issues = add("ul");
+    if (!c.cmorIssues.length) issues.appendChild(Object.assign(document.createElement("li"),
+      { textContent: `None in ${CMOR_REPO} names the case yet.` }));
+    c.cmorIssues.forEach(ci => {
+      const li = document.createElement("li");
+      const a = Object.assign(document.createElement("a"),
+        { href: cmorIssueUrl(ci.number), target: "_blank", rel: "noopener", textContent: `${CMOR_REPO}#${ci.number}` });
+      li.append(a, `, ${ci.state}; cmor tag version ${ci.tagVersion || "not given"}`);
+      issues.appendChild(li);
+    });
+    list(`CMOR data version in #${c.issue}`, [c.dataVersion || "Not given yet."]);
+    list("Version directories of its files", versions.length
+      ? versions.map(([v, ys]) => `${v}, years ${yearSpans(ys)}`) : ["None found yet."]);
     box.appendChild(pop);
     return box;
   }
@@ -2715,10 +2729,10 @@ python3 -I workflow/nird_progress.py</pre>
           const p = autoRun(row);
           const members = p && p.members ? p.members : [];
           if (autoSteps(row)[step.key] === true) td.classList.add("auto-done");
-          // A chip for each case with output: its issue and the years it has CMORized, red when
-          // its CMOR data versions disagree; clicking it opens what the script found.
+          // A chip for each case with output: its issue and the years it has CMORized; clicking
+          // it opens what the script found.
           const parts = members.flatMap(x => x.byCase.map(c => ({ member: x, c, info: c[step.key] })))
-            .filter(o => o.info.files.length || o.info.warnings.length);
+            .filter(o => o.info.files.length);
           if (!parts.length){
             const m = document.createElement("span");
             m.className = "step-mark"; m.textContent = "·";
@@ -2819,6 +2833,13 @@ python3 -I workflow/nird_progress.py</pre>
           sh.textContent = "sh"; sh.title = `Run script for #${c.issue}: scripts/${c.runScript}\n${caseStart(c)}`;
           pair.appendChild(sh);
         }
+        // Its CMORization issues in CMIP7_CMOR-Publish, found by the case name in them.
+        (c.cmorIssues || []).forEach(ci => {
+          const a = document.createElement("a"); a.className = "script-chip cmor-chip";
+          a.href = cmorIssueUrl(ci.number); a.target = "_blank"; a.rel = "noopener";
+          a.textContent = "cmor"; a.title = `CMORization issue for #${c.issue}: ${cmorIssueText(ci)}`;
+          pair.appendChild(a);
+        });
         tdCases.appendChild(pair);
       });
       // The name's hover gives a member's variant and the cases' names.
@@ -3238,10 +3259,7 @@ python3 -I workflow/nird_progress.py</pre>
       return { issue: c.issue, years: [...years] };
     });
     m.outputs = cases.filter(c => c.cmorOutput).map(c => ({ issue: c.issue, ...c.cmorOutput }));
-    // The version directories each tool's files are in, year by year, and what disagrees: a
-    // version in a case's cmip7-prep directory other than its issue's, a cmor4cmip7 version
-    // no issue gives, and years the two tools wrote into different versions.
-    m.dataVersions = cases.filter(c => c.dataVersion).map(c => ({ issue: c.issue, version: c.dataVersion }));
+    // The version directories each tool's files are in, year by year.
     const byYear = { cmip7prep: {}, cmor4cmip7: {} };
     cases.forEach(c => Object.entries(c.cmorVersions || {}).forEach(([tool, vs]) =>
       Object.entries(vs).forEach(([v, ranges]) => ranges.forEach(([a, b]) => {
@@ -3254,10 +3272,10 @@ python3 -I workflow/nird_progress.py</pre>
       m.versions[tool] = vs;
     });
     // Case by case: the years of the run each case covers, from its start year to the year
-    // before the next case's, and for each tool the years it has CMORized, the version
-    // directories its files for those years are in, and what disagrees with its issue's
-    // CMOR data version. cmip7-prep writes each case to its own directory; cmor4cmip7 writes
-    // the whole simulation, so its files are shared out by the cases' years.
+    // before the next case's, and for each tool the years it has CMORized and the version
+    // directories its files for those years are in. cmip7-prep writes each case to its own
+    // directory; cmor4cmip7 writes the whole simulation, so its files are shared out by the
+    // cases' years.
     const firstYear = c => c.start && c.start.startdate ? Number(c.start.startdate.slice(0, 4)) : start;
     const ordered = [...cases].sort((a, b) => firstYear(a) - firstYear(b) || a.issue - b.issue);
     const sorted = ys => [...new Set(ys)].sort((a, b) => a - b);
@@ -3268,23 +3286,6 @@ python3 -I workflow/nird_progress.py</pre>
       }));
       Object.keys(out).forEach(v => (out[v] = sorted(out[v])));
       return out;
-    };
-    const clashes = keep => {
-      const found = {};
-      Object.entries(byYear.cmip7prep).forEach(([y, a]) => {
-        const b = byYear.cmor4cmip7[y];
-        if (!b || !keep(Number(y))) return;
-        const ka = [...a].sort().join(", "), kb = [...b].sort().join(", ");
-        if (ka !== kb) (found[`cmip7-prep in ${ka}, cmor4cmip7 in ${kb}`] = found[`cmip7-prep in ${ka}, cmor4cmip7 in ${kb}`] || []).push(Number(y));
-      });
-      return Object.entries(found).map(([k, ys]) => `years ${yearSpans(ys)} are in different versions: ${k}`);
-    };
-    const versionWarnings = (c, label, versions) => {
-      const vs = Object.keys(versions);
-      if (!vs.length) return [];
-      if (!c.dataVersion) return [`#${c.issue} gives no CMOR data version, and its ${label} files are in ${vs.join(", ")}`];
-      return vs.filter(v => v !== c.dataVersion)
-        .map(v => `${label} files for years ${yearSpans(versions[v])} are in ${v}, but #${c.issue} gives ${c.dataVersion}`);
     };
     m.byCase = ordered.map((c, i) => {
       const from = firstYear(c);
@@ -3304,27 +3305,32 @@ python3 -I workflow/nird_progress.py</pre>
       const prepVersions = versionYears((c.cmorVersions || {}).cmip7prep, () => true);
       const ocnVersions = versionYears(Object.fromEntries(Object.entries(m.versions.cmor4cmip7)
         .map(([v, ys]) => [v, ys.map(y => [y, y])])), inCase);
-      const ownPrep = y => Object.values(prepVersions).some(ys => ys.includes(y));
+      // What the script found wrong with cmor4cmip7's files, for this case's years.
+      const found = c.cmor4cmip7Problems || {};
+      const caseYears = g => g.years.flatMap(([a, b]) => Array.from({ length: b - a + 1 }, (_, k) => a + k)).filter(inCase);
+      const names = vs => `${vs.length} variable${vs.length > 1 ? "s" : ""}: ${vs.join(", ")}`;
+      const ocnProblems = [
+        ...(found.missing || []).map(g => [g, caseYears(g)]).filter(([, ys]) => ys.length)
+          .map(([g, ys]) => `No files for ${yearSpans(ys)}, which other variables have, for ${names(g.variables)}.`),
+        ...(found.overlaps || []).map(g => [g, caseYears(g)]).filter(([, ys]) => ys.length)
+          .map(([g, ys]) => `${ys.length > 1 ? "Years" : "Year"} ${yearSpans(ys)} ${ys.length > 1 ? "are" : "is"} in more than one file${g.version ? " in " + g.version : ""}, for ${names(g.variables)}.`),
+      ];
       return {
         issue: c.issue, from, to, shownTo, dataVersion: c.dataVersion, output: c.cmorOutput || {},
+        cmorIssues: c.cmorIssues || [],
         cmoratm: {
           years: sorted(prepComplete),
           files: sorted(prepAny.concat(Object.values(prepVersions).flat())),
           versions: prepVersions,
-          warnings: versionWarnings(c, "cmip7-prep", prepVersions).concat(clashes(ownPrep)),
         },
         cmorocn: {
           years: sorted([...ocn].filter(inCase)),
           files: sorted(Object.values(ocnVersions).flat()),
           versions: ocnVersions,
-          warnings: versionWarnings(c, "cmor4cmip7", ocnVersions).concat(clashes(inCase)),
+          problems: ocnProblems,
         },
       };
     });
-    m.versionWarnings = {
-      cmoratm: m.byCase.flatMap(c => c.cmoratm.warnings),
-      cmorocn: m.byCase.flatMap(c => c.cmorocn.warnings),
-    };
     return m;
   }
 
@@ -3368,10 +3374,6 @@ python3 -I workflow/nird_progress.py</pre>
       const r = { from: start, to: Math.min(...members.map(m => m.cmor[key].to)) };
       p.cmor[key] = r;
       if (members.length >= planned && r.to - start + 1 >= (length || Infinity)) p.steps[key] = true;
-    });
-    p.versionWarnings = {};
-    ["cmoratm", "cmorocn"].forEach(key => {
-      p.versionWarnings[key] = members.flatMap(m => m.versionWarnings[key].map(w => members.length > 1 ? `${m.variant}: ${w}` : w));
     });
     return p;
   }
