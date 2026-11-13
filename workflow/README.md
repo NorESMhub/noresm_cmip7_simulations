@@ -26,7 +26,7 @@ read by the web page each time the page is opened in a browser.
 - **`noresm3_experiments_decoded.csv`**
 
   This file is a copy of the DECK_FASTTRACK tab of the
-  [NorESM3 CMIP7 experiments spreadsheet](https://docs.google.com/spreadsheets/d/1qps0xZDkEy1M3GZgjt9mAqAFj2NUK_xd/edit?gid=13331701#gid=13331701).
+  [NorESM3 CMIP7 experiments spreadsheet](https://docs.google.com/spreadsheets/d/1PZQHmOHVENJeCqwSfk4wfp8okQXw60Bv/edit?gid=13331701#gid=13331701).
   It contains each experiment's tier, activity, compset, required model
   components, number of members and number of years. When the spreadsheet
   changes, the tab is exported as a CSV file and saved over this file.
@@ -163,7 +163,12 @@ GitHub's raw file server, which is not counted.
 Each case issue is titled with the case name, e.g.
 `nHistEsmGHGGaxg.LM.nor30b28.r1i1p1f1.008.20261029`. Issues with the `test`
 label are not CMIP7 runs and are left out. An issue whose title is not a case
-name is listed under the tracker on the web page, so that it can be corrected.
+name is also left out, and the script prints a line saying so.
+
+The web page shows a case once its issue has an experiment label for a run in
+the plan and a variant label, e.g. `historical` and `r2i1p1f1`. Until then, the
+issue is listed under "Not shown" below the tracker, together with the issues
+whose titles are not case names.
 
 The case's owner is the person assigned to the issue. If nobody is assigned,
 the owner is the person who opened the issue.

@@ -495,6 +495,8 @@
   #simTables tr.member-single > td{ border-top: 2px solid var(--text-secondary); border-bottom: 2px solid var(--text-secondary); }
   #simTables input.num{ width: 58px; min-width: 50px; }
   #simTables td.col-owner{ font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; }
+  #simTables td.col-parent{ font-size: 12.5px; color: var(--text-secondary); }
+  #simTables td.col-parent .parent-chip{ white-space: nowrap; }
   /* Each case's issue and script chips are a line of their own. */
   #simTables td.col-cases{ white-space: normal; line-height: 1.9; }
   #simTables td.col-cases .case-pair{ display: block; white-space: nowrap; }
@@ -715,7 +717,7 @@ python3 -I workflow/nird_progress.py</pre>
               <summary>Determine the case name</summary>
               <p>A case is named <code>compset.resolution.version.variant.issue.date</code>, for example <code>n1850GHGGaxg.LM.nor30b28.r1i1p1f1.011.20261102</code>. Names without the variant, such as piControl's #11, <code>n1850GHGGaxg.LM.nor30b28.011.20261102</code>, are read too.</p>
               <ul class="wf-parts">
-              <li><b>compset:</b> see column M of the <a href="https://docs.google.com/spreadsheets/d/1qps0xZDkEy1M3GZgjt9mAqAFj2NUK_xd/edit?gid=13331701#gid=13331701" target="_blank" rel="noopener">NorESM3 CMIP7 experiments spreadsheet</a>;</li>
+              <li><b>compset:</b> see column M of the <a href="https://docs.google.com/spreadsheets/d/1PZQHmOHVENJeCqwSfk4wfp8okQXw60Bv/edit?gid=13331701#gid=13331701" target="_blank" rel="noopener">NorESM3 CMIP7 experiments spreadsheet</a>;</li>
               <li><b>resolution:</b> <code>LM</code> for ne16pg3_tn14, <code>MM</code> for ne30pg3_tn14;</li>
               <li><b>version:</b> <code>nor30</code> for noresm3_0_, followed by the beta, e.g. <code>b28</code> for beta28 or <code>b29a</code> for beta29a;</li>
               <li><b>variant:</b> the ensemble member, as in the issue's <a href="#wf-issue">variant label</a>, e.g. <code>r1i1p1f1</code>;</li>
@@ -2515,7 +2517,8 @@ python3 -I workflow/nird_progress.py</pre>
   // The column headings, repeated in each group's bar after the group's name; the table has
   // no heading of its own.
   function simColumnHeads(){
-    return `<th class="sim-col">Owner</th>`
+    return `<th class="sim-col" title="The experiment the run branches from, from the spreadsheet's &quot;branches from&quot; column">Parent</th>`
+      + `<th class="sim-col">Owner</th>`
       + `<th class="sim-col" title="The run's GitHub issues in NorESMhub/noresm_cmip7_simulations, one per case; hover for the case name">Issues</th>`
       + `<th class="sim-col n">Years</th>`
       + WORKFLOW_STEPS.map(s => s.derived
@@ -2525,9 +2528,9 @@ python3 -I workflow/nird_progress.py</pre>
           : `<th class="step-h${s.phase ? " phase-start" : s.split ? " split-start" : ""}" title="${s.name}${s.label ? ` (label: ${s.label})` : ""}"><a href="#wf-${s.key}">${s.short}</a></th>`).join("");
   }
 
-  // Simulation, Owner, Issues, Years, then the step columns: Status, Progress, cmip7prep,
-  // cmor4cmip7, ESGF.
-  const SIM_COL_WIDTHS = [18, 7, 12, 5, 15, 17, 11, 11, 4];
+  // Simulation, Parent, Owner, Issues, Years, then the step columns: Status, Progress,
+  // cmip7prep, cmor4cmip7, ESGF.
+  const SIM_COL_WIDTHS = [14, 12, 7, 11, 5, 13, 14, 10, 10, 4];
 
   function renderSimTable(){
     simTables.innerHTML = "";
@@ -2638,6 +2641,24 @@ python3 -I workflow/nird_progress.py</pre>
       tdName.appendChild(nameWrap);
 
       if (!Array.isArray(row.dependsOn)) row.dependsOn = row.dependsOn ? [row.dependsOn] : [];
+
+      // The parent case named in the run scripts of the run's cases, as one chip with its
+      // experiment and issue, e.g. "piControl #002". Without one, the experiment the
+      // spreadsheet gives, e.g. piControl for historical.
+      const tdParent = document.createElement("td"); tdParent.className = "col-parent";
+      const parentExperiment = row.dependsOn.map(id => sims.find(s => s.id === id)).filter(Boolean)
+        .map(p => p.experiment || p.name).join(", ");
+      const branching = (row.cases || []).filter(c => c.start && c.start.parent && !continues(c));
+      [...new Map(branching.map(c => [c.start.parent, c])).values()].forEach(c => {
+        const pc = parentCase(c);
+        const run = pc && sims.find(r => r.name === pc.runName);
+        const a = document.createElement("a"); a.className = "case-chip parent-chip";
+        a.href = `${issuesUrl()}/${c.start.parent}`; a.target = "_blank"; a.rel = "noopener";
+        a.textContent = `${(run && run.experiment) || parentExperiment} #${String(c.start.parent).padStart(3, "0")}`.trim();
+        a.title = `#${c.issue} ${caseStart(c).replace(/^B/, "b")}`;
+        tdParent.appendChild(a);
+      });
+      if (!branching.length) tdParent.textContent = parentExperiment || "–";
 
       const tdDep1 = document.createElement("td");
       const depSelect1 = document.createElement("select");
@@ -2838,7 +2859,7 @@ python3 -I workflow/nird_progress.py</pre>
       const nameHover = (row.memberOf ? [row.hasIssue ? `Member ${row.variant}` : `Member ${row.variant}: planned, no case issue yet`] : [])
         .concat((row.cases || []).map(c => `${c.case} (${reached(c)})`));
       if (nameHover.length) nameInput.title = nameHover.join("\n");
-      tr.appendChild(tdName); tr.appendChild(tdOwner); tr.appendChild(tdCases); tr.appendChild(tdYears);
+      tr.appendChild(tdName); tr.appendChild(tdParent); tr.appendChild(tdOwner); tr.appendChild(tdCases); tr.appendChild(tdYears);
       stepCells.flat().forEach(td => tr.appendChild(td));
       simTbody.appendChild(tr);
     }
