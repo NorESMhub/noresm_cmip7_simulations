@@ -87,7 +87,7 @@ read by the web page each time the page is opened in a browser.
 
 | Script | What it does | When it is run |
 |---|---|---|
-| `build_page.sh` | It generates `index.html` by running `build_scheduler.py` with the plan. | It is run whenever the spreadsheet copy, the template or the plan changes. |
+| `build_page.sh` | It generates `index.html` by running `build_scheduler.py`. | It is run whenever the spreadsheet copy, the template or the plan changes. |
 | `build_scheduler.py` | It combines the experiments, the plan and the template into `index.html`. | It is run only by `build_page.sh`. |
 | `nird_progress.py` | It generates `progress.json` from GitHub and the case files on NIRD. | It is run whenever the progress needs to be updated. |
 | `scheduler_template.html` | It contains the JavaScript that combines `index.html` and `progress.json` in the browser. | Its JavaScript is run each time the web page is opened. |
@@ -101,34 +101,34 @@ following command.
 workflow/build_page.sh /nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/index.html
 ```
 
-The script contains the plan, which is the set of runs along with the number of
-members and years of each run. The script passes the plan to
-`build_scheduler.py` as options. The plan is changed by editing `build_page.sh` and running it again.
+The script writes the web page to the file it is given, by running
+`build_scheduler.py`.
 
 ### `build_scheduler.py`
 
 `build_scheduler.py` generates `index.html` in five steps.
 
 1. It reads the experiments from `noresm3_experiments_decoded.csv`.
-2. It selects the experiments in the tiers or activities that the plan lists
-   for each resolution and makes each of them a run at that resolution.
-3. It assigns each run a model configuration. The configurations are listed in
-   the `COSTS` table in `build_scheduler.py`. Each configuration, e.g.
-   `NorESM3 ESM LM`, has a cost per simulated year, a throughput and a list of
-   compsets. A run is assigned the configuration whose list contains the
-   experiment's compset at the run's resolution. If no list contains the
-   compset, the configuration is chosen from the experiment's required model
-   components, e.g. an AGCM experiment is assigned the AMIP configuration. A
-   run whose configuration is not in `COSTS` is left out, and a warning is
-   printed.
-4. It sets the number of members and years of each run. These are taken from
-   the spreadsheet unless the plan gives them.
-5. It replaces the default data in a copy of `scheduler_template.html` with the
-   configurations and runs, and writes the result to `index.html`.
+2. It chooses which experiments are run at each resolution. The plan at the top
+   of `build_scheduler.py` lists the tiers and activities for each resolution,
+   e.g. the DECK and Fast Track experiments at LM resolution. The plan is
+   changed by editing it there and running `build_page.sh` again.
+3. It gives each run an estimated cost and throughput. The estimates come from
+   the `COSTS` table in `build_scheduler.py`, which has one estimate for each
+   model configuration, e.g. `NorESM3 LM` for the coupled model at LM
+   resolution. Each estimate lists the compsets it applies to, e.g.
+   `N1850GhgGaxg`, which is the compset of piControl. A run whose compset is not
+   listed is given the estimate for the coupled, ESM or AMIP configuration at
+   its resolution. There is no estimate yet for land-only or DCPP experiments,
+   so they are left out of the web page.
+4. It takes the number of members and years of each run from the spreadsheet.
+5. It writes the runs and their estimates into a copy of
+   `scheduler_template.html`, which becomes `index.html`.
 
-The `COSTS` values are estimates from early timing runs. Once a configuration's
-cases have timing files, the web page replaces these estimates with the measured
-values in `progress.json`.
+On the web page, these estimates are used only until real timings exist. Once
+cases of a configuration have timing files on NIRD, the web page replaces the
+estimate with the mean of those cases' measured timings, worked out machine by
+machine.
 
 ### `nird_progress.py`
 
@@ -139,150 +139,129 @@ published web page. It is run on NIRD with the following command.
 python3 -I workflow/nird_progress.py
 ```
 
-For every case issue, the script reads the following information.
-
-- It reads the issue's title and labels, the case's run script, and the
-  CMORization issues that name the case from GitHub.
-- It reads the model date, which is the latest date in the names of the case's
-  files, e.g. `<case>.cam.i.1930-01-01-00000.nc`. The web page uses this date
-  to count the number of years that the case has simulated.
-- It reads the CMORized years from the cmip7-prep and cmor4cmip7 output
-  directories.
-- It reads the cost and throughput from the case's `noresm_timing.*` files.
-  There is one timing file for each job.
-- It measures the output size, which is the number of GB per simulated year
-  that the case's history files, restart files, cmip7-prep time series and
-  CMORized files take up on NIRD. The Cost plan multiplies these sizes by each
-  run's number of members and years.
+The web page shows how far each case has run, how much of its output has been
+CMORized, what it costs and how much storage it needs. The script collects this
+information for every case issue, as described in the sections below.
 
 The script first writes `progress.json` to a temporary file and then moves it
-into place, so that the web page never reads a half-written file. The sections
-below describe each step in more detail.
+into place, so that the web page never reads a half-written file. For each
+issue, the script also prints one line with the issue's labels and what it
+found, so that a missing label or a missing directory is easy to spot.
 
 #### Reading GitHub
 
 The script reads every issue in `NorESMhub/noresm_cmip7_simulations` and in
-`NorESMhub/CMIP7_CMOR-Publish`. It then lists the run scripts in the `scripts/`
-directory on the `CMIP7_Runscripts` branch and reads each case's script from
-GitHub's raw file server.
+`NorESMhub/CMIP7_CMOR-Publish`. It also reads each case's run script from the
+`CMIP7_Runscripts` branch.
 
-GitHub allows 60 anonymous requests an hour. The script makes one request for
-every hundred issues in each repository, along with one request to list the run
-scripts. Requests to the raw file server do not count towards this limit.
+GitHub allows 60 anonymous requests an hour. The script needs only a few,
+because it fetches the issues a hundred at a time and the run scripts come from
+GitHub's raw file server, which is not counted.
 
-#### What it does for each case issue
+#### The case and its owner
 
-1. It leaves out issues with the `test` label.
-2. It reads the case name from the issue title. A title that does not match
-   `<compset>.<LM|MM>.nor30b<beta>.…` is listed as skipped and is shown under
-   the tracker on the web page.
-3. It takes the case's owner from the issue's assignees. If nobody is assigned,
-   it takes the owner from the issue's author.
-4. It finds the latest model date in the names of the `*.cam.i.*.nc` files in
-   the case's `atm/hist` directory.
-5. It finds the run script whose name starts with the issue number. It then
-   reads `RUN_TYPE`, `RUN_REFCASE`, `RUN_REFDATE` and `RUN_STARTDATE` from the
-   script's `./xmlchange` lines, filling in the values of the script's shell
-   variables. If `RUN_REFCASE` is the title of another issue, that issue is
-   recorded as the case's parent.
-6. It records the CMORization issues whose title or body contains the case
-   name, along with each issue's state and the cmor tag version given in it.
-7. It reads the cmip7-prep output.
-8. It reads the cmor4cmip7 output.
-9. It measures the size of the case's output on NIRD.
-10. It reads the case's timing files.
+Each case issue is titled with the case name, e.g.
+`nHistEsmGHGGaxg.LM.nor30b28.r1i1p1f1.008.20261029`. Issues with the `test`
+label are not CMIP7 runs and are left out. An issue whose title is not a case
+name is listed under the tracker on the web page, so that it can be corrected.
 
-For each issue, the script prints one line with the issue's labels and what it
-found.
+The case's owner is the person assigned to the issue. If nobody is assigned,
+the owner is the person who opened the issue.
+
+#### How far the case has run
+
+The web page counts the years a case has simulated from the latest date in the
+names of its history files, e.g. `<case>.cam.i.1930-01-01-00000.nc` in the
+case's `atm/hist` directory.
+
+#### How the case started
+
+The web page shows whether a case is a new start, continues an earlier case, or
+branches from another experiment. The script finds this out from the case's run
+script, whose name starts with the issue number. It reads `RUN_TYPE`,
+`RUN_REFCASE`, `RUN_REFDATE` and `RUN_STARTDATE` from the script's
+`./xmlchange` lines. If `RUN_REFCASE` is the name of another case, that case's
+issue is recorded as the parent.
+
+#### The CMORization issues
+
+The web page links each case to the CMORization issues that name it. The
+script records the number and state of each of these issues, along with the
+cmor tag version given in it.
 
 #### cmip7-prep output
 
-cmip7-prep CMORizes the atmosphere, land, sea ice and land ice output. Its
-output for each case is in the case's own directory,
-`/nird/datalake/NS9560K/noresm3/cases/<case>.cmor`.
+The web page shows how many years of each case cmip7-prep has CMORized.
+cmip7-prep writes a `completed_steps_<first>-<last>.json` file in the case's
+`.cmor` directory for each set of years it works on, listing the steps that
+finished. The script records the steps in each of these files.
 
-- The script reads the `completed_steps_<first>-<last>.json` files in that
-  directory, but not those in the directories below it. Each file corresponds
-  to one set of years, and the script records the `cmor-` steps that each file
-  lists.
-- The script also records the version directories, `vYYYYMMDD`, that contain
-  the case's CMOR files under `cmor/`, along with the years in each version
-  directory.
-
-The web page decides which sets of years count. A set counts once it lists
-every `cmor-` step that is listed by any set of the simulation. A set in which
-one realm failed therefore does not count.
+A set of years counts as CMORized only once every realm has finished, so a set
+in which one realm failed does not count. The script also records which version
+directories, `vYYYYMMDD`, the CMORized files are in, along with the years in
+each version directory.
 
 #### cmor4cmip7 output
 
-cmor4cmip7 CMORizes the ocean and ocean biogeochemistry output. Its output for
-a whole simulation is in one variant directory, e.g.
-`/nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1`. The name of this
-directory is made from the issue's resolution, along with its experiment and
-variant labels.
+The web page shows how many years of each simulation cmor4cmip7 has CMORized,
+and whether anything is wrong with the files. The script reads the variable and
+the years of each file from the file's name, e.g.
+`tos_tavg-u-hxy-sea_…_185001-185912.nc`.
 
-- The script reads every file below the variant directory whose name contains
-  the issue's experiment and variant, e.g. `_piControl_r1i1p1f1_`. It takes
-  each file's variable and time range from the file's name, e.g.
-  `tos_tavg-u-hxy-sea_…_185001-185912.nc`.
-- It records the years for which every variable has a file.
-- It records two kinds of problems. A variable has missing years if it has no
-  file for years that other variables have files for. A variable has overlaps
-  if two of its files in the same version directory cover the same time.
-- It records the version directories that contain the files, along with the
-  years in each version directory.
+A year counts as CMORized once every variable has a file for it. Two kinds of
+problems are recorded.
 
-The case issues of a continued simulation share the same variant directory.
-The web page assigns each case the years from its `RUN_STARTDATE` to the year
-before the next case's `RUN_STARTDATE`. It then shows only the years and
-problems that fall within the case's years.
+- A variable has missing years if other variables have files for years that it
+  has no file for.
+- A variable has overlaps if two of its files in the same version directory
+  cover the same time.
+
+All the cases of a continued simulation share one cmor4cmip7 directory. The web
+page therefore gives each case only the years from its own `RUN_STARTDATE` up to
+the next case's `RUN_STARTDATE`, along with the problems in those years.
 
 #### Output size
 
-The script measures the number of GB per simulated year that each case takes up
-on NIRD. The size is split into the following four parts.
+The Cost plan estimates the storage each run will need. The script therefore
+measures how much space each case already takes up on NIRD for each simulated
+year, in the following four parts.
 
-- The history size is the size of the files in each component's `hist/`
-  directory.
-- The restart size is the size of the files in `rest/` over the years covered
-  by the history files.
-- The time series size is the size of the netCDF files in cmip7-prep's
-  directory outside `cmor/`.
-- The CMOR size is the size of each tool's CMORized files, counting the years
-  in each version directory.
+- The history files are in each component's `hist/` directory.
+- The restart files are in `rest/`.
+- The time series are the netCDF files that cmip7-prep writes outside `cmor/`.
+- The CMORized files are those written by cmip7-prep and cmor4cmip7.
 
-A part that has already been measured over at least five years is copied from
-the previous `progress.json` rather than measured again.
+The Cost plan multiplies these sizes by each run's number of members and years.
+Measuring takes a long time, so a size that has already been measured over at
+least five years is kept from the previous `progress.json`.
 
 #### Timing
 
-The script reads every `noresm_timing.*` file in the case's `timing` directory,
-whether the file is gzipped or not. Each file corresponds to one job. It gives
-the machine, the cost in pe-hours per simulated year, the throughput in
-simulated years per day, and the date the job ended.
+The web page replaces the estimated cost and throughput with measured values
+once a case has timing files. The script reads every `noresm_timing.*` file in
+`/nird/datalake/NS9560K/noresm3/cases/<case>/timing`, gzipped or not. Each file
+comes from one job, and gives the machine, the cost in pe-hours per simulated
+year, the throughput in simulated years per day, and the date the job ended.
 
-For each machine, the script averages the case's jobs, weighting each job by
-the number of years it simulated. It also records each job's date, cost and
-throughput, along with the machine of the latest job.
+The script averages the case's jobs for each machine, giving a job that
+simulated more years more weight. It also records the machine of the latest job, because the web page
+costs the rest of the run on that machine.
 
 ### `scheduler_template.html`
 
-The JavaScript in the web page does the following each time the page is opened.
+The JavaScript in the web page combines the runs in `index.html` with the cases
+in `progress.json` each time the page is opened.
 
-- It groups the cases into runs by experiment and resolution, and into members
-  by their variant label.
-- It counts the number of years that each member has simulated, from the run's
-  start year to the latest model date of the member's cases. A member with the
-  `completed` label counts as finished. The number of years that a run has
-  simulated is the mean over its members.
-- It shows a case that continues another case underneath that case in the
-  Issues column. A case continues another case if its `RUN_REFCASE` is a case of
-  the same run and member.
-- It works out each case's cmip7prep and cmor4cmip7 chips, as described above.
-  The cmip7prep chip is dashed when none of the case's sets of years counts. The
-  cmor4cmip7 chip is red when there is a problem with the case's years.
-- It replaces each configuration's estimated cost and throughput from `COSTS`
-  with the mean of its cases' timings. It then calculates the cost of each run
-  with the timings of the machine that the run's latest case ran on.
-- It uses the output sizes to estimate the storage needed by each run in the
-  Cost plan.
+- A run's cases are the issues with the run's experiment label and resolution.
+  The cases are grouped into members by their variant label.
+- A member's years done are counted from the run's start year to the latest
+  model date of its cases. A member whose issue has the `completed` label counts
+  as finished. A run's years done are the mean over its members.
+- A case that continues an earlier case of the same member is shown underneath
+  that case in the Issues column.
+- The cmip7prep chip is dashed until at least one of the case's sets of years
+  counts. The cmor4cmip7 chip is red when there is a problem in the case's
+  years.
+- Each configuration's estimated cost and throughput are replaced with the mean
+  of its cases' measured timings.
+- The output sizes give the storage estimate for each run in the Cost plan.

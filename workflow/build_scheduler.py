@@ -15,15 +15,12 @@ the required model components and compset decide:
   emission-driven (esm-*, *Esm*) -> ESM at the chosen resolution
   anything else                 -> coupled at the chosen resolution
 
-Usage (build_page.sh runs it with the published plan):
-  python3 -I workflow/build_scheduler.py --experiments workflow/noresm3_experiments_decoded.csv \\
-      --template workflow/scheduler_template.html \\
-      --out noresm3_cmip7_scheduler.html \\
-      --plan "LM:DECK,Fast Track" --plan "MM:DECK,ScenarioMIP"
+Usage (build_page.sh runs it):
+  python3 -I workflow/build_scheduler.py --out noresm3_cmip7_scheduler.html
 
---ensemble N gives every run N members instead of the sheet's Ensemble Members;
---members piControl=1 sets one experiment's members and wins over --ensemble.
---years piControl=600 sets one experiment's years per member.
+The experiments on the page are those in the tiers or activities that PLAN
+below lists for each resolution. Each run's members and years come from the
+sheet's Ensemble Members and min_yrs_per_sim columns.
 --running "historical LM=1" marks one member of a run as already going;
 progress (years done) is then entered on the page.
 The runs' cases and progress come from progress.json, which
@@ -35,19 +32,30 @@ progress.json can't be fetched (a local file); a fetched one replaces it.
 not scheduled or costed until their priority is set on the page.
 
 A selector lists tiers (DECK, Fast Track) or activities (ScenarioMIP, C4MIP).
-With more than one plan, run names carry their resolution.
+With more than one resolution in PLAN, run names carry their resolution.
 """
 
 import argparse
 import csv
 import fnmatch
 import json
+import os
 import sys
 
+# The repository's copy of the experiment sheet and the page template, next to this script.
+HERE = os.path.dirname(os.path.abspath(__file__))
+EXPERIMENTS = os.path.join(HERE, "noresm3_experiments_decoded.csv")
+TEMPLATE = os.path.join(HERE, "scheduler_template.html")
 HEADER_KEY = "experiment_id"
 START_MARKER = "let DEFAULT_CONFIGS = ["
 END_MARKER = "let configs = clone(DEFAULT_CONFIGS);"
 NO_PARENT = {"", "-", "obs product"}
+
+# The plan: each resolution, and the tiers or activities whose experiments are run at it.
+PLAN = [
+    ("LM", ["DECK", "Fast Track"]),
+    ("MM", ["DECK", "ScenarioMIP"]),
+]
 
 
 def read_experiments(path):
@@ -129,15 +137,10 @@ def matches(exp, selector):
     return tier in selector or any(a in selector for a in activities)
 
 
-def build(experiments, costs, plans, ensemble=None, members=None, years_override=None, deferred=()):
+def build(experiments, costs, plans, deferred=()):
     """plans: list of (resolution, selector) pairs, one per resolution.
-    ensemble: members for every run, replacing the sheet's Ensemble Members.
-    members: {experiment_id: N}, which wins over both.
-    years_override: {experiment_id: years}, replacing min_yrs_per_sim.
     deferred: tiers, activities or experiment_ids whose runs get priority 0, so
     they stay in the plan but are not scheduled or costed."""
-    members = members or {}
-    years_override = years_override or {}
     configs = [{"id": f"c{i}", "name": c["name"], "costPerYear": c["costPerYear"],
                 "throughput": c["throughput"], "betzyCostPerYear": c.get("betzyCostPerYear"),
                 "betzyThroughput": c.get("betzyThroughput")} for i, c in enumerate(costs, 1)]
@@ -167,15 +170,10 @@ def build(experiments, costs, plans, ensemble=None, members=None, years_override
                     depends.append(sim_id[parent])
                 else:
                     warnings.append(f"{name} ({resolution}): parent {parent!r} is not selected; no dependency")
-            years = years_override.get(name, number(e.get("min_yrs_per_sim")))
+            years = number(e.get("min_yrs_per_sim"))
             if years is None:
                 warnings.append(f"{name} ({resolution}): no min_yrs_per_sim; years set to 0")
-            if name in members:
-                ens = members[name]
-            elif ensemble is not None:
-                ens = ensemble
-            else:
-                ens = number(e.get("Ensemble Members"))
+            ens = number(e.get("Ensemble Members"))
             tier = e.get("Tier", "").strip()
             activity = e.get("activity_id", "").split("/")[0].strip()
             sims.append({
@@ -208,17 +206,8 @@ def literal(items):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("--experiments", required=True)
-    p.add_argument("--template", required=True)
     p.add_argument("--out", required=True)
-    p.add_argument("--plan", action="append", required=True, metavar="RES:SELECTOR",
-                   help='resolution and the tiers or activities to run at it, e.g. "MM:DECK,ScenarioMIP"; repeatable')
     p.add_argument("--slots", type=int, default=5)
-    p.add_argument("--ensemble", type=int, help="ensemble members for every run, replacing the sheet's column")
-    p.add_argument("--members", action="append", default=[], metavar="EXP=N",
-                   help="members for one experiment at every resolution, e.g. piControl=1; repeatable")
-    p.add_argument("--years", action="append", default=[], metavar="EXP=N",
-                   help="years per member for one experiment at every resolution, e.g. piControl=600; repeatable")
     p.add_argument("--running", action="append", default=[], metavar="NAME=N",
                    help='members of a run already going, e.g. "historical LM=1"; repeatable')
     p.add_argument("--progress", help="a progress.json to build into the page; see the docstring")
@@ -227,19 +216,7 @@ def main():
                         "(priority 0), e.g. ScenarioMIP; repeatable")
     a = p.parse_args()
 
-    members = {}
-    for spec in a.members:
-        exp, _, n = spec.partition("=")
-        members[exp.strip()] = int(n)
-    years = {}
-    for spec in a.years:
-        exp, _, n = spec.partition("=")
-        years[exp.strip()] = int(n)
-    plans = []
-    for spec in a.plan:
-        res, _, sel = spec.partition(":")
-        plans.append((res.strip(), [s.strip() for s in sel.split(",") if s.strip()]))
-    configs, sims, warnings = build(read_experiments(a.experiments), COSTS, plans, a.ensemble, members, years, a.defer)
+    configs, sims, warnings = build(read_experiments(EXPERIMENTS), COSTS, PLAN, a.defer)
     by_name = {s["name"]: s for s in sims}
     for spec in a.running:
         name, _, n = spec.partition("=")
@@ -253,7 +230,7 @@ def main():
         with open(a.progress, encoding="utf-8") as f:
             progress = json.load(f)
 
-    with open(a.template, encoding="utf-8") as f:
+    with open(TEMPLATE, encoding="utf-8") as f:
         page = f.read()
     s, e = page.find(START_MARKER), page.find(END_MARKER)
     if s < 0 or e < 0:

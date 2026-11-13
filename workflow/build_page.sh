@@ -1,5 +1,6 @@
 #!/bin/sh
-# Build the CMIP7 Cost Plan and Schedule Tracker page with the published plan.
+# Build the CMIP7 Cost Plan and Schedule Tracker page. The plan is set in
+# build_scheduler.py.
 #
 #   workflow/build_page.sh [out.html] [extra build_scheduler.py options]
 #
@@ -15,12 +16,4 @@ here=$(cd "$(dirname "$0")" && pwd)
 out=${1:-noresm3_cmip7_scheduler.html}
 [ $# -gt 0 ] && shift
 
-python3 -I "$here/build_scheduler.py" \
-    --experiments "$here/noresm3_experiments_decoded.csv" \
-    --template "$here/scheduler_template.html" \
-    --plan "LM:DECK,Fast Track" --plan "MM:DECK,ScenarioMIP" \
-    --ensemble 3 \
-    --members piControl=1 --members esm-piControl=1 \
-    --members esm-flat10=1 --members esm-flat10-zec=1 --members esm-flat10-cdr=1 \
-    --years piControl=600 --years esm-piControl=600 \
-    --out "$out" "$@"
+python3 -I "$here/build_scheduler.py" --out "$out" "$@"

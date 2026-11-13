@@ -467,10 +467,6 @@ def main():
     p.add_argument("--cmor4cmip7-dir", default=CMOR4CMIP7_DIR,
                    help='each simulation\'s cmor4cmip7 variant directory, for a case whose issue names no '
                         f'cmor4cmip7 output root (default "{CMOR4CMIP7_DIR}")')
-    p.add_argument("--timing-dir", action="append",
-                   help='each case\'s timing directory; give it more than once for cases laid out '
-                        'differently, and the first that exists is read (default "<case-dir>/timing" '
-                        'and "<case-dir>/{case}/timing")')
     p.add_argument("--pattern", default="*.cam.i.*.nc", help="dated files that count, as a shell pattern")
     p.add_argument("--repo", default=REPO, help="the repository with the case issues")
     p.add_argument("--issues", help="read the issues from this JSON file instead of GitHub")
@@ -482,7 +478,6 @@ def main():
     a = p.parse_args()
     a.dir = a.dir or a.case_dir + "/atm/hist"
     a.cmor_dir = a.cmor_dir or a.case_dir + ".cmor"
-    a.timing_dir = a.timing_dir or [a.case_dir + "/timing", a.case_dir + "/{case}/timing"]
 
     # Each case's output as the last run measured it, kept where it covers enough years.
     earlier = {}
@@ -627,8 +622,9 @@ def main():
                 names = {"hist": "history", "rest": "restarts", "timeseries": "time series", "cmor": "CMOR"}
                 report += " (kept from the last run: " + ", ".join(
                     names[k] + (" of " + " and ".join(kept[k]) if k == "cmor" else "") for k in kept) + ")"
-        timing_dir = next((d for d in (t.format(case=title) for t in a.timing_dir) if os.path.isdir(d)), None)
-        if timing_dir:
+        # Each case's timing files are in the timing directory of its archive.
+        timing_dir = (a.case_dir + "/timing").format(case=title)
+        if os.path.isdir(timing_dir):
             timing, machine = case_timing(timing_dir)
             if timing:
                 case["timing"], case["machine"] = timing, machine
