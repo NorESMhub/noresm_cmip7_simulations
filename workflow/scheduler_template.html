@@ -414,9 +414,11 @@
   .status-badge.badge-completed{ background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--text-secondary); }
   .status-cell{ display:flex; align-items:center; gap:5px; }
   .status-cell .status-text{ min-width: 84px; font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
-  /* In progress is green and Waiting yellow, as pills so the text stays readable. */
+  /* In progress is green, Waiting yellow and Completed blue, as pills so the text stays readable. */
   .status-cell .status-text.is-inprogress,
-  .status-cell .status-text.is-waiting{ min-width: 0; padding: 1px 8px; border-radius: 9px; font-weight: 600; }
+  .status-cell .status-text.is-waiting,
+  .status-cell .status-text.is-completed{ min-width: 0; padding: 1px 8px; border-radius: 9px; font-weight: 600; }
+  .status-cell .status-text.is-completed{ background: color-mix(in srgb, var(--series-1) 32%, transparent); color: color-mix(in srgb, var(--series-1) 60%, var(--text-primary)); }
   .status-cell .status-text.is-inprogress{ background: color-mix(in srgb, var(--series-6) 18%, transparent); color: color-mix(in srgb, var(--series-6) 80%, var(--text-primary)); }
   /* An in-progress run's share of years done, as a ring with the percentage inside. */
   .status-pct{ position: relative; width: 30px; height: 30px; flex: none; display: inline-grid; place-items: center;
@@ -597,7 +599,6 @@
   #simTables tr.sim-group-off th.sim-group-name{ border-left-color: var(--text-muted); }
   #simTables tr.row-disabled{ opacity: 0.5; }
   #simTables tr.row-disabled td.col-name .sim-name{ text-decoration: line-through; text-decoration-color: var(--text-muted); }
-  #simTables tr.row-completed{ opacity: 0.55; }
   #simTables tr.row-completed td.col-name .sim-name{ font-style: italic; }
 
   /* ---------- svg chart ---------- */
@@ -2794,7 +2795,8 @@ python3 -I workflow/nird_progress.py</pre>
         statusPct.textContent = inProgress ? computedPct().toFixed(0) + "%" : "";
         statusPct.style.setProperty("--p", inProgress ? computedPct().toFixed(1) : 0);
         statusPct.title = inProgress ? `${row.yearsCompleted} of ${row.years} years done` : "";
-        statusText.className = "status-text" + (issueOpened(row) ? " is-waiting" : inProgress ? " is-inprogress" : "");
+        statusText.className = "status-text" + (issueOpened(row) ? " is-waiting" : inProgress ? " is-inprogress"
+          : row.status === "completed" ? " is-completed" : "");
         statusText.title = issueOpened(row) ? "This run has a GitHub issue, but NIRD has no model files for it yet"
           : inProgress ? `${row.yearsCompleted} of ${row.years} years done; ${runningCount(row)} of ${ensembleCount(row)} member${ensembleCount(row) === 1 ? "" : "s"} running` : "";
         const pct = row.status === "completed" ? 100 : inProgress ? computedPct() : 0;
