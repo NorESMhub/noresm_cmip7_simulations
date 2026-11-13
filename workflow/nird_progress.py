@@ -23,8 +23,8 @@ PROGRESS = "/nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progres
 CASE_DIR = "/nird/datalake/NS9560K/noresm3/cases/{case}"
 CMOR4CMIP7_DIR = "/nird/datapeak/NS9034K/.CMIP7/NorESM3-{resolution}/{experiment}/{variant}"
 # compset.resolution.version...: n1850GHGGaxg.LM.nor30b28.r1i1p1f1.011.20261102, or without
-# the variant, n1850GHGGaxg.LM.nor30b28.011.20261102
-TITLE = re.compile(r"^[A-Za-z0-9-]+\.(LM|MM)\.nor30(b\d+)\.")
+# the variant, n1850GHGGaxg.LM.nor30b28.011.20261102. The beta may end in a letter: nor30b29a.
+TITLE = re.compile(r"^[A-Za-z0-9-]+\.(LM|MM)\.nor30(b\d+[a-z]?)\.")
 RESOLUTION = {"LM": "LM", "MM": "MM"}
 # YYYY-MM, YYYY-MM-DD or YYYY-MM-DD-SSSSS just before .nc
 DATE = re.compile(r"\.(\d{4})-(\d{2})(?:-(\d{2})(?:-\d{5})?)?\.nc$")
