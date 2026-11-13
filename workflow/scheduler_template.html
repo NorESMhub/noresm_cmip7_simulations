@@ -2533,10 +2533,10 @@ python3 -I workflow/nird_progress.py</pre>
   // cmip7prep, cmor4cmip7, ESGF.
   const SIM_COL_WIDTHS = [14, 12, 7, 11, 5, 13, 14, 10, 10, 4];
 
-  // The tracker shows only the runs that are in progress or waiting to start, until the
-  // button above the tables is pressed to show every run.
+  // The tracker shows only the runs that have a case issue, i.e. those waiting to start, in
+  // progress or completed, until the button above the tables is pressed to show every run.
   let showAllSims = false;
-  const simShown = view => showAllSims || view.status === "in-progress" || issueOpened(view);
+  const simShown = view => showAllSims || ["in-progress", "completed"].includes(view.status) || issueOpened(view);
 
   function renderSimTable(){
     simTables.innerHTML = "";
@@ -2547,10 +2547,10 @@ python3 -I workflow/nird_progress.py</pre>
     const groupId = g => "sims-" + g.label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
     const toggle = document.createElement("button");
     toggle.type = "button"; toggle.className = "btn btn-ghost sim-toggle";
-    toggle.textContent = showAllSims ? "Show only the runs in progress or waiting" : "Show all runs";
+    toggle.textContent = showAllSims ? "Show only the runs that have started" : "Show all runs";
     toggle.onclick = () => { showAllSims = !showAllSims; renderSimTable(); };
     const showing = document.createElement("p"); showing.className = "sim-index-hint";
-    showing.textContent = showAllSims ? "Showing every run in the plan." : "Showing the runs that are in progress or waiting to start.";
+    showing.textContent = showAllSims ? "Showing every run in the plan." : "Showing the runs that are waiting to start, in progress or completed.";
     showing.appendChild(toggle);
     simTables.appendChild(showing);
     if (!groups.length) return;
