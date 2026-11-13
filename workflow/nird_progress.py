@@ -539,7 +539,7 @@ def main():
                 report += f"; no {a.pattern} file for " + ", ".join(
                     f"{y0:04d}" if y0 == y1 else f"{y0:04d}-{y1:04d}" for y0, y1 in case["missingYears"])
         else:
-            report = "no directory" if found_dates is False else "no dated files"
+            report = "no output on NIRD" if found_dates is False else "no dated files"
         body = issue.get("body") or ""
         # Each tool's output root is the issue's entry, or the default without one. Either may
         # have {case}, {resolution}, {experiment} and {variant} in it, or <case> and so on,
@@ -579,8 +579,11 @@ def main():
                     start["parent"] = issue_of_case[start["refcase"]]
                 case["start"] = start
                 report += "; " + " ".join(f"{k} {v}" for k, v in start.items())
+        elif "modelDate" in case:
+            report += "; no run script on GitHub"
         else:
-            report += "; no run script"
+            # A case with no run script has not been run yet, so its lack of output goes unsaid.
+            report = "no run script on GitHub"
         if m := DATA_VERSION.search(body):
             case["dataVersion"] = "v" + m.group(1).lstrip("vV")
             report += "; CMOR data version " + case["dataVersion"]
