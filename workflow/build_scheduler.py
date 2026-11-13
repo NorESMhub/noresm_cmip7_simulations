@@ -192,8 +192,8 @@ def build(experiments, costs, plans, deferred=()):
                 "status": "pending",
                 "yearsCompleted": 0,
                 "steps": [],
-                # The DECK's activity_id is CMIP; label it DECK so it reads as its own group.
-                "mip": "DECK" if tier == "DECK" or activity in ("", "CMIP") else activity,
+                # The DECK experiments are grouped under their activity, CMIP.
+                "mip": "CMIP" if tier == "DECK" or activity in ("", "CMIP") else activity,
                 "cmipPriority": tier,
                 "amip": "Yes" if e.get("required_model_components", "").upper().startswith("AGCM") else "No",
             })

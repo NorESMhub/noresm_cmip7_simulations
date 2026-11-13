@@ -251,17 +251,3 @@ costs the rest of the run on that machine.
 
 The JavaScript in the web page combines the runs in `index.html` with the cases
 in `progress.json` each time the page is opened.
-
-- A run's cases are the issues with the run's experiment label and resolution.
-  The cases are grouped into members by their variant label.
-- A member's years done are counted from the run's start year to the latest
-  model date of its cases. A member whose issue has the `completed` label counts
-  as finished. A run's years done are the mean over its members.
-- A case that continues an earlier case of the same member is shown underneath
-  that case in the Issues column.
-- The cmip7prep chip is dashed until at least one of the case's sets of years
-  counts. The cmor4cmip7 chip is red when there is a problem in the case's
-  years.
-- Each configuration's estimated cost and throughput are replaced with the mean
-  of its cases' measured timings.
-- The output sizes give the storage estimate for each run in the Cost plan.

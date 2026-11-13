@@ -884,7 +884,7 @@ python3 -I workflow/nird_progress.py</pre>
   <section class="card" id="mipCard">
     <div class="editor-head">
       <h2>Cost by MIP</h2>
-      <p class="editor-caption" id="mipCaption">Total compute cost (core-hr), grouped by the MIP each simulation belongs to — runs without a MIP tag are grouped into DECK.</p>
+      <p class="editor-caption" id="mipCaption">Total compute cost (core-hr), grouped by the MIP each simulation belongs to — runs without a MIP tag are grouped into CMIP.</p>
     </div>
     <div id="mipBreakdown" class="cost-breakdown"></div>
   </section>
@@ -921,16 +921,16 @@ python3 -I workflow/nird_progress.py</pre>
     {"id":"c6","name":"NorESM3 DCPP","costPerYear":null,"throughput":null},
   ];
   let DEFAULT_SIMS = [
-    {"id":"r1","name":"piControl","dependsOn":[],"years":200,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"No"},
-    {"id":"r2","name":"esm-piControl","dependsOn":["r1"],"years":200,"ensemble":null,"configId":"c4","priority":1,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"No"},
-    {"id":"r3","name":"historical","dependsOn":["r1"],"years":172,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"No"},
-    {"id":"r4","name":"esm-hist","dependsOn":["r2"],"years":172,"ensemble":null,"configId":"c4","priority":1,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"No"},
-    {"id":"r5","name":"amip","dependsOn":[],"years":43,"ensemble":null,"configId":"c2","priority":1,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"Yes"},
-    {"id":"r6","name":"1pctCO2","dependsOn":["r1"],"years":150,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"No"},
-    {"id":"r7","name":"abrupt-4xCO2","dependsOn":["r1"],"years":300,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"No"},
-    {"id":"r8","name":"piClim-control","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":2,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"Yes"},
-    {"id":"r9","name":"piClim-4xCO2","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":2,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"Yes"},
-    {"id":"r10","name":"piClim-anthro","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":2,"status":"pending","yearsCompleted":0,"mip":"DECK","cmipPriority":"1","amip":"Yes"},
+    {"id":"r1","name":"piControl","dependsOn":[],"years":200,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"CMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r2","name":"esm-piControl","dependsOn":["r1"],"years":200,"ensemble":null,"configId":"c4","priority":1,"status":"pending","yearsCompleted":0,"mip":"CMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r3","name":"historical","dependsOn":["r1"],"years":172,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"CMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r4","name":"esm-hist","dependsOn":["r2"],"years":172,"ensemble":null,"configId":"c4","priority":1,"status":"pending","yearsCompleted":0,"mip":"CMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r5","name":"amip","dependsOn":[],"years":43,"ensemble":null,"configId":"c2","priority":1,"status":"pending","yearsCompleted":0,"mip":"CMIP","cmipPriority":"1","amip":"Yes"},
+    {"id":"r6","name":"1pctCO2","dependsOn":["r1"],"years":150,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"CMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r7","name":"abrupt-4xCO2","dependsOn":["r1"],"years":300,"ensemble":null,"configId":"c1","priority":1,"status":"pending","yearsCompleted":0,"mip":"CMIP","cmipPriority":"1","amip":"No"},
+    {"id":"r8","name":"piClim-control","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":2,"status":"pending","yearsCompleted":0,"mip":"CMIP","cmipPriority":"1","amip":"Yes"},
+    {"id":"r9","name":"piClim-4xCO2","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":2,"status":"pending","yearsCompleted":0,"mip":"CMIP","cmipPriority":"1","amip":"Yes"},
+    {"id":"r10","name":"piClim-anthro","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":2,"status":"pending","yearsCompleted":0,"mip":"CMIP","cmipPriority":"1","amip":"Yes"},
     {"id":"r11","name":"hist-piAer","dependsOn":["r1"],"years":172,"ensemble":null,"configId":"c4","priority":0,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"No"},
     {"id":"r12","name":"hist-piAQ","dependsOn":["r1"],"years":172,"ensemble":null,"configId":"c1","priority":3,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"No"},
     {"id":"r13","name":"piClim-CH4","dependsOn":["r1"],"years":30,"ensemble":null,"configId":"c2","priority":3,"status":"pending","yearsCompleted":0,"mip":"AerChemMIP","cmipPriority":"1","amip":"Yes"},
@@ -1556,7 +1556,7 @@ python3 -I workflow/nird_progress.py</pre>
       return {
         r, cfg, res, off, members, years, cpy, sypd, memberYears, ...plannedStorage(r),
         name: strip(r.name, res),
-        mip: r.mip || "DECK",
+        mip: r.mip || "CMIP",
         core: cpy !== null && !off ? memberYears * cpy : null,
         days: sypd ? years / sypd : null,
       };
@@ -1601,12 +1601,12 @@ python3 -I workflow/nird_progress.py</pre>
       .filter(res => active.every(it => it.res !== res || it.core === null));
     const shown = active.filter(it => !untimedRes.includes(it.res));
     const resList = Array.from(new Set(shown.map(it => it.res))).sort();
-    // The MIPs at each resolution, DECK first and then by core-hours.
+    // The MIPs at each resolution, CMIP first and then by core-hours.
     const groups = [];
     resList.forEach(res => {
       const mips = new Map();
       shown.filter(it => it.res === res).forEach(it => { if (!mips.has(it.mip)) mips.set(it.mip, []); mips.get(it.mip).push(it); });
-      Array.from(mips.keys()).sort((a, b) => (a !== "DECK") - (b !== "DECK") || sum(mips.get(b), "core") - sum(mips.get(a), "core"))
+      Array.from(mips.keys()).sort((a, b) => (a !== "CMIP") - (b !== "CMIP") || sum(mips.get(b), "core") - sum(mips.get(a), "core"))
         .forEach(mip => groups.push({ res, mip, list: mips.get(mip), id: "cost-" + `${mip} ${res}`.toLowerCase().replace(/[^a-z0-9]+/g, "-") }));
     });
 
@@ -1796,10 +1796,10 @@ python3 -I workflow/nird_progress.py</pre>
     const groups = new Map();
     result.jobs.forEach(job => {
       const row = rowMap.get(job.rowId);
-      // A run with no MIP tag defaults into DECK — CMIP's baseline/core experiment set —
+      // A run with no MIP tag defaults into CMIP, the baseline/core experiment set,
       // rather than its own "Ungrouped" bucket, so a hand-added run without a tag just
       // reads as part of the core set instead of needing its own category.
-      const mip = (row && row.mip) ? row.mip : "DECK";
+      const mip = (row && row.mip) ? row.mip : "CMIP";
       const res = row ? resolutionOf(row) : "";
       const key = res + "|" + mip;
       const g = groups.get(key) || { mip, res, cost: 0, runCount: 0 };
@@ -1891,7 +1891,7 @@ python3 -I workflow/nird_progress.py</pre>
       });
       return;
     }
-    // Nothing to compare when every run falls into a single MIP (including an all-DECK
+    // Nothing to compare when every run falls into a single MIP (including an all-CMIP
     // plan) — the card would just restate the single cost stat tile as one 100% row.
     if (list.length <= 1){
       mipCard.hidden = true;
@@ -1899,7 +1899,7 @@ python3 -I workflow/nird_progress.py</pre>
       return;
     }
     mipCard.hidden = false;
-    mipCaption.textContent = `${currentCostLabel()} (${costUnit}), grouped by the MIP each simulation belongs to — runs without a MIP tag are grouped into DECK.`;
+    mipCaption.textContent = `${currentCostLabel()} (${costUnit}), grouped by the MIP each simulation belongs to — runs without a MIP tag are grouped into CMIP.`;
     renderCostRows(mipBreakdownEl, list, result.totalCost || 0, g => g.mip);
   }
 
@@ -2484,7 +2484,7 @@ python3 -I workflow/nird_progress.py</pre>
     return wrap;
   }
 
-  // Display order: the DECK first, then each MIP in alphabetical order, each with its LM group
+  // Display order: CMIP first, then each MIP in alphabetical order, each with its LM group
   // above its MM group, then the runs that are off. Within a group, coupled runs come
   // before atmosphere-only ones, and the sheet's order is kept otherwise, so a parent sits
   // above the runs that branch from it.
@@ -2493,7 +2493,7 @@ python3 -I workflow/nird_progress.py</pre>
     const RES_RANK = { LM: 0, MM: 1 };
     const resKey = row => { const r = resolutionOf(row); return r in RES_RANK ? `${RES_RANK[r]}${r}` : `9${r || ""}`; };
     sims.forEach((row, i) => {
-      const mip = isRowOff(row) ? "￿" : (row.mip === "DECK" ? "" : (row.mip || "Other"));
+      const mip = isRowOff(row) ? "￿" : (row.mip === "CMIP" ? "" : (row.mip || "Other"));
       const key = mip === "￿" ? mip : `${mip}\u0000${resKey(row)}`;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push({ row, i });
@@ -2501,8 +2501,8 @@ python3 -I workflow/nird_progress.py</pre>
     return [...groups.keys()].sort().map(key => {
       const [mip, res] = key.split("\u0000");
       return {
-        label: key === "￿" ? "Not in the plan for now" : `${mip === "" ? "DECK" : mip} ${res.slice(1)}`.trim(),
-        mip: key === "￿" ? "Not in the plan" : mip === "" ? "DECK" : mip,
+        label: key === "￿" ? "Not in the plan for now" : `${mip === "" ? "CMIP" : mip} ${res.slice(1)}`.trim(),
+        mip: key === "￿" ? "Not in the plan" : mip === "" ? "CMIP" : mip,
         res: key === "￿" ? "" : res.slice(1),
         off: key === "￿",
         rows: groups.get(key).sort((a, b) => (a.row.amip === "Yes") - (b.row.amip === "Yes") || a.i - b.i).map(x => x.row),
