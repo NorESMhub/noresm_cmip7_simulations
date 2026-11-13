@@ -394,6 +394,7 @@
   .sim-index a:hover{ background: color-mix(in srgb, var(--series-1) 30%, transparent); }
   .sim-index{ scroll-margin-top: 12px; }
   .sim-index-hint{ margin: 0 0 2px; font-size: 12px; color: var(--text-secondary); }
+  .sim-toggle{ margin-left: 10px; padding: 2px 10px; font-size: 12px; }
   #simTables .sim-index-up, #costTables .sim-index-up{ margin-left: 10px; font-size: 11px; font-weight: 500; color: var(--text-muted); text-decoration: none; }
   #simTables .sim-index-up:hover, #costTables .sim-index-up:hover{ color: var(--accent); text-decoration: underline; }
   html{ scroll-behavior: smooth; }
@@ -496,7 +497,7 @@
   #simTables input.num{ width: 58px; min-width: 50px; }
   #simTables td.col-owner{ font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; }
   #simTables td.col-parent{ font-size: 12.5px; color: var(--text-secondary); }
-  #simTables td.col-parent .parent-chip{ white-space: nowrap; }
+  #simTables td.col-parent .parent-chip{ white-space: normal; }
   /* Each case's issue and script chips are a line of their own. */
   #simTables td.col-cases{ white-space: normal; line-height: 1.9; }
   #simTables td.col-cases .case-pair{ display: block; white-space: nowrap; }
@@ -2532,10 +2533,27 @@ python3 -I workflow/nird_progress.py</pre>
   // cmip7prep, cmor4cmip7, ESGF.
   const SIM_COL_WIDTHS = [14, 12, 7, 11, 5, 13, 14, 10, 10, 4];
 
+  // The tracker shows only the runs that are in progress or waiting to start, until the
+  // button above the tables is pressed to show every run.
+  let showAllSims = false;
+  const simShown = view => showAllSims || view.status === "in-progress" || issueOpened(view);
+
   function renderSimTable(){
     simTables.innerHTML = "";
-    const groups = simDisplayGroups();
+    // Each group's runs, each run as the member rows that are shown.
+    const groups = simDisplayGroups()
+      .map(g => ({ ...g, runs: g.rows.map(r => memberViews(r).filter(simShown)).filter(vs => vs.length) }))
+      .filter(g => g.runs.length);
     const groupId = g => "sims-" + g.label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const toggle = document.createElement("button");
+    toggle.type = "button"; toggle.className = "btn btn-ghost sim-toggle";
+    toggle.textContent = showAllSims ? "Show only the runs in progress or waiting" : "Show all runs";
+    toggle.onclick = () => { showAllSims = !showAllSims; renderSimTable(); };
+    const showing = document.createElement("p"); showing.className = "sim-index-hint";
+    showing.textContent = showAllSims ? "Showing every run in the plan." : "Showing the runs that are in progress or waiting to start.";
+    showing.appendChild(toggle);
+    simTables.appendChild(showing);
+    if (!groups.length) return;
     // An index of the tables, a line for each resolution, each entry a link to its table.
     const index = document.createElement("nav");
     index.className = "sim-index"; index.id = "sim-index"; index.setAttribute("aria-label", "Simulation tables");
@@ -2550,7 +2568,7 @@ python3 -I workflow/nird_progress.py</pre>
       groups.filter(g => g.res === res).forEach(g => {
         const a = document.createElement("a");
         a.href = "#" + groupId(g);
-        const runs = g.rows.reduce((n, r) => n + memberViews(r).length, 0);
+        const runs = g.runs.reduce((n, vs) => n + vs.length, 0);
         a.textContent = g.mip; a.title = `${g.label} · ${runs} run${runs === 1 ? "" : "s"}`;
         line.appendChild(a);
       });
@@ -2568,7 +2586,7 @@ python3 -I workflow/nird_progress.py</pre>
     groups.forEach(group => {
       const head = document.createElement("tr");
       head.className = "sim-group" + (group.off ? " sim-group-off" : "");
-      const runs = group.rows.reduce((n, r) => n + memberViews(r).length, 0);
+      const runs = group.runs.reduce((n, vs) => n + vs.length, 0);
       const name = document.createElement("th");
       name.className = "sim-group-name";
       name.textContent = `${group.label} · ${runs} run${runs === 1 ? "" : "s"}`;
@@ -2587,8 +2605,7 @@ python3 -I workflow/nird_progress.py</pre>
       thead.appendChild(head); table.appendChild(thead); table.appendChild(simTbody);
       wrap.appendChild(table); simTables.appendChild(wrap);
       // Every other run in a group is lightly shaded, so a run's member rows read as one block.
-      group.rows.forEach((row, n) => {
-        const views = memberViews(row);
+      group.runs.forEach((views, n) => {
         views.forEach((v, i) => {
           renderSimRow(v, views.length < 2 ? "member-single" : i === 0 ? "member-first" : i === views.length - 1 ? "member-last" : "member-mid");
           if (n % 2 === 0) simTbody.lastElementChild.classList.add("run-shade");

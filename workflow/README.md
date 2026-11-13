@@ -259,7 +259,9 @@ costs the rest of the run on that machine.
 ### `scheduler_template.html`
 
 The JavaScript in the web page combines the runs in `index.html` with the cases
-in `progress.json` each time the page is opened.
+in `progress.json` each time the page is opened. The tracker first shows only
+the runs that are in progress or waiting to start, and a button above the
+tables shows every run in the plan.
 
 - A run's cases are the issues with the run's experiment label and resolution.
   The cases are grouped into members by their variant label.
