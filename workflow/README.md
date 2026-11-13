@@ -145,8 +145,10 @@ information for every case issue, as described in the sections below.
 
 The script first writes `progress.json` to a temporary file and then moves it
 into place, so that the web page never reads a half-written file. For each
-issue, the script also prints one line with the issue's labels and what it
-found, so that a missing label or a missing directory is easy to spot.
+issue, the script also prints one line with the issue's labels, the case's
+latest model date and its start date. A case with no output yet is marked
+"no output on NIRD", or "no run script on GitHub" if its run script is missing
+too.
 
 #### Reading GitHub
 
@@ -178,8 +180,7 @@ the owner is the person who opened the issue.
 The web page counts the years a case has simulated from the latest date in the
 names of its history files, e.g. `<case>.cam.i.1930-01-01-00000.nc` in the
 case's `atm/hist` directory. A year between the first and the last of these
-files that has no file of its own is recorded as missing. The missing years are
-listed in the line that the script prints for the case, and the web page shows
+files that has no file of its own is recorded as missing, and the web page shows
 a red `gap` chip after the case's issue.
 
 #### How the case started

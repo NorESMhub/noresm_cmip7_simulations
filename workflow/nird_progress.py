@@ -532,14 +532,9 @@ def main():
         if found_dates:
             last, missing = found_dates
             case["modelDate"] = "%04d-%02d-%02d" % last
-            report = f"at {case['modelDate']}"
             if missing:
                 # The years with no file, as [[first, last], ...], e.g. [[1854, 1855], [1857, 1857]].
                 case["missingYears"] = year_ranges(missing)
-                report += f"; no {a.pattern} file for " + ", ".join(
-                    f"{y0:04d}" if y0 == y1 else f"{y0:04d}-{y1:04d}" for y0, y1 in case["missingYears"])
-        else:
-            report = "no output on NIRD" if found_dates is False else "no dated files"
         body = issue.get("body") or ""
         # Each tool's output root is the issue's entry, or the default without one. Either may
         # have {case}, {resolution}, {experiment} and {variant} in it, or <case> and so on,
@@ -566,29 +561,22 @@ def main():
                 output[tool] = places[0]
         if output:
             case["cmorOutput"] = output
-        found = scripts_of_issue.get(num, [])
-        if len(found) > 1:
-            report += "; more than one run script: " + ", ".join(found)
-        elif found:
-            case["runScript"] = found[0]
+        # Problems with the run script are printed with the case's line.
+        problems = []
+        script_paths = scripts_of_issue.get(num, [])
+        if len(script_paths) > 1:
+            problems.append("more than one run script: " + ", ".join(script_paths))
+        elif script_paths:
+            case["runScript"] = script_paths[0]
             text, why = read_run_script(a.repo, case["runScript"], a.scripts)
             if text is None:
-                report += f"; run script {why}"
+                problems.append(f"run script {why}")
             elif start := run_settings(text):
                 if start.get("refcase") in issue_of_case:
                     start["parent"] = issue_of_case[start["refcase"]]
                 case["start"] = start
-                # How the case started is printed only once it has output on NIRD.
-                if found_dates is not False:
-                    report += "; " + " ".join(f"{k} {v}" for k, v in start.items())
-        elif "modelDate" in case:
-            report += "; no run script on GitHub"
-        else:
-            # A case with no run script has not been run yet, so its lack of output goes unsaid.
-            report = "no run script on GitHub"
         if m := DATA_VERSION.search(body):
             case["dataVersion"] = "v" + m.group(1).lstrip("vV")
-            report += "; CMOR data version " + case["dataVersion"]
         if found := [i for i in cmor_issues if title in i["title"] + "\n" + (i.get("body") or "")]:
             case["cmorIssues"] = []
             for i in found:
@@ -596,13 +584,11 @@ def main():
                 if t := CMOR_TAG_VERSION.search(i.get("body") or ""):
                     ci["tagVersion"] = "v" + t.group(1)
                 case["cmorIssues"].append(ci)
-            report += "; CMORization " + ", ".join(f"{CMOR_REPO}#{i['number']}" for i in found)
         versions = {}
         if prep_dir := output.get("cmip7prep"):
             sets = cmor_sets(prep_dir)
             if sets:
                 case["cmor"] = sets
-                report += "; cmip7prep " + ", ".join(f"{s['first']}-{s['last']}" for s in sets)
             # cmip7-prep writes its CMOR files under cmor/ in its output directory.
             prep_cmor = os.path.join(prep_dir, "cmor")
             if v := cmor_versions(prep_cmor if os.path.isdir(prep_cmor) else prep_dir, labels):
@@ -611,41 +597,34 @@ def main():
             ranges = cmor_file_years(output["cmor4cmip7"], labels)
             if ranges:
                 case["cmor4cmip7"] = ranges
-            report += "; cmor4cmip7 " + (", ".join(f"{f}-{l}" for f, l in ranges) or "nothing yet")
-            if problems := cmor_problems(output["cmor4cmip7"], labels):
-                case["cmor4cmip7Problems"] = problems
-                report += "".join(f"; cmor4cmip7 {len(g['variables'])} variables {what} "
-                                  + ", ".join(f"{f}-{l}" for f, l in g["years"])
-                                  for kind, what in (("missing", "missing"), ("overlaps", "overlapping in"))
-                                  for g in problems.get(kind, []))
+            if found_problems := cmor_problems(output["cmor4cmip7"], labels):
+                case["cmor4cmip7Problems"] = found_problems
             if v := cmor_versions(output["cmor4cmip7"], labels):
                 versions["cmor4cmip7"] = v
         if versions:
             case["cmorVersions"] = versions
-            report += "".join(f"; {tool} in " + ", ".join(v) for tool, v in versions.items())
         kept = earlier.get(num, {})
         storage = case_storage(a.case_dir.format(case=title) if a.case_dir else None, title,
                                prep_dir, output.get("cmor4cmip7"), labels, kept)
         if storage:
             case["storage"] = storage
-            sizes = {"history": list(storage.get("hist", {}).values()), "restarts": [storage.get("rest")],
-                     "time series": [storage.get("timeseries")], "CMOR": list(storage.get("cmor", {}).values())}
-            report += "".join(f"; {kind} {sum(s['gb'] for s in found if s):.1f} GB"
-                              for kind, found in sizes.items() if any(found))
-            if kept:
-                names = {"hist": "history", "rest": "restarts", "timeseries": "time series", "cmor": "CMOR"}
-                report += " (kept from the last run: " + ", ".join(
-                    names[k] + (" of " + " and ".join(kept[k]) if k == "cmor" else "") for k in kept) + ")"
         # Each case's timing files are in the timing directory of its archive.
         timing_dir = (a.case_dir + "/timing").format(case=title)
         if os.path.isdir(timing_dir):
             timing, machine = case_timing(timing_dir)
             if timing:
                 case["timing"], case["machine"] = timing, machine
-                report += "".join(f"; {t['machine']} {t['cost']} pe-hrs/yr, {t['sypd']} SYPD over {t['jobs']} jobs"
-                                  for t in timing)
         cases.append(case)
-        print(f"#{num} {title} [{', '.join(labels) or 'no labels'}]: {report}")
+        # The line printed for each case gives its latest model date and its start date.
+        if "modelDate" in case:
+            report = f"at {case['modelDate']}"
+            if startdate := case.get("start", {}).get("startdate"):
+                report += f"; start date {startdate}"
+        elif not script_paths:
+            report = "no run script on GitHub"
+        else:
+            report = "no output on NIRD" if found_dates is False else "no dated files"
+        print(f"#{num} {title} [{', '.join(labels) or 'no labels'}]: " + "; ".join([report] + problems))
 
     data = {"updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), "repo": a.repo,
             "cases": cases, "skipped": skipped}
