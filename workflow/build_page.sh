@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the CMIP7 Cost Plan and Schedule Tracker page. The plan is set in
+# Build the CMIP7 Simulation Tracker Dashboard page. The plan is set in
 # build_scheduler.py.
 #
 #   workflow/build_page.sh [out.html] [extra build_scheduler.py options]

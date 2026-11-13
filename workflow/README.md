@@ -1,7 +1,7 @@
 # Workflow
 
 This directory contains the code that generates the
-[NorESM3 CMIP7 Cost Plan and Schedule Tracker](https://ns9560k.web.sigma2.no/datalake/diagnostics/noresm/cmip7_planning/index.html).
+[NorESM3 CMIP7 Simulation Tracker Dashboard](https://ns9560k.web.sigma2.no/datalake/diagnostics/noresm/cmip7_planning/index.html).
 This README describes what the code does. The steps that people running
 simulations need to follow are described on the web page itself, in the
 [Workflow](https://ns9560k.web.sigma2.no/datalake/diagnostics/noresm/cmip7_planning/index.html#workflow)

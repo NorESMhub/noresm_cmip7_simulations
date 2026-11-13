@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 
-<title>CMIP7 Cost Plan and Schedule Tracker</title>
+<title>CMIP7 Simulation Tracker Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
@@ -656,7 +656,7 @@
 
   <header class="page-header">
     <div class="eyebrow">NorESM3 · CMIP7</div>
-    <h1>CMIP7 Cost Plan and Schedule Tracker</h1>
+    <h1>CMIP7 Simulation Tracker Dashboard</h1>
     <p class="subtitle">Where each NorESM3 CMIP7 run stands, the steps every run goes through from GitHub issue to ESGF, and what the plan costs on Olivia and Betzy.</p>
   </header>
 
@@ -687,14 +687,7 @@
     <div class="editor-head">
       <h2>Simulation tracker</h2>
       <p class="editor-caption">The simulation tracker is updated by running <code class="wf-script">workflow/nird_progress.py</code> in the <a href="https://github.com/NorESMhub/noresm_cmip7_simulations" target="_blank" rel="noopener">noresm_cmip7_simulations</a> repository.<br>
-        It is run on NIRD from the clone in <code>/projects/NS9560K/www/diagnostics/noresm/noresm_cmip7_simulations</code>.<br>
-        The script uses information from the GitHub issues, the run scripts on GitHub that go with the issues, the case directories on NIRD and the CMORization directories:</p>
-      <ul class="editor-caption wf-parts">
-        <li>The <b>GitHub issues</b> determine each case's labels and assignee, and the CMORization issues in CMIP7_CMOR-Publish that name the case.</li>
-        <li>The <b>run scripts</b> on the <code>CMIP7_Runscripts</code> branch determine how each case started and which case it continues or branches from.</li>
-        <li>The <b>case directories on NIRD</b> determine each case's latest model date, its cost and throughput, and the size of its history and restart output.</li>
-        <li>The <b>CMORization directories</b> of cmip7-prep and cmor4cmip7 determine the years each tool has CMORized and the size of the time series and CMOR output.</li>
-      </ul>
+        It is run on NIRD from the clone in <code>/projects/NS9560K/www/diagnostics/noresm/noresm_cmip7_simulations</code>.</p>
       <details class="wf-more" id="progressCommand">
         <summary>Run <code>nird_progress.py</code></summary>
         <p class="editor-caption">To update the tables, run it from that directory:</p>
@@ -702,6 +695,13 @@
 git pull
 python3 -I workflow/nird_progress.py</pre>
         <p class="editor-caption">The script finds each case's directory, <code>/nird/datalake/NS9560K/noresm3/cases/&lt;case&gt;</code>, from its issue title, and writes <code>progress.json</code> next to this page. Its options are needed only for output somewhere else; <code>python3 -I workflow/nird_progress.py --help</code> lists them.</p>
+        <p class="editor-caption">The script uses information from the GitHub issues, the run scripts on GitHub that go with the issues, the case directories on NIRD and the CMORization directories:</p>
+        <ul class="editor-caption wf-parts">
+          <li>The <b>GitHub issues</b> determine each case's labels and assignee, and the CMORization issues in CMIP7_CMOR-Publish that name the case.</li>
+          <li>The <b>run scripts</b> on the <code>CMIP7_Runscripts</code> branch determine how each case started and which case it continues or branches from.</li>
+          <li>The <b>case directories on NIRD</b> determine each case's latest model date, its cost and throughput, and the size of its history and restart output.</li>
+          <li>The <b>CMORization directories</b> of cmip7-prep and cmor4cmip7 determine the years each tool has CMORized and the size of the time series and CMOR output.</li>
+        </ul>
       </details>
       <p class="editor-caption auto-note" id="autoNote" hidden></p>
     </div>
