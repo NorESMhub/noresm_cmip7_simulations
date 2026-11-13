@@ -578,7 +578,9 @@ def main():
                 if start.get("refcase") in issue_of_case:
                     start["parent"] = issue_of_case[start["refcase"]]
                 case["start"] = start
-                report += "; " + " ".join(f"{k} {v}" for k, v in start.items())
+                # How the case started is printed only once it has output on NIRD.
+                if found_dates is not False:
+                    report += "; " + " ".join(f"{k} {v}" for k, v in start.items())
         elif "modelDate" in case:
             report += "; no run script on GitHub"
         else:
