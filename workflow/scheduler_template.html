@@ -505,6 +505,8 @@
   a.script-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 1px 5px; margin-right: 5px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); text-decoration: none; }
   a.script-chip:hover{ text-decoration: underline; }
   a.script-chip.cmor-chip{ background: color-mix(in srgb, var(--series-1) 16%, transparent); }
+  /* A case whose cam.i files skip some years. */
+  .gap-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 1px 5px; margin-right: 5px; border-radius: 8px; background: var(--danger-wash); color: var(--danger); font-weight: 700; cursor: default; }
   .case-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 6px; margin-right: 3px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); cursor: default; }
   .tab-nav{ display:flex; gap:4px; margin: 4px 0 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .tab-nav a{ padding: 9px 16px; font-weight: 600; font-size: 14px; color: var(--text-secondary); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
@@ -2808,6 +2810,14 @@ python3 -I workflow/nird_progress.py</pre>
           pair.appendChild(arrow);
         }
         pair.appendChild(chip);
+        // A red "gap" chip after a case whose cam.i files skip some years.
+        if ((c.missingYears || []).length){
+          const spans = c.missingYears.map(([a, b]) => a === b ? `${a}` : `${a}–${b}`).join(", ");
+          const gap = document.createElement("span"); gap.className = "gap-chip";
+          gap.textContent = "gap";
+          gap.title = `#${c.issue} has no cam.i file for ${spans}, between its first and last cam.i files.`;
+          pair.appendChild(gap);
+        }
         // The case's run script, found on the branch by its issue number.
         if (c.runScript){
           const sh = document.createElement("a"); sh.className = "script-chip";

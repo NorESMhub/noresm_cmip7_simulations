@@ -176,13 +176,13 @@ def run_settings(text):
     return settings
 
 
-def latest_date(directory, pattern):
-    """Latest (year, month, day) among the matching files; None if there are none,
-    False if the directory doesn't exist. A monthly file (no day) is dated at the
-    start of the next month."""
+def model_dates(directory, pattern):
+    """The latest (year, month, day) among the matching files, and the years between the
+    first and the last file that have no file. None if there are no files, False if the
+    directory doesn't exist. A monthly file (no day) is dated at the start of the next month."""
     if not os.path.isdir(directory):
         return False
-    dates = []
+    dates, years = [], set()
     for name in os.listdir(directory):
         if not fnmatch.fnmatchcase(name, pattern):
             continue
@@ -190,11 +190,14 @@ def latest_date(directory, pattern):
         if not m:
             continue
         y, mo, d = int(m.group(1)), int(m.group(2)), m.group(3)
+        years.add(y)
         if d is None:
             y, mo = (y + 1, 1) if mo == 12 else (y, mo + 1)
             d = 1
         dates.append((y, mo, int(d)))
-    return max(dates) if dates else None
+    if not dates:
+        return None
+    return max(dates), [y for y in range(min(years), max(years)) if y not in years]
 
 
 def cmor_sets(directory):
@@ -525,12 +528,18 @@ def main():
         case = {"issue": num, "case": title, "resolution": RESOLUTION[m.group(1)],
                 "version": m.group(2), "owner": ", ".join(people), "labels": labels,
                 "completed": "completed" in labels}
-        last = latest_date(a.dir.format(case=title), a.pattern)
-        if last:
+        found_dates = model_dates(a.dir.format(case=title), a.pattern)
+        if found_dates:
+            last, missing = found_dates
             case["modelDate"] = "%04d-%02d-%02d" % last
             report = f"at {case['modelDate']}"
+            if missing:
+                # The years with no file, as [[first, last], ...], e.g. [[1854, 1855], [1857, 1857]].
+                case["missingYears"] = year_ranges(missing)
+                report += f"; no {a.pattern} file for " + ", ".join(
+                    f"{y0:04d}" if y0 == y1 else f"{y0:04d}-{y1:04d}" for y0, y1 in case["missingYears"])
         else:
-            report = "no directory" if last is False else "no dated files"
+            report = "no directory" if found_dates is False else "no dated files"
         body = issue.get("body") or ""
         # Each tool's output root is the issue's entry, or the default without one. Either may
         # have {case}, {resolution}, {experiment} and {variant} in it, or <case> and so on,
