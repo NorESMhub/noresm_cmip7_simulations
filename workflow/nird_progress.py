@@ -608,8 +608,8 @@ def main():
                                prep_dir, output.get("cmor4cmip7"), labels, kept)
         if storage:
             case["storage"] = storage
-        # Each case's timing files are in the timing directory of its archive.
-        timing_dir = (a.case_dir + "/timing").format(case=title)
+        # Each case's timing files are in <case>/<case>/timing in its archive.
+        timing_dir = (a.case_dir + "/{case}/timing").format(case=title)
         if os.path.isdir(timing_dir):
             timing, machine = case_timing(timing_dir)
             if timing:

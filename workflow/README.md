@@ -248,7 +248,8 @@ least five years is kept from the previous `progress.json`.
 
 The web page replaces the estimated cost and throughput with measured values
 once a case has timing files. The script reads every `noresm_timing.*` file in
-`/nird/datalake/NS9560K/noresm3/cases/<case>/timing`, gzipped or not. Each file
+`/nird/datalake/NS9560K/noresm3/cases/<case>/<case>/timing`, gzipped or not.
+Each file
 comes from one job, and gives the machine, the cost in pe-hours per simulated
 year, the throughput in simulated years per day, and the date the job ended.
 
