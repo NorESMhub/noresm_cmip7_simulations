@@ -2238,12 +2238,7 @@ python3 -I workflow/nird_progress.py</pre>
   window.addEventListener("scroll", placeOpenCmorPops, { capture: true, passive: true });
   window.addEventListener("resize", placeOpenCmorPops);
 
-  // ---------------- editable tables ----------------
-  function configOptionsHTML(selectedId){
-    return configs.map(c => `<option value="${escapeAttr(c.id)}"${c.id===selectedId?" selected":""}></option>`).join("");
-  }
-  function escapeAttr(s){ return String(s).replace(/"/g,"&quot;"); }
-
+  // ---------------- tables ----------------
   function renderTables(){
     renderExpTimings();
     renderSimTable();
