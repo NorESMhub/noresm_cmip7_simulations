@@ -1825,7 +1825,9 @@ python3 -I workflow/nird_progress.py</pre>
   }
   // Colour of each resolution in Cost by MIP: the series its coupled runs use in the chart.
   const RES_SERIES = { "LM": 1, "MM": 7 };
+  // A run's resolution is its own; a row without one takes it from its configuration's name.
   function resolutionOf(row){
+    if (row && row.resolution) return row.resolution;
     const cfg = configs.find(c => c.id === row.configId) || configs[0];
     const m = cfg && /\b(LM|MM)\b/.exec(cfg.name || "");
     return m ? m[0] : "";
