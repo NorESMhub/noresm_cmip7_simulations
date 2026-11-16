@@ -404,7 +404,6 @@
   /* The table's left and right edges, in the darker line that frames a run's members. */
   #simTables tr > :first-child{ border-left: 2px solid var(--text-secondary); }
   #simTables tr > :last-child{ border-right: 2px solid var(--text-secondary); }
-  #simTables input.priority-input{ width: 56px; }
   .sim-name-wrap{ display:flex; align-items:center; gap:6px; }
   .sim-name-wrap input{ flex:1 1 auto; }
   .status-badge{
@@ -2598,44 +2597,10 @@ python3 -I workflow/nird_progress.py</pre>
       });
       if (!branching.length) tdParent.textContent = parentExperiment || "–";
 
-      const tdDep1 = document.createElement("td");
-      const depSelect1 = document.createElement("select");
-      depSelect1.dataset.rowId = row.id; depSelect1.dataset.depSlot = "0";
-      buildDependsOnOptions(depSelect1, row, 0);
-      depSelect1.addEventListener("change", () => { row.dependsOn[0] = depSelect1.value; recomputeAndRenderChartAndStats(); });
-      tdDep1.appendChild(depSelect1);
-
-      const tdDep2 = document.createElement("td");
-      const depSelect2 = document.createElement("select");
-      depSelect2.dataset.rowId = row.id; depSelect2.dataset.depSlot = "1";
-      buildDependsOnOptions(depSelect2, row, 1);
-      depSelect2.addEventListener("change", () => { row.dependsOn[1] = depSelect2.value; recomputeAndRenderChartAndStats(); });
-      tdDep2.appendChild(depSelect2);
-
       const tdYears = document.createElement("td"); tdYears.className = "n";
       tdYears.textContent = row.years;
 
       if (isRowOff(row)) tr.classList.add("row-disabled");
-
-      const tdCfg = document.createElement("td");
-      const cfgSelect = document.createElement("select");
-      cfgSelect.dataset.rowId = row.id;
-      cfgSelect.classList.add("cfg-select");
-      buildConfigOptions(cfgSelect, row);
-      cfgSelect.addEventListener("change", () => { row.configId = cfgSelect.value; recomputeAndRenderChartAndStats(); });
-      tdCfg.appendChild(cfgSelect);
-
-      const tdPriority = document.createElement("td");
-      const priorityInput = document.createElement("input");
-      priorityInput.type = "number"; priorityInput.className = "num priority-input"; priorityInput.min = "0"; priorityInput.step = "1";
-      priorityInput.value = row.priority == null ? 1 : row.priority;
-      priorityInput.title = "1 for DECK, 2 for the rest. 0 means this run won't be conducted for now — same effect as Ensemble 0.";
-      priorityInput.addEventListener("input", () => {
-        row.priority = normalizePriority(priorityInput.value);
-        tr.classList.toggle("row-disabled", isRowOff(row));
-        recomputeAndRenderChartAndStats();
-      });
-      tdPriority.appendChild(priorityInput);
 
       const tdStatus = document.createElement("td");
       const statusWrap = document.createElement("div"); statusWrap.className = "status-cell";
@@ -2836,60 +2801,6 @@ python3 -I workflow/nird_progress.py</pre>
       stepCells.flat().forEach(td => tr.appendChild(td));
       simTbody.appendChild(tr);
     }
-  }
-
-  function buildDependsOnOptions(select, row, slotIndex){
-    // read the raw positional slots directly (not the compacted rowDeps()) so slot 1 and
-    // slot 2 stay tied to their own <select>, even while either is temporarily "None"
-    const arr = Array.isArray(row.dependsOn) ? row.dependsOn : [];
-    const current = arr[slotIndex] || "";
-    const otherSlotValue = arr[slotIndex === 0 ? 1 : 0] || "";
-    select.innerHTML = "";
-    const noneOpt = document.createElement("option");
-    noneOpt.value = ""; noneOpt.textContent = "None";
-    select.appendChild(noneOpt);
-    sims.forEach(r => {
-      if (r.id === row.id) return;
-      if (r.id === otherSlotValue) return; // can't pick the same dependency twice
-      const opt = document.createElement("option");
-      opt.value = r.id; opt.textContent = r.name;
-      if (r.id === current) opt.selected = true;
-      select.appendChild(opt);
-    });
-    if (current && !sims.some(r => r.id === current)) select.value = "";
-  }
-  function buildConfigOptions(select, row){
-    select.innerHTML = "";
-    configs.forEach(c => {
-      const opt = document.createElement("option");
-      opt.value = c.id; opt.textContent = c.name;
-      if (c.id === row.configId) opt.selected = true;
-      select.appendChild(opt);
-    });
-    if (!configs.some(c => c.id === row.configId) && configs.length){
-      row.configId = configs[0].id;
-      select.value = configs[0].id;
-    }
-  }
-  function refreshDependentSelects(){
-    // lightweight refresh of option labels without rebuilding whole rows (keeps focus stable)
-    simTables.querySelectorAll("select:not(.cfg-select)").forEach(sel => {
-      const rid = sel.dataset.rowId;
-      const row = sims.find(r => r.id === rid);
-      if (!row) return;
-      const slotIndex = Number(sel.dataset.depSlot) || 0;
-      const currentVal = sel.value;
-      buildDependsOnOptions(sel, row, slotIndex);
-      sel.value = currentVal;
-    });
-    simTables.querySelectorAll("select.cfg-select").forEach(sel => {
-      const rid = sel.dataset.rowId;
-      const row = sims.find(r => r.id === rid);
-      if (!row) return;
-      const currentVal = sel.value;
-      buildConfigOptions(sel, row);
-      sel.value = currentVal;
-    });
   }
 
   function recomputeAndRenderChartAndStats(){
