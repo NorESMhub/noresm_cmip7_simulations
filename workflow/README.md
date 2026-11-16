@@ -266,9 +266,16 @@ above the tables shows every run in the plan.
 
 - A run's cases are the issues with the run's experiment label and resolution.
   The cases are grouped into members by their variant label.
-- A member's years done are counted from the run's start year to the latest
-  model date of its cases. A member whose issue has the `completed` label counts
-  as finished. A run's years done are the mean over its members.
+- A member's years done are counted from its start to the latest model date of
+  its cases. The start is the earliest `RUN_STARTDATE` in the run scripts of the
+  member's cases, or the spreadsheet's start year if none of its run scripts can
+  be read. When the two years differ, a bold red `⚠ start date error` appears
+  under the case whose run script sets the start; hovering over it shows both
+  years. A case whose run script is missing, or sets no
+  `RUN_STARTDATE`, is followed by a bold red `⚠ run script missing` or
+  `⚠ no RUN_STARTDATE` chip. A member counted from the spreadsheet's start year
+  has a bold red note saying so in the Progress column. A member whose issue has the `completed` label
+  counts as finished. A run's years done are the mean over its members.
 - A case that continues an earlier case of the same member is shown underneath
   that case in the Issues column.
 - The cmip7prep chip is dashed until at least one of the case's sets of years

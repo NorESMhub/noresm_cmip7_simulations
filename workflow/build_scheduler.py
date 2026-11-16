@@ -179,8 +179,9 @@ def build(experiments, costs, plans, deferred=()):
             sims.append({
                 "id": sim_id[name],
                 "name": f"{name} {resolution}" if label else name,
-                # The page matches a case's issue to its run by experiment label and resolution,
-                # and counts years done from the start year.
+                # The page matches a case's issue to its run by experiment label and resolution.
+                # It counts years done from the cases' RUN_STARTDATE, and from the start year
+                # only while no run script can be read.
                 "experiment": name,
                 "resolution": resolution,
                 "startYear": int(number(e.get("start_year")) or 1),

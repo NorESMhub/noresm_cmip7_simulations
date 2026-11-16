@@ -512,6 +512,14 @@
   a.script-chip.cmor-chip{ background: color-mix(in srgb, var(--series-1) 16%, transparent); }
   /* A case whose cam.i files skip some years. */
   .gap-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 1px 5px; margin-right: 5px; border-radius: 8px; background: var(--danger-wash); color: var(--danger); font-weight: 700; cursor: default; }
+  /* A case whose run script is missing or sets no RUN_STARTDATE, and a member whose years
+     done are counted from the spreadsheet's start year instead. */
+  .warn-chip{ display:block; width: fit-content; max-width: 100%; box-sizing: border-box; margin-top: 2px; font-size: 11px; line-height: 1.4; padding: 1px 6px; border-radius: 8px; background: var(--danger-wash); color: var(--danger); font-weight: 700; white-space: normal; cursor: default; }
+  #simTables .progress-cell:has(.progress-warn:not([hidden])){ flex-wrap: wrap; }
+  .progress-warn{ flex-basis: auto; width: fit-content; max-width: 100%; box-sizing: border-box; font-size: 11px; line-height: 1.4; padding: 1px 6px; border-radius: 8px; background: var(--danger-wash); color: var(--danger); font-weight: 700; white-space: normal; }
+  /* On its own line under the bar and the years done. */
+  #simTables .progress-cell:has(.progress-warn:not([hidden]))::after{ content: ""; order: 1; flex-basis: 100%; }
+  #simTables .progress-cell .progress-warn{ order: 2; }
   .case-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 6px; margin-right: 3px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); cursor: default; }
   .tab-nav{ display:flex; gap:4px; margin: 4px 0 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
   .tab-nav a{ padding: 9px 16px; font-weight: 600; font-size: 14px; color: var(--text-secondary); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
@@ -2734,7 +2742,8 @@ python3 -I workflow/nird_progress.py</pre>
       const progFill = document.createElement("div"); progFill.className = "progress-fill";
       progBar.appendChild(progFill);
       const progText = document.createElement("span"); progText.className = "progress-text";
-      progWrap.appendChild(progBar); progWrap.appendChild(progText);
+      const progWarn = document.createElement("span"); progWarn.className = "progress-warn"; progWarn.hidden = true;
+      progWrap.appendChild(progBar); progWrap.appendChild(progText); progWrap.appendChild(progWarn);
       tdProgress.appendChild(progWrap);
 
       // One cell per workflow step: the run step is the Status and Progress cells; a range
@@ -2814,6 +2823,14 @@ python3 -I workflow/nird_progress.py</pre>
         // Each member's own progress; the run's years done are their mean.
         progText.title = auto && auto.members ? "Read from NIRD:\n" + auto.members.map(m =>
           `${m.variant}: ${m.completed ? "completed" : m.modelDate ? `${m.years} years, at ${m.modelDate}` : "no files yet"}`).join("\n") : "";
+        // Members whose cases have no RUN_STARTDATE are counted from the spreadsheet's start year.
+        const fromSheet = (auto && auto.startFromSheet) || [];
+        progWarn.hidden = !fromSheet.length || row.status === "completed";
+        progWarn.textContent = fromSheet.length
+          ? `⚠ Counted from the spreadsheet's start year, ${row.startYear}` + (ensembleCount(row) > 1 ? `, for ${fromSheet.join(", ")}` : "") : "";
+        progWarn.title = fromSheet.length
+          ? "None of the run scripts of these members' cases set RUN_STARTDATE, so the years done are counted from the spreadsheet's start year. "
+            + "Push the run scripts to the CMIP7_Runscripts branch to count from RUN_STARTDATE." : "";
         tr.classList.toggle("row-completed", row.status === "completed");
         tr.classList.toggle("row-inprogress", row.status === "in-progress");
         tr.classList.toggle("row-opened", issueOpened(row));
@@ -2872,6 +2889,31 @@ python3 -I workflow/nird_progress.py</pre>
           a.textContent = "cmor"; a.title = `CMORization issue for #${c.issue}: ${cmorIssueText(ci)}`;
           pair.appendChild(a);
         });
+        // Bold red warnings, each on its own line under the case's chips. The first is for the
+        // case whose RUN_STARTDATE starts its member, when that year is not the spreadsheet's
+        // start year; the years done count from RUN_STARTDATE.
+        const auto = autoRun(row);
+        const mismatch = ((auto && auto.startMismatch) || []).find(s => s.issue === c.issue);
+        if (mismatch){
+          const st = document.createElement("span"); st.className = "warn-chip";
+          st.textContent = "⚠ start date error";
+          st.title = `RUN_STARTDATE in #${c.issue}'s run script: ${mismatch.startdate} (year ${Number(mismatch.startdate.slice(0, 4))})`
+            + `\nStart year in the spreadsheet for ${row.experiment || row.name}: ${mismatch.sheetStart}`
+            + `\nThe years done of ${mismatch.variant} are counted from ${mismatch.startdate}. Correct whichever is wrong.`;
+          pair.appendChild(st);
+        }
+        // The second is for a case whose run script is missing or sets no RUN_STARTDATE.
+        if (!c.runScript || !(c.start && c.start.startdate)){
+          const warn = document.createElement("span"); warn.className = "warn-chip";
+          warn.textContent = c.runScript ? "⚠ no RUN_STARTDATE" : "⚠ run script missing";
+          warn.title = (c.runScript
+            ? `#${c.issue}'s run script, scripts/${c.runScript}, could not be read, or it sets no RUN_STARTDATE with ./xmlchange.`
+            : `#${c.issue} has no run script on the ${RUNSCRIPTS_BRANCH} branch, or more than one script there starts with its issue number. `
+              + `Push it to scripts/<MIP>/<experiment>/, named after the issue, e.g. 011.piControl.LM.beta28.r1i1p1f1.20261102.sh.`)
+            + "\nThe run script is needed to show how the case started, and to count its years done from RUN_STARTDATE."
+            + "\nIf GitHub could not be read when the progress was last updated, every case shows this warning.";
+          pair.appendChild(warn);
+        }
         tdCases.appendChild(pair);
       });
       // The name's hover gives a member's variant and the cases' names.
@@ -3250,22 +3292,37 @@ python3 -I workflow/nird_progress.py</pre>
   // case issue, with its labels, the latest model date in its files and the sets of years
   // cmip7-prep has done. A case belongs to the run whose experiment is one of its labels, at
   // its resolution, and to the member its variant label (r1i1p1f1) names: cases of one
-  // member are one simulation continued in new cases. Years done and CMORized count from
-  // the run's start year.
+  // member are one simulation continued in new cases. A member's years done and CMORized
+  // count from its start: the earliest RUN_STARTDATE in its cases' run scripts, or the
+  // spreadsheet's start year while none of its run scripts can be read.
   const VARIANT = /^r\d+i\d+p\d+f\d+$/;
+  // A date YYYY-MM-DD as a model year with its fraction, e.g. 1850.5 for 1850-07-01.
+  function fractionalYear(date){
+    const [y, mo, d] = String(date).split("-").map(Number);
+    return Number.isFinite(y) ? y + ((mo || 1) - 1) / 12 + ((d || 1) - 1) / 365 : null;
+  }
 
-  function memberProgress(variant, cases, start, length){
+  function memberProgress(variant, cases, sheetStart, length){
     const m = { variant, years: 0 };
+    // The member's start, from the case whose run script has the earliest RUN_STARTDATE.
+    const first = cases.filter(c => c.start && fractionalYear(c.start.startdate) !== null)
+      .sort((a, b) => fractionalYear(a.start.startdate) - fractionalYear(b.start.startdate))[0];
+    const startAt = first ? fractionalYear(first.start.startdate) : sheetStart;
+    const start = Math.floor(startAt);
+    m.start = start;
+    m.startFromSheet = !first;
+    if (first && start !== sheetStart){
+      m.startMismatch = { issue: first.issue, startdate: first.start.startdate, sheetStart };
+    }
     const dates = cases.map(c => c.modelDate).filter(Boolean).sort();
     if (dates.length){
       m.modelDate = dates[dates.length - 1];
-      const [y, mo, d] = m.modelDate.split("-").map(Number);
-      m.years = Math.max(0, Math.round((y + (mo - 1) / 12 + (d - 1) / 365 - start) * 100) / 100);
+      m.years = Math.max(0, Math.round((fractionalYear(m.modelDate) - startAt) * 100) / 100);
     }
     m.completed = cases.some(c => c.completed);
     m.labels = [...new Set(cases.flatMap(c => c.labels || []))];
     if (m.completed) m.years = length;
-    // The years each tool has CMORized, from the run's start year to the first one missing.
+    // The years each tool has CMORized, from the member's start year to the first one missing.
     // A cmip7-prep set of years counts once it has every cmor- step any of the member's sets
     // has, so a set where one realm failed does not. cmor4cmip7's years are the ones every
     // variable has a file for.
@@ -3385,6 +3442,11 @@ python3 -I workflow/nird_progress.py</pre>
     const members = Object.keys(byVariant).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
       .map(v => memberProgress(v, byVariant[v], start, length));
     const p = { members, steps: {} };
+    const mismatches = members.filter(m => m.startMismatch);
+    if (mismatches.length) p.startMismatch = mismatches.map(m => ({ variant: m.variant, ...m.startMismatch }));
+    // The members with model files, not yet completed, whose years done count from the spreadsheet.
+    const fromSheet = members.filter(m => m.startFromSheet && m.modelDate && !m.completed);
+    if (fromSheet.length) p.startFromSheet = fromSheet.map(m => m.variant);
     if (members.some(m => m.modelDate || m.completed)){
       p.yearsCompleted = Math.round(members.reduce((s, m) => s + m.years, 0) / members.length * 100) / 100;
     }
@@ -3399,13 +3461,13 @@ python3 -I workflow/nird_progress.py</pre>
     });
     p.completed = members.filter(m => m.completed).length >= planned;
     // A tool's years for the run are the ones every member has done; its step is done once
-    // they cover the run and every planned member has an issue.
+    // they cover every member's years and every planned member has an issue.
     p.cmor = {};
     ["cmoratm", "cmorocn"].forEach(key => {
       if (!members.every(m => m.cmor[key])) return;
-      const r = { from: start, to: Math.min(...members.map(m => m.cmor[key].to)) };
+      const r = { from: Math.min(...members.map(m => m.start)), to: Math.min(...members.map(m => m.cmor[key].to)) };
       p.cmor[key] = r;
-      if (members.length >= planned && r.to - start + 1 >= (length || Infinity)) p.steps[key] = true;
+      if (members.length >= planned && members.every(m => m.cmor[key].to - m.start + 1 >= (length || Infinity))) p.steps[key] = true;
     });
     return p;
   }
