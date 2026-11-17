@@ -37,9 +37,11 @@ With more than one resolution in PLAN, run names carry their resolution.
 
 import argparse
 import csv
+import datetime
 import fnmatch
 import json
 import os
+import subprocess
 import sys
 
 # The repository's copy of the experiment sheet and the page template, next to this script.
@@ -97,6 +99,24 @@ COSTS = [
     {"name": "NorESM3 AMIP MM", "resolution": "MM", "costPerYear": None, "throughput": None,
      "compsets": ""},
 ]
+
+
+def sheet_version(path):
+    """When the experiment sheet was last changed: the date and short hash of the last
+    commit that changed it, and whether it has changes not yet committed. Outside git, or
+    before it is first committed, the date the file was last modified."""
+    def git(*args):
+        return subprocess.run(["git", "-C", os.path.dirname(path), *args, "--", os.path.basename(path)],
+                              capture_output=True, text=True, timeout=30).stdout.strip()
+    try:
+        last = git("log", "-1", "--format=%cd %h", "--date=short")
+        if last:
+            date, commit = last.split()
+            return {"date": date, "commit": commit, "uncommitted": bool(git("status", "--porcelain"))}
+    except (OSError, ValueError, subprocess.SubprocessError):
+        pass
+    mtime = datetime.date.fromtimestamp(os.path.getmtime(path))
+    return {"date": mtime.isoformat(), "commit": None, "uncommitted": True}
 
 
 def number(v):
@@ -240,6 +260,7 @@ def main():
              + "  let DEFAULT_SIMS = [\n" + literal(sims) + "\n  ];\n"
              + f"  let DEFAULT_SLOTS = {a.slots};\n"
              + f"  let DEFAULT_PROGRESS = {json.dumps(progress, ensure_ascii=False)};\n"
+             + f"  let DEFAULT_SHEET = {json.dumps(sheet_version(EXPERIMENTS))};\n"
              + '  let DEFAULT_COST_UNIT = "core-hr";\n\n  ')
     page = page[:s] + block + page[e:]
     page = page.replace('id="slotsInput" min="1" max="24" step="1" value="5"',

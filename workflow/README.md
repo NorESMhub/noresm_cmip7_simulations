@@ -260,7 +260,12 @@ costs the rest of the run on that machine.
 ### `scheduler_template.html`
 
 The JavaScript in the web page combines the runs in `index.html` with the cases
-in `progress.json` each time the page is opened. The tracker first shows only
+in `progress.json` each time the page is opened. The top of the tracker says
+when `nird_progress.py` last wrote `progress.json`, in NIRD's local time, or in
+bold red why the progress could not be read. The line under it gives the date
+and commit of the last change to `noresm3_experiments_decoded.csv` that the plan
+was built from, which `build_scheduler.py` reads from git. It is in bold red if
+the file had changes not yet committed when the page was built. The tracker first shows only
 the runs that are waiting to start, in progress or completed, and a button
 above the tables shows every run in the plan.
 

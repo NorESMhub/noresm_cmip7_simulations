@@ -513,6 +513,11 @@
   .gap-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 1px 5px; margin-right: 5px; border-radius: 8px; background: var(--danger-wash); color: var(--danger); font-weight: 700; cursor: default; }
   /* A case whose run script is missing or sets no RUN_STARTDATE, and a member whose years
      done are counted from the spreadsheet's start year instead. */
+  /* When nird_progress.py last wrote the progress, at the top of the tracker. */
+  .progress-status{ margin: 0 0 12px; font-size: 13px; color: var(--text-secondary); }
+  #progressStatus:has(+ #sheetStatus){ margin-bottom: 2px; }
+  .progress-status b{ color: var(--text-primary); }
+  .progress-status.is-error{ color: var(--danger); font-weight: 700; }
   .warn-chip{ display:block; width: fit-content; max-width: 100%; box-sizing: border-box; margin-top: 2px; font-size: 11px; line-height: 1.4; padding: 1px 6px; border-radius: 8px; background: var(--danger-wash); color: var(--danger); font-weight: 700; white-space: normal; cursor: default; }
   #simTables .progress-cell:has(.progress-warn:not([hidden])){ flex-wrap: wrap; }
   .progress-warn{ flex-basis: auto; width: fit-content; max-width: 100%; box-sizing: border-box; font-size: 11px; line-height: 1.4; padding: 1px 6px; border-radius: 8px; background: var(--danger-wash); color: var(--danger); font-weight: 700; white-space: normal; }
@@ -692,6 +697,8 @@
   </section>
 
   <div class="tab-panel" id="tab-tracker">
+  <p class="progress-status" id="progressStatus"></p>
+  <p class="progress-status" id="sheetStatus"></p>
   <section class="stats-grid" id="trackerStats" aria-label="Tracker summary"></section>
 
   <section class="card editor-card" id="simPlanCard">
@@ -922,8 +929,9 @@ python3 -I workflow/nird_progress.py</pre>
   "use strict";
 
   // ---------------- the plan ----------------
-  // build_scheduler.py replaces the five lines below with the configurations from its COSTS
-  // table, the runs built from the spreadsheet and the progress, so the template holds none.
+  // build_scheduler.py replaces the six lines below with the configurations from its COSTS
+  // table, the runs built from the spreadsheet, the progress and when the spreadsheet was
+  // last committed, so the template holds none.
   // It finds them by the DEFAULT_CONFIGS line and the configs line after them, so neither
   // may be changed or written out in full anywhere above them.
   let DEFAULT_CONFIGS = [];
@@ -931,6 +939,7 @@ python3 -I workflow/nird_progress.py</pre>
   let DEFAULT_SLOTS = 5;
   let DEFAULT_COST_UNIT = "core-hr";
   let DEFAULT_PROGRESS = null;
+  let DEFAULT_SHEET = null;
 
   let configs = clone(DEFAULT_CONFIGS);
   let sims = clone(DEFAULT_SIMS);
@@ -3386,13 +3395,47 @@ python3 -I workflow/nird_progress.py</pre>
     });
   }
 
+  // The line at the top of the tracker: when nird_progress.py last wrote the progress shown,
+  // or why no progress is shown.
+  function showProgressStatus(html, bad){
+    const p = el("progressStatus");
+    p.innerHTML = html;
+    p.classList.toggle("is-error", !!bad);
+  }
+  const updatedOn = data => `<b>${String(data.updated || "an unknown time").replace(/[<>&]/g, "")}</b>`;
+
+  // The line under it: the date of the copy of the spreadsheet the plan was built from, which
+  // is when its CSV was last committed.
+  const SHEET_URL = "https://docs.google.com/spreadsheets/d/1PZQHmOHVENJeCqwSfk4wfp8okQXw60Bv/edit?gid=13331701#gid=13331701";
+  (() => {
+    const p = el("sheetStatus"), s = DEFAULT_SHEET;
+    if (!s){ p.hidden = true; return; }
+    const date = `<b>${String(s.date).replace(/[<>&]/g, "")}</b>`;
+    const sheet = `a copy of the <a href="${SHEET_URL}" target="_blank" rel="noopener">NorESM3 CMIP7 experiments spreadsheet</a>`;
+    p.innerHTML = s.commit
+      ? `Plan built from ${sheet} as of ${date}` + (s.uncommitted ? ", with changes not yet committed." : ".")
+      : `⚠ Plan built from ${sheet} that is not in git, as of ${date}.`;
+    p.title = s.commit ? `noresm3_experiments_decoded.csv, last committed in ${s.commit}` : "noresm3_experiments_decoded.csv";
+    p.classList.toggle("is-error", !!s.uncommitted);
+  })();
+
   applyAutoProgress(DEFAULT_PROGRESS);
   render();
   if (/^https?:$/.test(location.protocol)){
+    showProgressStatus("Reading the progress from NIRD…");
     fetch("progress.json", { cache: "no-store" })
-      .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data){ applyAutoProgress(data); render(); } })
-      .catch(() => {});
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then(data => {
+        if (!data || !Array.isArray(data.cases)) throw new Error("not a progress file");
+        applyAutoProgress(data); render();
+        showProgressStatus(`Progress last updated ${updatedOn(data)}, by running nird_progress.py on NIRD.`);
+      })
+      .catch(err => showProgressStatus(`⚠ The progress could not be read (${String(err.message).replace(/[<>&]/g, "")})`
+        + (DEFAULT_PROGRESS ? `; this is the copy built into the page, last updated ${updatedOn(DEFAULT_PROGRESS)}.` : ", so no run's progress is shown."), true));
+  } else {
+    showProgressStatus(DEFAULT_PROGRESS
+      ? `Progress built into this copy of the page, last updated ${updatedOn(DEFAULT_PROGRESS)}, by running nird_progress.py on NIRD.`
+      : "⚠ This page was opened as a local file, so no progress is shown.", !DEFAULT_PROGRESS);
   }
 })();
 </script></body></html>

@@ -626,7 +626,8 @@ def main():
             report = "no output on NIRD" if found_dates is False else "no dated files"
         print(f"#{num} {title} [{', '.join(labels) or 'no labels'}]: " + "; ".join([report] + problems))
 
-    data = {"updated": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), "repo": a.repo,
+    # When the progress was written, in NIRD's local time with its time zone, e.g. CET.
+    data = {"updated": datetime.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z"), "repo": a.repo,
             "cases": cases, "skipped": skipped}
     tmp = a.out + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
