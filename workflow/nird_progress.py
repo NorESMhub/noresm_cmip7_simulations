@@ -1,4 +1,5 @@
-"""Write progress.json for the tracker from the GitHub issues and the files on NIRD.
+"""Write progress.json for the tracker from the GitHub issues and the files on NIRD, and
+build the tracker page, index.html, next to it.
 
 workflow/README.md describes what it reads and records.
 """
@@ -13,9 +14,15 @@ import json
 import os
 import re
 import shlex
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+
+# The page is built by build_scheduler.py, next to this script. python3 -I leaves this
+# script's directory off the import path, so it is added here.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import build_scheduler  # noqa: E402
 
 REPO = "NorESMhub/noresm_cmip7_simulations"
 # Where things are on NIRD, the defaults for the options.
@@ -461,7 +468,8 @@ def case_timing(directory):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("out", nargs="?", default=PROGRESS, help=f"where to write progress.json (default {PROGRESS})")
+    p.add_argument("out", nargs="?", default=PROGRESS,
+                   help=f"where to write progress.json; the page, index.html, goes next to it (default {PROGRESS})")
     p.add_argument("--case-dir", default=CASE_DIR,
                    help=f'each case\'s archive directory, with <component>/hist and rest (default "{CASE_DIR}")')
     p.add_argument("--dir", help='the directory of each case\'s dated files (default "<case-dir>/atm/hist")')
@@ -634,6 +642,14 @@ def main():
         json.dump(data, f, indent=1)
     os.replace(tmp, a.out)
     print(f"{a.out}: {len(cases)} cases")
+
+    # The page, index.html next to progress.json, built from the experiment sheet, the plan
+    # and the template; it reads progress.json when it is opened.
+    page = os.path.join(os.path.dirname(os.path.abspath(a.out)), "index.html")
+    _, sims, warnings = build_scheduler.write_page(page)
+    for w in warnings:
+        print("warning:", w)
+    print(f"{page}: {len(sims)} runs")
 
 
 if __name__ == "__main__":

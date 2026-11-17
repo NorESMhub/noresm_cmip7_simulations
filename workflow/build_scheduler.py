@@ -15,7 +15,8 @@ the required model components and compset decide:
   emission-driven (esm-*, *Esm*) -> ESM at the chosen resolution
   anything else                 -> coupled at the chosen resolution
 
-Usage (build_page.sh runs it):
+On NIRD, nird_progress.py builds the published page with write_page() each time it
+runs. A copy can also be built by hand, e.g. to look at as a local file:
   python3 -I workflow/build_scheduler.py --out noresm3_cmip7_scheduler.html
 
 The experiments on the page are those in the tiers or activities that PLAN
@@ -225,7 +226,45 @@ def literal(items):
     return "\n".join("    " + json.dumps(x, ensure_ascii=False) + "," for x in items)
 
 
+def write_page(out, progress=None, slots=5, running=(), defer=()):
+    """Build the page from the experiment sheet, the plan and the template, and write it to
+    out through a temporary file, so the page is never read half-written. progress is a
+    progress.json's contents to build into the page, or None for a page that reads
+    progress.json from next to itself. Returns the configurations, the runs and the warnings."""
+    configs, sims, warnings = build(read_experiments(EXPERIMENTS), COSTS, PLAN, defer)
+    by_name = {s["name"]: s for s in sims}
+    for spec in running:
+        name, _, n = spec.partition("=")
+        name = name.strip()
+        if name not in by_name:
+            raise ValueError(f"--running {name!r}: no such run (names look like 'historical LM')")
+        by_name[name]["status"] = "in-progress"
+        by_name[name]["membersRunning"] = int(n or 1)
+
+    with open(TEMPLATE, encoding="utf-8") as f:
+        page = f.read()
+    s, e = page.find(START_MARKER), page.find(END_MARKER)
+    if s < 0 or e < 0:
+        raise ValueError(f"{TEMPLATE} has no default-data block")
+    block = (START_MARKER + "\n" + literal(configs) + "\n  ];\n"
+             + "  let DEFAULT_SIMS = [\n" + literal(sims) + "\n  ];\n"
+             + f"  let DEFAULT_SLOTS = {slots};\n"
+             + f"  let DEFAULT_PROGRESS = {json.dumps(progress, ensure_ascii=False)};\n"
+             + f"  let DEFAULT_SHEET = {json.dumps(sheet_version(EXPERIMENTS))};\n"
+             + '  let DEFAULT_COST_UNIT = "core-hr";\n\n  ')
+    page = page[:s] + block + page[e:]
+    page = page.replace('id="slotsInput" min="1" max="24" step="1" value="5"',
+                        f'id="slotsInput" min="1" max="24" step="1" value="{slots}"')
+    tmp = out + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(page)
+    os.replace(tmp, out)
+    return configs, sims, warnings
+
+
 def main():
+    """Build a copy of the page by hand, e.g. to look at it as a local file. On NIRD,
+    nird_progress.py builds the published page."""
     p = argparse.ArgumentParser()
     p.add_argument("--out", required=True)
     p.add_argument("--slots", type=int, default=5)
@@ -236,37 +275,14 @@ def main():
                    help="tier, activity or experiment_id to keep in the plan but not schedule yet "
                         "(priority 0), e.g. ScenarioMIP; repeatable")
     a = p.parse_args()
-
-    configs, sims, warnings = build(read_experiments(EXPERIMENTS), COSTS, PLAN, a.defer)
-    by_name = {s["name"]: s for s in sims}
-    for spec in a.running:
-        name, _, n = spec.partition("=")
-        name = name.strip()
-        if name not in by_name:
-            sys.exit(f"--running {name!r}: no such run (names look like 'historical LM')")
-        by_name[name]["status"] = "in-progress"
-        by_name[name]["membersRunning"] = int(n or 1)
     progress = None
     if a.progress:
         with open(a.progress, encoding="utf-8") as f:
             progress = json.load(f)
-
-    with open(TEMPLATE, encoding="utf-8") as f:
-        page = f.read()
-    s, e = page.find(START_MARKER), page.find(END_MARKER)
-    if s < 0 or e < 0:
-        sys.exit("template has no default-data block")
-    block = (START_MARKER + "\n" + literal(configs) + "\n  ];\n"
-             + "  let DEFAULT_SIMS = [\n" + literal(sims) + "\n  ];\n"
-             + f"  let DEFAULT_SLOTS = {a.slots};\n"
-             + f"  let DEFAULT_PROGRESS = {json.dumps(progress, ensure_ascii=False)};\n"
-             + f"  let DEFAULT_SHEET = {json.dumps(sheet_version(EXPERIMENTS))};\n"
-             + '  let DEFAULT_COST_UNIT = "core-hr";\n\n  ')
-    page = page[:s] + block + page[e:]
-    page = page.replace('id="slotsInput" min="1" max="24" step="1" value="5"',
-                        f'id="slotsInput" min="1" max="24" step="1" value="{a.slots}"')
-    with open(a.out, "w", encoding="utf-8") as f:
-        f.write(page)
+    try:
+        configs, sims, warnings = write_page(a.out, progress, a.slots, a.running, a.defer)
+    except ValueError as err:
+        sys.exit(str(err))
 
     for w in warnings:
         print("warning:", w)

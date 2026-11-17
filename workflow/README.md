@@ -73,7 +73,8 @@ read by the web page each time the page is opened in a browser.
 
 ### Requirements
 
-- The scripts need Python 3 and use only the Python standard library.
+- The scripts need Python 3 and use only the Python standard library. They also
+  run `git`, to find the date of the last commit of the spreadsheet copy.
 - The scripts are run on NIRD, in the repository's clone at
   `/projects/NS9560K/www/diagnostics/noresm/noresm_cmip7_simulations`.
 - The user running the scripts needs read access to
@@ -87,22 +88,9 @@ read by the web page each time the page is opened in a browser.
 
 | Script | What it does | When it is run |
 |---|---|---|
-| `build_page.sh` | It generates `index.html` by running `build_scheduler.py`. | It is run whenever the spreadsheet copy, the template or the plan changes. |
-| `build_scheduler.py` | It combines the experiments, the plan and the template into `index.html`. | It is run only by `build_page.sh`. |
-| `nird_progress.py` | It generates `progress.json` from GitHub and the case files on NIRD. | It is run whenever the progress needs to be updated. |
+| `nird_progress.py` | It generates `progress.json` from GitHub and the case files on NIRD, and then `index.html` with `build_scheduler.py`. | It is run whenever the progress, the spreadsheet copy, the template or the plan changes. |
+| `build_scheduler.py` | It combines the experiments, the plan and the template into `index.html`. | It is run by `nird_progress.py`, or by hand to build a copy of the page. |
 | `scheduler_template.html` | It contains the JavaScript that combines `index.html` and `progress.json` in the browser. | Its JavaScript is run each time the web page is opened. |
-
-### `build_page.sh`
-
-`build_page.sh` generates the published web page. It is run on NIRD with the
-following command.
-
-```bash
-workflow/build_page.sh /nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/index.html
-```
-
-The script writes the web page to the file it is given, by running
-`build_scheduler.py`.
 
 ### `build_scheduler.py`
 
@@ -112,7 +100,7 @@ The script writes the web page to the file it is given, by running
 2. It chooses which experiments are run at each resolution. The plan at the top
    of `build_scheduler.py` lists the tiers and activities for each resolution,
    e.g. the DECK and Fast Track experiments at LM resolution. The plan is
-   changed by editing it there and running `build_page.sh` again.
+   changed by editing it there and running `nird_progress.py` again.
 3. It gives each run an estimated cost and throughput. The estimates come from
    the `COSTS` table in `build_scheduler.py`, which has one estimate for each
    model configuration, e.g. `NorESM3 LM` for the coupled model at LM
@@ -123,7 +111,15 @@ The script writes the web page to the file it is given, by running
    so they are left out of the web page.
 4. It takes the number of members and years of each run from the spreadsheet.
 5. It writes the runs and their estimates into a copy of
-   `scheduler_template.html`, which becomes `index.html`.
+   `scheduler_template.html`, which becomes `index.html`. Like `progress.json`,
+   the page is written to a temporary file first and then moved into place.
+
+`nird_progress.py` runs these steps each time it is run. To build a copy of the
+page by hand, e.g. to look at it as a local file with the progress built in:
+
+```bash
+python3 -I workflow/build_scheduler.py --out tracker.html --progress progress.json
+```
 
 On the web page, these estimates are used only until real timings exist. Once
 cases of a configuration have timing files on NIRD, the web page replaces the
@@ -132,8 +128,9 @@ machine.
 
 ### `nird_progress.py`
 
-`nird_progress.py` generates `progress.json` in the same directory as the
-published web page. It is run on NIRD with the following command.
+`nird_progress.py` generates `progress.json`, and then the web page,
+`index.html`, in the same directory. It is run on NIRD with the following
+command.
 
 ```bash
 python3 -I workflow/nird_progress.py
