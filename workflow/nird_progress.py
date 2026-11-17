@@ -30,6 +30,8 @@ REPO = "NorESMhub/noresm_cmip7_simulations"
 class Failed(Exception):
     """Something the tracker needs could not be read, so neither progress.json nor the page
     is updated."""
+
+
 # Where things are on NIRD, the defaults for the options.
 PROGRESS = "/nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json"
 CASE_DIR = "/nird/datalake/NS9560K/noresm3/cases/{case}"
@@ -188,6 +190,59 @@ def run_settings(text):
             if key in RUN_SETTINGS and "$" not in value:
                 settings[RUN_SETTINGS[key]] = value
     return settings
+
+
+# Stands for a part of a case name the script only knows when it runs, such as $(date).
+UNKNOWN = "\0"
+# Variables that may hold the case name, in a script without a create_newcase line.
+CASE_VARIABLES = ("casename", "CASENAME", "case_name", "CASE_NAME", "case", "CASE")
+
+
+def script_case_name(text):
+    """The case name a run script creates: the last part of create_newcase's --case path, with
+    the shell variables it uses filled in. A part known only when the script runs, such as
+    $(date +%Y%m%d), is UNKNOWN. None if the script names no case."""
+    # Commands continued over several lines with a backslash become one line, and $(...) is
+    # replaced first, since it may hold quotes of its own.
+    text = re.sub(r"\\\n", " ", text)
+    text = re.sub(r"\$\((?:[^()]|\([^()]*\))*\)|`[^`]*`", UNKNOWN, text)
+    variables, newcase = {}, None
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if m := re.match(r"""^(?:export\s+)?([A-Za-z_]\w*)=("[^"]*"|'[^']*'|[^\s;#]*)""", line):
+            variables[m.group(1)] = m.group(2).strip("\"'")
+        elif m := re.search(r"create_newcase\b.*?--case(?:\s+|=)(\"[^\"]*\"|'[^']*'|[^\s;]+)", line):
+            newcase = m.group(1).strip("\"'")
+
+    def expand(value, depth=0):
+        if depth > 10:
+            return UNKNOWN
+        return re.sub(r"\$\{(\w+)[^}]*\}|\$(\w+)",
+                      lambda m: expand(variables[m.group(1) or m.group(2)], depth + 1)
+                      if (m.group(1) or m.group(2)) in variables else UNKNOWN, value)
+
+    raw = newcase or next((variables[v] for v in CASE_VARIABLES if v in variables), None)
+    if not raw:
+        return None
+    name = expand(raw).rstrip("/").split("/")[-1]
+    return name if name.strip(UNKNOWN) else None
+
+
+def find_case(name, case_dir):
+    """The case's name on NIRD: name itself if all of it is known, or else the one case
+    directory, below case_dir with {case} as its last part, whose name fits name with any
+    UNKNOWN part, e.g. its $(date). Of several that fit, the latest by name. None if none
+    fits; the directories that fit are returned too."""
+    if UNKNOWN not in name:
+        return name, []
+    parent, last = os.path.split(case_dir)
+    if last != "{case}" or not os.path.isdir(parent):
+        return None, []
+    pattern = "*".join(glob.escape(p) for p in name.split(UNKNOWN))
+    fits = sorted(d for d in os.listdir(parent) if fnmatch.fnmatchcase(d, pattern))
+    return (fits[-1] if fits else None), fits
 
 
 def model_dates(directory, pattern):
@@ -517,8 +572,6 @@ def main():
         cmor_issues = fetch_issues(CMOR_REPO)
     except (OSError, ValueError, http.client.HTTPException) as e:
         raise Failed(f"The CMORization issues in {CMOR_REPO} could not be read: {e}") from e
-    # A case's parent is the issue whose title is its RUN_REFCASE.
-    issue_of_case = {i["title"].strip(): i["number"] for i in issues}
     # A case's run script is the one whose name starts with its issue number.
     scripts, why = list_run_scripts(a.repo, a.scripts)
     if scripts is None:
@@ -527,27 +580,55 @@ def main():
     for path in sorted(scripts or []):
         if m := SCRIPT_ISSUE.match(os.path.basename(path)):
             scripts_of_issue.setdefault(int(m.group(1)), []).append(path)
-    cases, skipped = [], []
+
+    # Each issue's case name is the one its run script gives create_newcase, so the issue's
+    # title doesn't have to be the case name. The part of the name the script only knows
+    # when it runs, such as $(date), comes from the case's directory on NIRD. An issue with
+    # no run script, or whose script names no case, falls back to its title.
+    tracked = []
     for issue in sorted(issues, key=lambda i: i["number"]):
         num, title = issue["number"], issue["title"].strip()
         labels = [l["name"] for l in issue.get("labels", [])]
         if "test" in labels:
             continue
-        # A title with a space in it is not a case name but a note, such as a placeholder
-        # for a run not set up yet. It is left out of the tracker without a mention.
+        # A title with a space in it is a note, such as a placeholder for a run not set up
+        # yet. It is left out of the tracker without a mention.
         if re.search(r"\s", title):
             print(f"#{num} {title}: skipped, the title has a space in it")
             continue
-        m = TITLE.match(title)
+        script_paths, text, name, notes = scripts_of_issue.get(num, []), None, None, []
+        if len(script_paths) == 1:
+            text, why = read_run_script(a.repo, script_paths[0], a.scripts)
+            if text is None:
+                raise Failed(f"#{num}'s run script, scripts/{script_paths[0]}, could not be read: {why}")
+            if pattern := script_case_name(text):
+                name, fits = find_case(pattern, a.case_dir)
+                if len(fits) > 1:
+                    notes.append("more than one case directory fits its run script: " + ", ".join(fits)
+                                 + f"; {name} is used")
+                if not name:
+                    # Nothing on NIRD yet: the name as far as the script knows it.
+                    name = pattern.replace(UNKNOWN, "*")
+            else:
+                notes.append("its run script names no case; the title is used")
+        tracked.append((issue, num, title, labels, script_paths, text, name or title, notes))
+    # A case's parent is the issue whose case is its RUN_REFCASE.
+    issue_of_case = {name: num for _, num, _, _, _, _, name, _ in tracked}
+
+    cases, skipped = [], []
+    for issue, num, title, labels, script_paths, text, name, notes in tracked:
+        m = TITLE.match(name)
         if not m:
-            skipped.append({"issue": num, "title": title, "reason": "the title is not a case name"})
-            print(f"#{num} {title}: skipped, the title is not a case name")
+            skipped.append({"issue": num, "title": title, "reason": f"{name} is not a case name"})
+            print(f"#{num} {title}: skipped, {name} is not a case name")
             continue
+        if name != title and "*" not in name:
+            notes.append(f"its case is {name}")
         people = [u["login"] for u in issue.get("assignees") or []] or [issue["user"]["login"]]
-        case = {"issue": num, "case": title, "resolution": RESOLUTION[m.group(1)],
+        case = {"issue": num, "case": name, "resolution": RESOLUTION[m.group(1)],
                 "version": m.group(2), "owner": ", ".join(people), "labels": labels,
                 "completed": "completed" in labels}
-        found_dates = model_dates(a.dir.format(case=title), a.pattern)
+        found_dates = model_dates(a.dir.format(case=name), a.pattern)
         if found_dates:
             last, missing = found_dates
             case["modelDate"] = "%04d-%02d-%02d" % last
@@ -570,7 +651,7 @@ def main():
             root = re.sub(r"<(case|resolution|experiment|variant)>", r"{\1}", root)
             if "{variant}" in root and not variant:
                 continue
-            root = (root.replace("{case}", title).replace("{resolution}", case["resolution"])
+            root = (root.replace("{case}", name).replace("{resolution}", case["resolution"])
                     .replace("{variant}", variant or ""))
             places = ([root.replace("{experiment}", l) for l in labels if l != variant]
                       if "{experiment}" in root else [root])
@@ -581,22 +662,21 @@ def main():
         if output:
             case["cmorOutput"] = output
         # Problems with the run script are printed with the case's line.
-        problems = []
-        script_paths = scripts_of_issue.get(num, [])
+        problems = notes
         if len(script_paths) > 1:
             problems.append("more than one run script: " + ", ".join(script_paths))
         elif script_paths:
             case["runScript"] = script_paths[0]
-            text, why = read_run_script(a.repo, case["runScript"], a.scripts)
-            if text is None:
-                raise Failed(f"#{num}'s run script, scripts/{case['runScript']}, could not be read: {why}")
-            elif start := run_settings(text):
-                if start.get("refcase") in issue_of_case:
-                    start["parent"] = issue_of_case[start["refcase"]]
+            if start := run_settings(text):
+                # The parent's case name may still have a * for a part only NIRD knows.
+                refcase = start.get("refcase", "")
+                if parent := issue_of_case.get(refcase) or next(
+                        (n for c, n in issue_of_case.items() if "*" in c and fnmatch.fnmatchcase(refcase, c)), None):
+                    start["parent"] = parent
                 case["start"] = start
         if m := DATA_VERSION.search(body):
             case["dataVersion"] = "v" + m.group(1).lstrip("vV")
-        if found := [i for i in cmor_issues if title in i["title"] + "\n" + (i.get("body") or "")]:
+        if found := [i for i in cmor_issues if name in i["title"] + "\n" + (i.get("body") or "")]:
             case["cmorIssues"] = []
             for i in found:
                 ci = {"number": i["number"], "state": i["state"]}
@@ -623,12 +703,12 @@ def main():
         if versions:
             case["cmorVersions"] = versions
         kept = earlier.get(num, {})
-        storage = case_storage(a.case_dir.format(case=title) if a.case_dir else None, title,
+        storage = case_storage(a.case_dir.format(case=name) if a.case_dir else None, name,
                                prep_dir, output.get("cmor4cmip7"), labels, kept)
         if storage:
             case["storage"] = storage
         # Each case's timing files are in <case>/<case>/timing in its archive.
-        timing_dir = (a.case_dir + "/{case}/timing").format(case=title)
+        timing_dir = (a.case_dir + "/{case}/timing").format(case=name)
         if os.path.isdir(timing_dir):
             timing, machine = case_timing(timing_dir)
             if timing:
@@ -666,8 +746,9 @@ def main():
                 f.write(content)
             written.append(path)
     except OSError as e:
-        for path in written:
-            os.remove(path + ".tmp")
+        for done in (a.out, page):
+            if os.path.exists(done + ".tmp"):
+                os.remove(done + ".tmp")
         raise Failed(f"{path} could not be written: {e}") from e
     for path in written:
         os.replace(path + ".tmp", path)

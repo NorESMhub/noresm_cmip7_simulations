@@ -163,17 +163,29 @@ GitHub's raw file server, which is not counted.
 
 #### The case and its owner
 
-Each case issue is titled with the case name, e.g.
-`nHistEsmGHGGaxg.LM.nor30b28.r1i1p1f1.008.20261029`. Issues with the `test`
-label are not CMIP7 runs and are left out. An issue whose title has a space in
-it, such as a placeholder for a run that is not set up yet, is left out too. An
-issue whose title is otherwise not a case name is also left out. For each issue
-left out, the script prints a line saying why.
+The script takes each case's name from its run script, not from the issue's
+title: it is the last part of the path the script gives `create_newcase
+--case`, with the script's shell variables filled in. The case's directory on
+NIRD has this name. A part of the name the script only knows when it runs, such
+as the date from `$(date +%Y%m%d)`, is taken from the one directory on NIRD
+whose name fits; if several fit, the latest is used and the script says so.
+Until the case has a directory on NIRD, the unknown part is shown as `*`.
+
+The issue's title is therefore only a label, and changing it changes nothing.
+An issue with no run script on the `CMIP7_Runscripts` branch yet, or whose run
+script names no case, falls back to its title as the case name. When the title
+and the case name differ, the script's line for the issue gives the case name.
+
+Issues with the `test` label are not CMIP7 runs and are left out. An issue whose
+title has a space in it, such as a placeholder for a run that is not set up
+yet, is left out too. An issue whose case name is not of the form
+`compset.LM.nor30b28...` is also left out. For each issue left out, the script
+prints a line saying why.
 
 The web page shows a case once its issue has an experiment label for a run in
 the plan and a variant label, e.g. `historical` and `r2i1p1f1`. Until then, the
 issue is listed under "Not shown" below the tracker, together with the issues
-whose titles have no space but are not case names.
+whose case names are not of that form.
 
 The case's owner is the person assigned to the issue. If nobody is assigned,
 the owner is the person who opened the issue.
