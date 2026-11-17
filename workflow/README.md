@@ -140,8 +140,12 @@ The web page shows how far each case has run, how much of its output has been
 CMORized, what it costs and how much storage it needs. The script collects this
 information for every case issue, as described in the sections below.
 
-The script first writes `progress.json` to a temporary file and then moves it
-into place, so that the web page never reads a half-written file. For each
+The script updates `progress.json` and `index.html` only if it has read
+everything and built the page without an error. If GitHub can't be read, a run
+script can't be read, or the page can't be built, the script stops with a
+message saying why, and both files stay as they were. It builds the page before
+writing anything, writes both files to temporary files, and then moves them into
+place, so that the web page never reads a half-written file. For each
 issue, the script also prints one line with the issue's labels, the case's
 latest model date and its start date. A case with no output yet is marked
 "no output on NIRD", or "no run script on GitHub" if its run script is missing

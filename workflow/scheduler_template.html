@@ -518,6 +518,8 @@
   /* The Simulation tracker box: how the tracker is updated, and when it last was. */
   #trackerHead{ gap: 6px; margin-bottom: 20px; }
   #trackerHead .progress-status, #trackerHead #progressCommand{ margin: 0; }
+  /* When the progress was last updated, just above the title. */
+  .page-header #progressStatus{ margin: 0; font-size: 14px; }
   #trackerHead .editor-head{ margin-bottom: 4px; }
   /* In the colour of the Workflow steps heading. */
   #trackerHead h2{ color: color-mix(in srgb, var(--series-2) 75%, var(--text-primary)); }
@@ -678,6 +680,7 @@
 
   <header class="page-header">
     <div class="eyebrow">NorESM3 · CMIP7</div>
+    <p class="progress-status" id="progressStatus"></p>
     <h1>CMIP7 Simulation Tracker Dashboard</h1>
     <p class="subtitle">Where each NorESM3 CMIP7 run stands, the steps every run goes through from GitHub issue to ESGF, and what the plan costs on Olivia and Betzy.</p>
   </header>
@@ -721,7 +724,6 @@
           <li>The <b>CMORization directories</b> of cmip7-prep and cmor4cmip7 determine the years each tool has CMORized and the size of the time series and CMOR output.</li>
         </ul>
       </details>
-    <p class="progress-status" id="progressStatus"></p>
     <p class="progress-status" id="sheetStatus"></p>
   </section>
   <section class="stats-grid" id="trackerStats" aria-label="Tracker summary"></section>

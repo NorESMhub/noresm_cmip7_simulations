@@ -226,11 +226,11 @@ def literal(items):
     return "\n".join("    " + json.dumps(x, ensure_ascii=False) + "," for x in items)
 
 
-def write_page(out, progress=None, slots=5, running=(), defer=()):
-    """Build the page from the experiment sheet, the plan and the template, and write it to
-    out through a temporary file, so the page is never read half-written. progress is a
-    progress.json's contents to build into the page, or None for a page that reads
-    progress.json from next to itself. Returns the configurations, the runs and the warnings."""
+def page_text(progress=None, slots=5, running=(), defer=()):
+    """The page, built from the experiment sheet, the plan and the template, with the
+    configurations, the runs and the warnings. progress is a progress.json's contents to
+    build into the page, or None for a page that reads progress.json from next to itself.
+    Raises ValueError, or OSError, if the page can't be built."""
     configs, sims, warnings = build(read_experiments(EXPERIMENTS), COSTS, PLAN, defer)
     by_name = {s["name"]: s for s in sims}
     for spec in running:
@@ -255,6 +255,13 @@ def write_page(out, progress=None, slots=5, running=(), defer=()):
     page = page[:s] + block + page[e:]
     page = page.replace('id="slotsInput" min="1" max="24" step="1" value="5"',
                         f'id="slotsInput" min="1" max="24" step="1" value="{slots}"')
+    return page, configs, sims, warnings
+
+
+def write_page(out, progress=None, slots=5, running=(), defer=()):
+    """Build the page and write it to out through a temporary file, so the page is never read
+    half-written. Returns the configurations, the runs and the warnings."""
+    page, configs, sims, warnings = page_text(progress, slots, running, defer)
     tmp = out + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         f.write(page)
@@ -281,8 +288,8 @@ def main():
             progress = json.load(f)
     try:
         configs, sims, warnings = write_page(a.out, progress, a.slots, a.running, a.defer)
-    except ValueError as err:
-        sys.exit(str(err))
+    except (ValueError, OSError) as err:
+        sys.exit(f"{err}\nThe page was not written.")
 
     for w in warnings:
         print("warning:", w)

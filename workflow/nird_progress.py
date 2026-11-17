@@ -25,6 +25,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_scheduler  # noqa: E402
 
 REPO = "NorESMhub/noresm_cmip7_simulations"
+
+
+class Failed(Exception):
+    """Something the tracker needs could not be read, so neither progress.json nor the page
+    is updated."""
 # Where things are on NIRD, the defaults for the options.
 PROGRESS = "/nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json"
 CASE_DIR = "/nird/datalake/NS9560K/noresm3/cases/{case}"
@@ -109,6 +114,8 @@ def list_run_scripts(repo, scripts_dir=None):
     CMIP7_Runscripts branch on GitHub otherwise, and why they couldn't be listed if they couldn't."""
     try:
         if scripts_dir:
+            if not os.path.isdir(scripts_dir):
+                return None, f"{scripts_dir} is not a directory"
             return [os.path.relpath(os.path.join(d, f), scripts_dir)
                     for d, _, files in os.walk(scripts_dir) for f in files if f.endswith(".sh")], None
         url = f"https://api.github.com/repos/{repo}/git/trees/{RUNSCRIPTS_BRANCH}?recursive=1"
@@ -509,14 +516,13 @@ def main():
     try:
         cmor_issues = fetch_issues(CMOR_REPO)
     except (OSError, ValueError, http.client.HTTPException) as e:
-        print(f"The CMORization issues in {CMOR_REPO} could not be read: {e}")
-        cmor_issues = []
+        raise Failed(f"The CMORization issues in {CMOR_REPO} could not be read: {e}") from e
     # A case's parent is the issue whose title is its RUN_REFCASE.
     issue_of_case = {i["title"].strip(): i["number"] for i in issues}
     # A case's run script is the one whose name starts with its issue number.
     scripts, why = list_run_scripts(a.repo, a.scripts)
     if scripts is None:
-        print(f"The run scripts could not be listed: {why}")
+        raise Failed(f"The run scripts could not be listed: {why}")
     scripts_of_issue = {}
     for path in sorted(scripts or []):
         if m := SCRIPT_ISSUE.match(os.path.basename(path)):
@@ -583,7 +589,7 @@ def main():
             case["runScript"] = script_paths[0]
             text, why = read_run_script(a.repo, case["runScript"], a.scripts)
             if text is None:
-                problems.append(f"run script {why}")
+                raise Failed(f"#{num}'s run script, scripts/{case['runScript']}, could not be read: {why}")
             elif start := run_settings(text):
                 if start.get("refcase") in issue_of_case:
                     start["parent"] = issue_of_case[start["refcase"]]
@@ -642,20 +648,39 @@ def main():
     # When the progress was written, in NIRD's local time with its time zone, e.g. CET.
     data = {"updated": datetime.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z"), "repo": a.repo,
             "cases": cases, "skipped": skipped}
-    tmp = a.out + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=1)
-    os.replace(tmp, a.out)
-    print(f"{a.out}: {len(cases)} cases")
-
     # The page, index.html next to progress.json, built from the experiment sheet, the plan
-    # and the template; it reads progress.json when it is opened.
+    # and the template; it reads progress.json when it is opened. It is built before anything
+    # is written, so that if it can't be built neither file is updated.
     page = os.path.join(os.path.dirname(os.path.abspath(a.out)), "index.html")
-    _, sims, warnings = build_scheduler.write_page(page)
+    try:
+        text, _, sims, warnings = build_scheduler.page_text()
+    except (OSError, ValueError) as e:
+        raise Failed(f"The page could not be built: {e}") from e
+
+    # Both files are written to temporary files first and then moved into place, so the page
+    # never reads a half-written file.
+    written = []
+    try:
+        for path, content in ((a.out, json.dumps(data, indent=1)), (page, text)):
+            with open(path + ".tmp", "w", encoding="utf-8") as f:
+                f.write(content)
+            written.append(path)
+    except OSError as e:
+        for path in written:
+            os.remove(path + ".tmp")
+        raise Failed(f"{path} could not be written: {e}") from e
+    for path in written:
+        os.replace(path + ".tmp", path)
     for w in warnings:
         print("warning:", w)
+    print(f"{a.out}: {len(cases)} cases")
     print(f"{page}: {len(sims)} runs")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Failed as e:
+        sys.exit(f"{e}\nNothing was updated: progress.json and the page are as they were.")
+    except (OSError, ValueError, http.client.HTTPException) as e:
+        sys.exit(f"GitHub or NIRD could not be read: {e}\nNothing was updated: progress.json and the page are as they were.")
