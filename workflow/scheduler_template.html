@@ -515,7 +515,14 @@
      done are counted from the spreadsheet's start year instead. */
   /* When nird_progress.py last wrote the progress, at the top of the tracker. */
   .progress-status{ margin: 0 0 12px; font-size: 13px; color: var(--text-secondary); }
-  #trackerSource, #progressStatus:has(+ #sheetStatus){ margin-bottom: 6px; }
+  /* The Simulation tracker box: how the tracker is updated, and when it last was. */
+  #trackerHead{ gap: 6px; margin-bottom: 20px; }
+  #trackerHead .progress-status, #trackerHead #progressCommand{ margin: 0; }
+  #trackerHead .editor-head{ margin-bottom: 4px; }
+  /* In the colour of the Workflow steps heading. */
+  #trackerHead h2{ color: color-mix(in srgb, var(--series-2) 75%, var(--text-primary)); }
+  /* The workflow steps and the runs, without a box around them. */
+  #simPlanCard{ display: flex; flex-direction: column; gap: 12px; }
   .progress-status b{ color: var(--text-primary); }
   .progress-status.is-error{ color: var(--danger); font-weight: 700; }
   .warn-chip{ display:block; width: fit-content; max-width: 100%; box-sizing: border-box; margin-top: 2px; font-size: 11px; line-height: 1.4; padding: 1px 6px; border-radius: 8px; background: var(--danger-wash); color: var(--danger); font-weight: 700; white-space: normal; cursor: default; }
@@ -553,7 +560,6 @@
   .wf-parts code{ overflow-wrap: anywhere; }
   .wf-tag{ display:inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 9px; margin-left: 6px; vertical-align: 1px; }
   /* A script's path, e.g. workflow/nird_progress.py. */
-  code.wf-script{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-2) 18%, transparent); color: var(--text-primary); }
   /* A GitHub label's name, e.g. esgf. */
   code.wf-labelname{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-6) 18%, transparent); color: var(--text-primary); }
   /* Label tags, in the green of the label names, as on GitHub. */
@@ -697,21 +703,15 @@
   </section>
 
   <div class="tab-panel" id="tab-tracker">
-  <p class="progress-status" id="trackerSource">The simulation tracker is updated by running <code class="wf-script">workflow/nird_progress.py</code> in the <a href="https://github.com/NorESMhub/noresm_cmip7_simulations" target="_blank" rel="noopener">noresm_cmip7_simulations</a> repository.<br>
-    It is run on NIRD from the clone in <code>/projects/NS9560K/www/diagnostics/noresm/noresm_cmip7_simulations</code>.</p>
-  <p class="progress-status" id="progressStatus"></p>
-  <p class="progress-status" id="sheetStatus"></p>
-  <section class="stats-grid" id="trackerStats" aria-label="Tracker summary"></section>
-
-  <section class="card editor-card" id="simPlanCard">
-    <div class="editor-head">
-      <h2>Simulation tracker</h2>
+  <section class="card editor-card" id="trackerHead">
+    <div class="editor-head"><h2>Simulation tracker</h2></div>
+    <p class="progress-status" id="trackerSource">The simulation tracker is updated by running <code>workflow/nird_progress.py</code> in the <a href="https://github.com/NorESMhub/noresm_cmip7_simulations" target="_blank" rel="noopener">noresm_cmip7_simulations</a> repository.</p>
       <details class="wf-more" id="progressCommand">
         <summary>Run <code>nird_progress.py</code></summary>
         <p class="editor-caption">To update the tables, run it from the clone on NIRD:</p>
         <pre class="wf-pre">cd /projects/NS9560K/www/diagnostics/noresm/noresm_cmip7_simulations
-git pull
-python3 -I workflow/nird_progress.py</pre>
+  git pull
+  python3 -I workflow/nird_progress.py</pre>
         <p class="editor-caption">The script finds each case's directory, <code>/nird/datalake/NS9560K/noresm3/cases/&lt;case&gt;</code>, from its issue title, and writes <code>progress.json</code> next to this page. It then builds this page again from the copy of the spreadsheet in the repository. Its options are needed only for output somewhere else; <code>python3 -I workflow/nird_progress.py --help</code> lists them.</p>
         <p class="editor-caption">The script uses information from the GitHub issues, the run scripts on GitHub that go with the issues, the case directories on NIRD and the CMORization directories:</p>
         <ul class="editor-caption wf-parts">
@@ -721,6 +721,13 @@ python3 -I workflow/nird_progress.py</pre>
           <li>The <b>CMORization directories</b> of cmip7-prep and cmor4cmip7 determine the years each tool has CMORized and the size of the time series and CMOR output.</li>
         </ul>
       </details>
+    <p class="progress-status" id="progressStatus"></p>
+    <p class="progress-status" id="sheetStatus"></p>
+  </section>
+  <section class="stats-grid" id="trackerStats" aria-label="Tracker summary"></section>
+
+  <section class="editor-card" id="simPlanCard">
+    <div class="editor-head">
       <p class="editor-caption auto-note" id="autoNote" hidden></p>
     </div>
     <details class="wf-details" id="workflow" open>
@@ -3428,13 +3435,13 @@ python3 -I workflow/nird_progress.py</pre>
       .then(data => {
         if (!data || !Array.isArray(data.cases)) throw new Error("not a progress file");
         applyAutoProgress(data); render();
-        showProgressStatus(`Last updated ${updatedOn(data)}, by running nird_progress.py on NIRD.`);
+        showProgressStatus(`Last updated ${updatedOn(data)}.`);
       })
       .catch(err => showProgressStatus(`⚠ The progress could not be read (${String(err.message).replace(/[<>&]/g, "")})`
         + (DEFAULT_PROGRESS ? `; showing the progress last updated ${updatedOn(DEFAULT_PROGRESS)}.` : ", so no run's progress is shown."), true));
   } else {
     showProgressStatus(DEFAULT_PROGRESS
-      ? `Last updated ${updatedOn(DEFAULT_PROGRESS)}, by running nird_progress.py on NIRD.`
+      ? `Last updated ${updatedOn(DEFAULT_PROGRESS)}.`
       : "⚠ This page was opened as a local file, so no progress is shown.", !DEFAULT_PROGRESS);
   }
 })();
