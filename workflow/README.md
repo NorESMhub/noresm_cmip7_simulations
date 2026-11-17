@@ -161,13 +161,15 @@ GitHub's raw file server, which is not counted.
 
 Each case issue is titled with the case name, e.g.
 `nHistEsmGHGGaxg.LM.nor30b28.r1i1p1f1.008.20261029`. Issues with the `test`
-label are not CMIP7 runs and are left out. An issue whose title is not a case
-name is also left out, and the script prints a line saying so.
+label are not CMIP7 runs and are left out. An issue whose title has a space in
+it, such as a placeholder for a run that is not set up yet, is left out too. An
+issue whose title is otherwise not a case name is also left out. For each issue
+left out, the script prints a line saying why.
 
 The web page shows a case once its issue has an experiment label for a run in
 the plan and a variant label, e.g. `historical` and `r2i1p1f1`. Until then, the
 issue is listed under "Not shown" below the tracker, together with the issues
-whose titles are not case names.
+whose titles have no space but are not case names.
 
 The case's owner is the person assigned to the issue. If nobody is assigned,
 the owner is the person who opened the issue.

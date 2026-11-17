@@ -527,6 +527,11 @@ def main():
         labels = [l["name"] for l in issue.get("labels", [])]
         if "test" in labels:
             continue
+        # A title with a space in it is not a case name but a note, such as a placeholder
+        # for a run not set up yet. It is left out of the tracker without a mention.
+        if re.search(r"\s", title):
+            print(f"#{num} {title}: skipped, the title has a space in it")
+            continue
         m = TITLE.match(title)
         if not m:
             skipped.append({"issue": num, "title": title, "reason": "the title is not a case name"})
