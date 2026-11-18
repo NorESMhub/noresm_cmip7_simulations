@@ -217,8 +217,14 @@ def build(experiments, costs, plans):
     return configs, sims, warnings
 
 
+def script_json(x):
+    """x as JSON that is safe inside the page's <script>: "</" is written "<\\/", so no
+    text from the spreadsheet can end the script early."""
+    return json.dumps(x, ensure_ascii=False).replace("</", "<\\/")
+
+
 def literal(items):
-    return "\n".join("    " + json.dumps(x, ensure_ascii=False) + "," for x in items)
+    return "\n".join("    " + script_json(x) + "," for x in items)
 
 
 def page_text():
@@ -234,6 +240,6 @@ def page_text():
     block = (START_MARKER + "\n" + literal(configs) + "\n  ];\n"
              + "  let DEFAULT_SIMS = [\n" + literal(sims) + "\n  ];\n"
              + "  let DEFAULT_PROGRESS = null;\n"
-             + f"  let DEFAULT_SHEET = {json.dumps(sheet_version(EXPERIMENTS))};\n"
+             + f"  let DEFAULT_SHEET = {script_json(sheet_version(EXPERIMENTS))};\n"
              + '  let DEFAULT_COST_UNIT = "core-hr";\n\n  ')
     return page[:s] + block + page[e:], configs, sims, warnings
