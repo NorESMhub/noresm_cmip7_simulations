@@ -449,7 +449,6 @@
   /* A case's run script, a small chip after its issue, in the issue's colour. */
   a.script-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 1px 5px; margin-right: 5px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); text-decoration: none; }
   a.script-chip:hover{ text-decoration: underline; }
-  a.script-chip.cmor-chip{ background: color-mix(in srgb, var(--series-1) 16%, transparent); }
   /* A case whose cam.i files skip some years. */
   .gap-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 1px 5px; margin-right: 5px; border-radius: 8px; background: var(--danger-wash); color: var(--danger); font-weight: 700; cursor: default; }
   /* A case whose run script is missing or sets no RUN_STARTDATE, and a member whose years
@@ -542,7 +541,8 @@
   .cmor-pop .bad{ color: var(--danger); }
   .cmor-pop code{ font-family: "JetBrains Mono", monospace; font-size: 11px; }
   .cmor-pop p{ margin: 4px 0 0; }
-  #simTables td.step-c.auto-done{ background: color-mix(in srgb, var(--series-6) 12%, transparent); }
+  /* A finished CMORize cell shows its years in green; a finished label step shows a green ✓. */
+  #simTables td.step-c.auto-done details.cmor-box:not(.bad) .step-range{ background: color-mix(in srgb, var(--series-6) 18%, transparent); }
   #simTables thead th[rowspan]:not(:first-child):not(.col-narrow),
   #simTables tbody td:not(:first-child):not(.step-c):not(.col-narrow):not(.phase-start){ border-left: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent); }
   #simTables td.phase-start,
@@ -1773,7 +1773,7 @@
 
   // Simulation, Parent, Owner, Issues, Years, then the step columns: Status, Progress,
   // cmip7prep, cmor4cmip7, ESGF.
-  const SIM_COL_WIDTHS = [14, 12, 7, 11, 5, 13, 14, 10, 10, 4];
+  const SIM_COL_WIDTHS = [14, 10, 7, 13, 5, 13, 14, 10, 10, 4];
 
   // The tracker shows only the runs that have a case issue, i.e. those waiting to start, in
   // progress or completed, until the button above the tables is pressed to show every run.
