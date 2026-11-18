@@ -233,6 +233,7 @@ def page_text():
         raise ValueError(f"{TEMPLATE} has no default-data block")
     block = (START_MARKER + "\n" + literal(configs) + "\n  ];\n"
              + "  let DEFAULT_SIMS = [\n" + literal(sims) + "\n  ];\n"
+             # The runs that can go at once in the page's schedule, which is hidden for now.
              + "  let DEFAULT_SLOTS = 5;\n"
              + "  let DEFAULT_PROGRESS = null;\n"
              + f"  let DEFAULT_SHEET = {json.dumps(sheet_version(EXPERIMENTS))};\n"
