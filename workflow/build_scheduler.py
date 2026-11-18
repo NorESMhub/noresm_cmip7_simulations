@@ -84,6 +84,11 @@ COSTS = [
      "compsets": "NF1850GhgAnthro NF4xCO2Ghg NFAMIPp4k NFAMIPpiF"},
     {"name": "NorESM3 AMIP MM", "resolution": "MM", "costPerYear": None, "throughput": None,
      "compsets": ""},
+    # No timing files yet: the runs are tracked, and costed once their cases have timings.
+    {"name": "NorESM3 land-only", "resolution": "LM", "costPerYear": None, "throughput": None,
+     "compsets": ""},
+    {"name": "NorESM3 DCPP", "resolution": "LM", "costPerYear": None, "throughput": None,
+     "compsets": ""},
 ]
 
 

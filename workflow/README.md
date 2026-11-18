@@ -75,7 +75,7 @@ read by the web page each time the page is opened in a browser.
 
 ### Requirements
 
-- The scripts need Python 3 and use only the Python standard library. They also
+- The scripts need Python 3.8 or later and only use the Python standard library. They also
   run `git`, to find the date of the last commit of the spreadsheet copy.
 - The scripts are run on NIRD, in the repository's clone at
   `/projects/NS9560K/www/diagnostics/noresm/noresm_cmip7_simulations`.
@@ -122,8 +122,11 @@ uses to build `index.html` in five steps.
    resolution. Each estimate lists the compsets it applies to, e.g.
    `N1850GhgGaxg`, which is the compset of piControl. A run whose compset is not
    listed is given the estimate for the coupled, ESM or AMIP configuration at
-   its resolution. There is no estimate yet for land-only or DCPP experiments,
-   so they are left out of the web page.
+   its resolution. A configuration whose cost and throughput aren't known yet,
+   such as land-only or DCPP, is listed in `COSTS` without them. Its runs are
+   tracked as usual and marked in the Cost plan as not yet costed, until timing
+   files supply the numbers. A run whose configuration is not in `COSTS` at all
+   is left out of the web page, and `nird_progress.py` prints a warning about it.
 4. It takes the number of members and years of each run from the spreadsheet.
 5. It writes the runs and their estimates into a copy of
    `scheduler_template.html`, which `nird_progress.py` then writes as
