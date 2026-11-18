@@ -762,7 +762,7 @@
                 <li><b><code class="wf-labelname">test</code>:</b> add this label to a case that is not a CMIP7 run, to leave it out;</li>
                 <li><b><code class="wf-labelname">esgf</code>:</b> add this label when the data is on ESGF;</li>
                 <li><b>continuing a simulation in a new case:</b> give the new issue the same experiment and variant labels. Its run script's <code>RUN_REFCASE</code> is the earlier case. The tracker reads the two as one simulation and takes its progress from the later model date, as with #2 and #11;</li>
-                <li><b>another member of the ensemble:</b> give it its own variant, e.g. <code>r2i1p1f1</code>. The run's years done are the mean over its members.</li>
+                <li><b>another member of the ensemble:</b> give it its own variant, e.g. <code>r2i1p1f1</code>. The run's years done are the mean over the members that have an issue.</li>
               </ul>
             </details>
             <details class="wf-more" id="wf-script">
@@ -3163,6 +3163,8 @@
     if (dates.length){
       m.modelDate = dates[dates.length - 1];
       m.years = Math.max(0, Math.round((fractionalYear(m.modelDate) - startAt) * 100) / 100);
+      // A member that has run longer than the run's years counts as the run's years.
+      if (length > 0) m.years = Math.min(m.years, length);
     }
     m.completed = cases.some(c => c.completed);
     m.labels = [...new Set(cases.flatMap(c => c.labels || []))];

@@ -348,7 +348,15 @@ above the tables shows every run in the plan.
   `RUN_STARTDATE`, is followed by a bold red `⚠ run script missing` or
   `⚠ no RUN_STARTDATE` chip. A member counted from the spreadsheet's start year
   has a bold red note saying so in the Progress column. A member whose issue has the `completed` label
-  counts as finished. A run's years done are the mean over its members.
+  counts as finished.
+- A run's years done are the mean of its members' years done, over the members
+  that have at least one case issue. A member with an issue but no output on
+  NIRD yet counts as 0 years, and a finished member as all the run's years. A
+  member is counted up to the run's years, so one that has run longer doesn't
+  raise the mean. Members of the ensemble that have no issue yet are left out:
+  the tracker shows how many members are going, e.g. `2 of 3 members going`,
+  and the Cost plan costs those members from the mean and the rest from the
+  start.
 - A case that continues an earlier case of the same member is shown underneath
   that case in the Issues column.
 - The cmip7prep chip is dashed until at least one of the case's sets of years
