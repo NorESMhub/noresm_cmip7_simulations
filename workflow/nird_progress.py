@@ -117,7 +117,9 @@ RUN_SETTINGS = {"RUN_TYPE": "type", "RUN_REFCASE": "refcase", "RUN_REFDATE": "re
 
 # A shell variable given a plain value: refcase="n1850GHGGaxg.LM.nor30b27.002.20261016"
 SHELL_VARIABLE = re.compile(r"""^(?:export\s+)?([A-Za-z_]\w*)=("[^"$`]*"|'[^']*'|[^\s"'$`;]*)\s*(?:#.*)?$""")
-XMLCHANGE = re.compile(r"^\./xmlchange\s+(.*)$")
+
+# What separates one shell command from the next on a line.
+COMMAND_SEPARATORS = {";", "&&", "||", "|", "&"}
 
 # The version directory a CMOR file sits under: .../r1i1p1f1/v20261028/so_..._000101-001012.nc
 VERSION_DIR = re.compile(r"^v\d{8}$")
@@ -218,9 +220,31 @@ def read_run_script(repo, path, scripts_dir=None):
         return None, str(getattr(e, "reason", None) or e)
 
 
+def xmlchange_calls(line):
+    """The arguments of each call to xmlchange on a line of a shell script. A call is any
+    command whose program is named xmlchange, whatever its path: ./xmlchange,
+    $CASEROOT/xmlchange, or one after other commands, as in cd $CASEROOT && ./xmlchange.
+    A line the shell could not split, such as one with an unclosed quote, has none."""
+    lexer = shlex.shlex(line, posix=True, punctuation_chars=True)
+    lexer.whitespace_split = True
+    try:
+        tokens = list(lexer)
+    except ValueError:
+        return []
+    calls, command = [], []
+    for token in tokens + [";"]:
+        if token in COMMAND_SEPARATORS:
+            if command and os.path.basename(command[0]) == "xmlchange":
+                calls.append(command[1:])
+            command = []
+        else:
+            command.append(token)
+    return calls
+
+
 def run_settings(text):
     """The RUN_TYPE, RUN_REFCASE, RUN_REFDATE and RUN_STARTDATE a run script sets with
-    ./xmlchange, either as KEY=value[,KEY=value] or as --id KEY --val value. A shell variable
+    xmlchange, either as KEY=value[,KEY=value] or as --id KEY --val value. A shell variable
     the script gives a plain value, such as refcase="...", is filled in; a setting whose value
     still depends on the shell, such as $(date), is left out."""
     variables, settings = {}, {}
@@ -229,34 +253,29 @@ def run_settings(text):
         return re.sub(r"\$\{(\w+)\}|\$(\w+)",
                       lambda m: variables.get(m.group(1) or m.group(2), m.group(0)), value)
 
-    for line in text.splitlines():
+    # A command continued over several lines with a backslash is one line.
+    for line in re.sub(r"\\\n", " ", text).splitlines():
         line = line.strip()
         if not line or line.startswith("#"):
             continue
         if m := SHELL_VARIABLE.match(line):
             variables[m.group(1)] = m.group(2).strip("\"'")
             continue
-        m = XMLCHANGE.match(line)
-        if not m:
-            continue
-        try:
-            args = shlex.split(expand(m.group(1)), comments=True)
-        except ValueError:
-            continue
-        pairs = []
-        if "--id" in args:
-            i = args.index("--id")
-            val = args[args.index("--val") + 1] if "--val" in args[:-1] else None
-            if i + 1 < len(args) and val is not None:
-                pairs.append((args[i + 1], val))
-        else:
-            for arg in args:
-                if not arg.startswith("-"):
-                    pairs += [tuple(p.split("=", 1)) for p in arg.split(",") if "=" in p]
-        for key, value in pairs:
-            if key in RUN_SETTINGS and "$" not in value:
-                settings[RUN_SETTINGS[key]] = value
+        for args in xmlchange_calls(expand(line)):
+            for key, value in xmlchange_pairs(args):
+                if key in RUN_SETTINGS and "$" not in value:
+                    settings[RUN_SETTINGS[key]] = value
     return settings
+
+
+def xmlchange_pairs(args):
+    """The (KEY, value) pairs one xmlchange call sets, given its arguments."""
+    if "--id" in args:
+        i = args.index("--id")
+        val = args[args.index("--val") + 1] if "--val" in args[:-1] else None
+        return [(args[i + 1], val)] if i + 1 < len(args) and val is not None else []
+    return [tuple(p.split("=", 1)) for arg in args if not arg.startswith("-")
+            for p in arg.split(",") if "=" in p]
 
 
 # Stands for a part of a case name the script only knows when it runs, such as $(date).

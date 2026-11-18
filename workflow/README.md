@@ -251,9 +251,13 @@ a red `gap` chip after the case's issue.
 The web page shows whether a case is a new start, continues an earlier case, or
 branches from another experiment. The script finds this out from the case's run
 script, whose name starts with the issue number. It reads `RUN_TYPE`,
-`RUN_REFCASE`, `RUN_REFDATE` and `RUN_STARTDATE` from the script's
-`./xmlchange` lines. If `RUN_REFCASE` is the name of another case, that case's
-issue is recorded as the parent.
+`RUN_REFCASE`, `RUN_REFDATE` and `RUN_STARTDATE` from the script's calls to
+`xmlchange`, as `KEY=value[,KEY=value]` or as `--id KEY --val value`. A call
+is any command named `xmlchange`, whatever its path, anywhere on a line that is
+not a comment: `./xmlchange`, `$CASEROOT/xmlchange`, or one after other
+commands, as in `cd $CASEROOT && ./xmlchange`. A value that the script only
+knows when it runs, such as one from `$(date)`, is left out. If `RUN_REFCASE`
+is the name of another case, that case's issue is recorded as the parent.
 
 #### The CMORization issues
 

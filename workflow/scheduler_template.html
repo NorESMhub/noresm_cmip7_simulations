@@ -825,7 +825,7 @@
   const issuesUrl = () => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/issues`;
   // The run scripts are under scripts/ on this branch; progress.json gives a case's path below it.
   const RUNSCRIPTS_BRANCH = "CMIP7_Runscripts";
-  // How a case started, from the ./xmlchange lines of its run script: its RUN_TYPE, its
+  // How a case started, from the xmlchange calls in its run script: its RUN_TYPE, its
   // RUN_REFCASE, the issue of that case if it has one, RUN_REFDATE and RUN_STARTDATE.
   // A case continues its parent when both are cases of the same run and member; otherwise it
   // branches from it.
@@ -2119,7 +2119,7 @@
           const warn = document.createElement("span"); warn.className = "warn-chip";
           warn.textContent = c.runScript ? "⚠ no RUN_STARTDATE" : "⚠ run script missing";
           warn.title = (c.runScript
-            ? `#${c.issue}'s run script, scripts/${c.runScript}, could not be read, or it sets no RUN_STARTDATE with ./xmlchange.`
+            ? `#${c.issue}'s run script, scripts/${c.runScript}, could not be read, or it sets no RUN_STARTDATE with xmlchange.`
             : `#${c.issue} has no run script on the ${RUNSCRIPTS_BRANCH} branch, or more than one script there starts with its issue number. `
               + `Push it to scripts/<MIP>/<experiment>/, named after the issue, e.g. 011.piControl.LM.beta28.r1i1p1f1.20261102.sh.`)
             + "\nThe run script is needed to show how the case started, and to count its years done from RUN_STARTDATE."
