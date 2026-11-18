@@ -765,7 +765,7 @@
   <section class="card" id="costTableCard">
     <div class="editor-head">
       <h2>Cost table</h2>
-      <p class="editor-caption">The full planned cost of each run, a table for each MIP at each resolution; progress is tracked on the Tracker page. The runs, their members and their years are the plan the page is built with, and the runs not in it for now are listed at the bottom. Core-hours are members × years × cost per simulated year, on the machine the run runs on: Betzy for a run whose timing files say so, Olivia otherwise. A run with timing files of its own is costed with them; any other run with its configuration's value, the mean over that configuration's runs that have timing files, or an earlier timing if none has. Days per member is how long one member takes on its own.</p>
+      <p class="editor-caption">The full planned cost of each run, a table for each MIP at each resolution; progress is tracked on the Tracker page. The runs, their members and their years are the plan the page is built with, and the runs not in it for now are listed at the bottom. Core-hours are members × years × cost per simulated year, on the machine the run runs on: Betzy for a run whose timing files say so, Olivia otherwise. A run with timing files of its own is costed with them; any other run with its configuration's value, the mean over that configuration's runs that have timing files, or an earlier timing if none has. Days to run a member is how long one member takes on its own: its years divided by its SYPD.</p>
       <p class="editor-caption">The four TB columns are the output each run will leave on NIRD once all its members and years are done, not what is there now: members × years × the GB per simulated year its cases have on NIRD so far, measured by the progress script. History is the model's history files, restarts the restart sets as kept, time series cmip7-prep's time series, which are to be deleted, and CMOR the CMORized files of both tools. A run with no output of its own takes its configuration's, in grey; hover a value for the GB per simulated year and its parts.</p>
     </div>
     <div id="costTables"></div>
@@ -1056,10 +1056,11 @@
   // bottom, closed until opened.
   let showOffRuns = false;
   // The columns' widths in %, from Simulation to CMOR TB.
-  const COST_COL_WIDTHS = [16, 6, 7, 8, 9, 6, 9, 8, 8, 8, 8, 7];
+  const COST_COL_WIDTHS = [17, 6, 6, 8, 9, 6, 12, 8, 7, 7, 7, 7];
   function renderCostTable(){
     const fmtN = n => Math.round(n).toLocaleString("en-US");
-    const fmtM = n => (n / 1e6).toFixed(2) + "M";
+    // Core-hours in millions, or in thousands below a million: 58,480 is 58K, not 0.06M.
+    const fmtM = n => n >= 1e6 ? (n / 1e6).toFixed(2) + "M" : Math.round(n / 1e3).toLocaleString() + "K";
     const dash = '<span class="ct-muted">–</span>';
     const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
     const strip = (name, res) => res && name.endsWith(" " + res) ? name.slice(0, -res.length - 1) : name;
@@ -1102,11 +1103,27 @@
         + `<td class="n">${it.days !== null ? it.days.toFixed(1) : dash}</td>`
         + STORAGE_KINDS.map(k => storageCell(it, k)).join("") + "</tr>";
     }
+    // A total's core-hours: the sum over its runs with a cost, or "needs timing" when none of
+    // them has a cost yet, rather than a total of nothing. The table's heading says how many
+    // runs need timing, and so are left out.
+    const untimedCount = list => list.filter(it => !it.off && it.core === null).length;
+    const coreTotal = list => {
+      const costed = list.filter(it => it.core !== null), untimed = untimedCount(list);
+      if (!costed.length) return '<td class="n"><span class="ct-muted">needs timing</span></td>';
+      return `<td class="n"${untimed ? ` title="Without the ${runs(untimed)} that need timing"` : ""}>${fmtM(sum(costed, "core"))}</td>`;
+    };
+    // A total's days: how long all its members with a throughput take run one after another.
+    const daysTotal = list => {
+      const timed = list.filter(it => !it.off && it.sypd);
+      return timed.length
+        ? `<td class="n" title="Days of wall-clock time all ${timed.length === list.length ? "" : `${timed.length} timed `}runs' members take, run one after another">${fmtN(timed.reduce((s, it) => s + it.memberYears / it.sypd, 0))}</td>`
+        : "<td></td>";
+    };
     const totalsRow = (label, list) => `<tr class="ct-total"><td colspan="3">${label}</td><td class="n">${fmtN(sum(list, "memberYears"))}</td>`
-      + `<td colspan="2"></td><td class="n">${fmtM(sum(list, "core"))}</td><td></td>` + storageSums(list) + "</tr>";
+      + `<td colspan="2"></td>${coreTotal(list)}${daysTotal(list)}` + storageSums(list) + "</tr>";
     const columnHeads = '<tr class="ct-cols"><th>Simulation</th>'
       + '<th class="n">Members</th><th class="n">Years each</th><th class="n">Member-years</th>'
-      + '<th class="n">Core-hr / sim-yr</th><th class="n">SYPD</th><th class="n">Core-hours</th><th class="n">Days per member</th>'
+      + '<th class="n">Core-hr / sim-yr</th><th class="n">SYPD</th><th class="n">Core-hours</th><th class="n" title="Days of wall-clock time one member takes to run: its years divided by SYPD">Days to run a member</th>'
       + STORAGE_KINDS.map((k, i) => `<th class="n${i === 0 ? " ct-storage-start" : ""}" title="${k.note}, in TB">${k.label} TB</th>`).join("") + "</tr>";
     const colgroup = "<colgroup>" + COST_COL_WIDTHS.map(w => `<col style="width:${w}%">`).join("") + "</colgroup>";
     const up = '<a class="sim-index-up" href="#cost-index" title="Back to the index of the tables">↑ index</a>';
@@ -1142,7 +1159,9 @@
       html += table(g.id, `${esc(g.mip)} ${esc(g.res)}`, `${runs(g.list.length)}${untimed ? ` · ${untimed} need timing` : ""}`,
         g.list.map(rowHtml).join("") + totalsRow("Total", g.list));
     });
-    html += table("cost-all", "Totals", "the runs in the plan, by resolution",
+    const untimedShown = untimedCount(shown);
+    html += table("cost-all", "Totals", "the runs in the plan, by resolution"
+      + (untimedShown ? ` · ${runs(untimedShown)} need timing and are left out of the core-hours and days` : ""),
       resList.map(res => totalsRow(esc(res), shown.filter(it => it.res === res))).join("") + totalsRow("All", shown));
     untimedRes.forEach(res => {
       html += `<p class="ct-note">${esc(res || "Other")} not shown: none of its ${runs(active.filter(it => it.res === res).length)} has a timing yet.</p>`;
