@@ -135,36 +135,6 @@
     max-width: 68ch;
   }
 
-  /* ---------- control bar ---------- */
-  .control-bar{
-    display:flex;
-    flex-wrap: wrap;
-    align-items:end;
-    gap: 16px;
-    padding: 14px 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-  }
-  .control{ display:flex; flex-direction:column; gap:5px; }
-  .control span{
-    font-size: 11.5px;
-    color: var(--text-secondary);
-    font-weight: 600;
-  }
-  .control input{
-    font-family: "JetBrains Mono", monospace;
-    font-size: 14px;
-    padding: 7px 9px;
-    border-radius: 6px;
-    border: 1px solid var(--border-strong);
-    background: var(--surface-raised);
-    color: var(--text-primary);
-    width: 110px;
-  }
-  .control input:focus-visible{ outline: 2px solid var(--focus-ring); outline-offset: 1px; }
-  .spacer{ flex: 1 1 auto; }
-
   .btn{
     font-family: inherit;
     font-size: 13px;
@@ -182,8 +152,6 @@
   .btn-ghost{ background: transparent; }
   .btn-sm{ padding: 4px 9px; font-size: 12px; }
   .btn[disabled]{ opacity: 0.5; cursor: default; }
-  .download-status{ font-size: 12px; color: var(--text-muted); }
-  .download-status.status-error{ color: var(--danger); }
 
   /* ---------- stats ---------- */
   .stats-grid{
@@ -300,7 +268,6 @@
   .cost-table .ct-muted{ color: var(--text-muted); }
   /* The storage columns start after a line, apart from the compute columns. */
   .cost-table th.ct-storage-start, .cost-table td:nth-last-child(4){ border-left: 1px solid var(--border); }
-  /* Editable cells in the cost table. */
   .cost-table .ct-groupinfo{ margin-left: 10px; font-weight: 400; color: var(--text-secondary); }
   #expTimingTable .cfg-machine-start{ border-left: 1px solid color-mix(in srgb, var(--text-primary) 30%, transparent); padding-left: 12px; }
   #expTimingTable .cfg-num{ text-align: center; }
@@ -614,17 +581,6 @@
     <a href="#cost" data-tab="cost">Cost plan</a>
   </nav>
 
-  <section class="control-bar" aria-label="Controls">
-    <label class="control">
-      <span>Cost unit label</span>
-      <input type="text" id="costUnitInput" value="core-hr" maxlength="14">
-    </label>
-    <div class="spacer"></div>
-    <span id="fileStatus" class="download-status" aria-live="polite"></span>
-    <input type="file" id="csvFileInput" accept=".csv,.txt,text/csv,text/plain" hidden="">
-    <button id="uploadBtn" class="btn btn-ghost" type="button" hidden="">Upload CSV</button>
-  </section>
-
   <div class="tab-panel" id="tab-tracker">
   <section class="card editor-card" id="trackerHead">
     <div class="editor-head"><h2>Simulation tracker</h2></div>
@@ -855,10 +811,9 @@
 
   let configs = clone(DEFAULT_CONFIGS);
   let sims = clone(DEFAULT_SIMS);
-  let costUnit = DEFAULT_COST_UNIT;
-  // Nothing is kept in the browser: everyone sees the plan the page was built with and
-  // what progress.json says, and edits made here last until the page is reloaded. Clear
-  // the edits earlier versions of the page kept.
+  const costUnit = DEFAULT_COST_UNIT;
+  // The page takes no input: everyone sees the plan it was built with and what
+  // progress.json says. Clear the edits earlier versions of the page kept in the browser.
   try { localStorage.removeItem("noresm3-cmip7-cost-plan:v2"); } catch (err){}
 
   // The workflow every run goes through; the tracker has one column per step. Run follows
@@ -914,7 +869,6 @@
   const autoSteps = row => (autoRun(row) && autoRun(row).steps) || {};
   // A run whose case issue is open but whose model files have not reached NIRD yet.
   const issueOpened = row => row.status === "pending" && Array.isArray(row.cases) && row.cases.length > 0;
-  let configSeq = configs.length, simSeq = sims.length;
 
 
   function clone(x){ return JSON.parse(JSON.stringify(x)); }
@@ -922,10 +876,6 @@
 
   // ---------------- DOM refs ----------------
   const el = (id) => document.getElementById(id);
-  const costUnitInput = el("costUnitInput");
-  const fileStatus = el("fileStatus");
-  const uploadBtn = el("uploadBtn");
-  const csvFileInput = el("csvFileInput");
   const statsGrid = el("statsGrid");
   const timingNote = el("timingNote");
   const mipCard = el("mipCard");
@@ -1074,12 +1024,6 @@
     const n = Math.round(Number(v));
     return Number.isFinite(n) ? Math.max(0, Math.min(ens, n)) : ens;
   }
-  // Blank, zero or non-numeric input is stored as null, meaning "not known yet".
-  function parseOptionalNumber(v){
-    if (v === undefined || v === null || String(v).trim() === "") return null;
-    const n = Number(v);
-    return Number.isFinite(n) && n > 0 ? n : null;
-  }
 
   // ---------------- formatting helpers ----------------
   function fmtCompact(n){
@@ -1089,12 +1033,6 @@
     return Math.round(n).toLocaleString();
   }
   const STATUS_LABELS = { pending: "Pending", "in-progress": "In progress", completed: "Completed" };
-  function normalizeStatus(s){
-    const v = (s || "").trim().toLowerCase().replace(/[\s_]+/g, "-");
-    if (v === "completed" || v === "complete" || v === "done") return "completed";
-    if (v === "in-progress" || v === "inprogress" || v === "ongoing" || v === "active") return "in-progress";
-    return "pending";
-  }
   // Priority 0 is a deliberate, meaningful value ("this run won't happen"), not a missing one —
   // so unlike most numeric fields here, a falsy `|| 1` fallback would wrongly promote 0 back to
   // 1. Only an actually blank/invalid value defaults to 1; an explicit 0 is preserved.
@@ -2198,220 +2136,6 @@
     renderPriorityBreakdown(result);
   }
 
-  // ---------------- top-level controls ----------------
-  costUnitInput.addEventListener("input", () => {
-    costUnit = costUnitInput.value || "units";
-    renderCostSummary();
-  });
-  function showFileStatus(msg, isError){
-    fileStatus.textContent = msg;
-    fileStatus.classList.toggle("status-error", !!isError);
-    clearTimeout(fileStatus._hideTimer);
-    fileStatus._hideTimer = setTimeout(() => { fileStatus.textContent = ""; }, 6000);
-  }
-
-  // ---------------- spreadsheet import ----------------
-  // Full RFC4180-ish parser (not a line-splitter) so a quoted field can contain
-  // commas, quotes, or embedded newlines — matches what buildExportCsv writes.
-  function parseCsv(text){
-    const rows = [];
-    let row = [], field = "", i = 0, inQuotes = false;
-    const n = text.length;
-    while (i < n){
-      const c = text[i];
-      if (inQuotes){
-        if (c === '"'){
-          if (text[i + 1] === '"'){ field += '"'; i += 2; continue; }
-          inQuotes = false; i++; continue;
-        }
-        field += c; i++; continue;
-      }
-      if (c === '"'){ inQuotes = true; i++; continue; }
-      if (c === ','){ row.push(field); field = ""; i++; continue; }
-      if (c === '\r'){ i++; continue; }
-      if (c === '\n'){ row.push(field); rows.push(row); row = []; field = ""; i++; continue; }
-      field += c; i++;
-    }
-    if (field.length || row.length){ row.push(field); rows.push(row); }
-    return rows;
-  }
-
-  // Parses the layout buildExportCsv() writes: stacked labeled sections separated by
-  // blank rows. The "Computed schedule" section is derived output, not input — skipped
-  // on import since it's recomputed live from the other three sections anyway.
-  function importFromCsv(text){
-    const rows = parseCsv(text);
-    let section = null;
-    const rawConfigs = [], rawSims = [];
-    let newCostUnit = null;
-
-    // A re-saved (e.g. Excel/Sheets) CSV often pads every row to the same column count with
-    // trailing commas, so "only one cell" is not a reliable test for a section-header row —
-    // test "only the first cell has content" instead, ignoring how many empty cells trail it.
-    const isBlankRow = (row) => row.every(c => (c || "").trim() === "");
-    const soleLabelOf = (row) => {
-      const label = (row[0] || "").trim();
-      if (!label) return null;
-      for (let i = 1; i < row.length; i++){ if ((row[i] || "").trim() !== "") return null; }
-      return label;
-    };
-
-    // "None" shows up in some source sheets (mirroring this tool's own "None" dropdown option)
-    // as an explicit placeholder meaning "no dependency" — treat it the same as a blank cell
-    // rather than trying to resolve it as a simulation literally named "None".
-    const normalizeDepRef = (v) => {
-      const s = (v || "").trim();
-      return s.toLowerCase() === "none" ? "" : s;
-    };
-
-    // The sim header's columns are looked up by NAME, not fixed position — this tool's own
-    // export format has grown twice already (adding Status/Years Complete, then CMIP
-    // Priority/AMIP), and a source sheet may have yet another subset/order. Default to this
-    // tool's current column order so a header-less data row still parses reasonably.
-    let simCol = { name:0, dep1:1, dep2:2, years:3, ens:4, config:5, priority:6, cmipPriority:7, amip:8, status:9, yearsCompleted:10 };
-    const cellAt = (row, idx) => (idx == null ? undefined : row[idx]);
-
-    let currentMip = null;
-    for (const row of rows){
-      if (isBlankRow(row)) continue;
-      const label = (row[0] || "").trim();
-      const soleLabel = soleLabelOf(row);
-      if (soleLabel){
-        if (soleLabel === "Model configurations"){ section = "configs"; currentMip = null; continue; }
-        if (soleLabel === "Simulation plan"){ section = "sims"; currentMip = null; continue; }
-        if (soleLabel === "Settings"){ section = "settings"; currentMip = null; continue; }
-        if (soleLabel === "Computed schedule"){ section = "schedule"; continue; }
-        // Any other sole-label row inside the sim list is a MIP/group heading (e.g.
-        // "AerChemMIP") — tag it onto whatever simulation rows follow, not a section of its own.
-        if (section === "sims") currentMip = soleLabel;
-        continue;
-      }
-      if (section === "configs"){
-        if (label === "Configuration") continue;
-        rawConfigs.push({ name: row[0] || "", costPerYear: parseOptionalNumber(row[1]), throughput: parseOptionalNumber(row[2]) });
-      } else if (section === "sims"){
-        if (label === "CMIP Simulation"){
-          const byName = {};
-          row.forEach((cell, i) => { const n = (cell || "").trim(); if (n) byName[n] = i; });
-          simCol = {
-            name: byName["CMIP Simulation"] ?? 0, dep1: byName["Dependency 1"] ?? 1, dep2: byName["Dependency 2"] ?? 2,
-            years: byName["# Years"] ?? 3, ens: byName["Ens"] ?? 4, config: byName["Configuration"] ?? 5, priority: byName["Priority"] ?? 6,
-            // these four are optional additions across versions of this tool (or absent
-            // entirely on a hand-authored source sheet) — undefined here means "not present",
-            // which cellAt()/the defaults below treat as missing rather than misreading some
-            // other column's value under the wrong name.
-            cmipPriority: byName["CMIP Priority"], amip: byName["AMIP"], status: byName["Status"], yearsCompleted: byName["Years Complete"], membersRunning: byName["Members Running"],
-          };
-          continue;
-        }
-        if (!label) continue; // no simulation name — stray formatting residue, not real data
-        const simYears = parseFloat(cellAt(row, simCol.years)) || 0;
-        if (simYears <= 0){
-          // A name with no real year count isn't a simulation — some sheets leave stray values
-          // (e.g. a fill-down "1") in other cells of what's really a MIP heading row like this.
-          currentMip = label;
-          continue;
-        }
-        const rawStatus = cellAt(row, simCol.status), rawYearsCompleted = cellAt(row, simCol.yearsCompleted);
-        rawSims.push({
-          name: row[0] || "",
-          dep1: normalizeDepRef(cellAt(row, simCol.dep1)), dep2: normalizeDepRef(cellAt(row, simCol.dep2)),
-          years: simYears,
-          ensemble: normalizeEnsemble(cellAt(row, simCol.ens)),
-          membersRunning: simCol.membersRunning === undefined ? null : normalizeEnsemble(cellAt(row, simCol.membersRunning)),
-          configName: cellAt(row, simCol.config) || "",
-          priority: normalizePriority(cellAt(row, simCol.priority)),
-          // CMIP Priority / AMIP are carried through as-is for round-tripping — this tool
-          // doesn't use them for scheduling. Status / Years Complete are this tool's own
-          // additions, missing entirely on a source sheet, so default to pending/0.
-          cmipPriority: cellAt(row, simCol.cmipPriority) || "", amip: cellAt(row, simCol.amip) || "",
-          status: normalizeStatus(rawStatus),
-          yearsCompleted: rawYearsCompleted === undefined || rawYearsCompleted === "" ? 0 : Math.max(0, Math.min(simYears, parseFloat(rawYearsCompleted) || 0)),
-          mip: currentMip,
-        });
-      } else if (section === "settings"){
-        if (label === "Cost unit label") newCostUnit = row[1] || null;
-      }
-      // section === "schedule" (or null, before the first header) — ignored
-    }
-
-    if (!rawConfigs.length || !rawSims.length){
-      return { error: 'No "Model configurations" and "Simulation plan" sections found — is this a plan exported from this tool?' };
-    }
-
-    const configNameToId = new Map();
-    const importedConfigs = rawConfigs.map((c, i) => {
-      const id = "c" + (i + 1);
-      configNameToId.set(c.name, id);
-      return { id, name: c.name, costPerYear: c.costPerYear, throughput: c.throughput };
-    });
-
-    const simNameToId = new Map();
-    rawSims.forEach((r, i) => simNameToId.set(r.name, "r" + (i + 1)));
-
-    const warnings = [];
-    const nameCounts = new Map();
-    rawSims.forEach(r => nameCounts.set(r.name, (nameCounts.get(r.name) || 0) + 1));
-    nameCounts.forEach((count, name) => {
-      if (count > 1) warnings.push(`"${name}" appears ${count} times — dependencies referencing it resolve to the last occurrence.`);
-    });
-
-    const importedSims = rawSims.map((r, i) => {
-      const id = "r" + (i + 1);
-      if (r.dep1 && !simNameToId.has(r.dep1)) warnings.push(`"${r.name}" depends on unknown simulation "${r.dep1}" — ignored.`);
-      if (r.dep2 && !simNameToId.has(r.dep2)) warnings.push(`"${r.name}" depends on unknown simulation "${r.dep2}" — ignored.`);
-      if (!r.configName) warnings.push(`"${r.name}" has no configuration set — defaulted to ${importedConfigs[0].name}.`);
-      else if (!configNameToId.has(r.configName)) warnings.push(`"${r.name}" uses unknown configuration "${r.configName}" — defaulted to ${importedConfigs[0].name}.`);
-      const dependsOn = [r.dep1 ? simNameToId.get(r.dep1) : undefined, r.dep2 ? simNameToId.get(r.dep2) : undefined].filter(Boolean);
-      return {
-        id, name: r.name, dependsOn,
-        years: r.years, ensemble: normalizeEnsemble(r.ensemble),
-        configId: configNameToId.get(r.configName) || importedConfigs[0].id,
-        priority: normalizePriority(r.priority),
-        status: r.status, yearsCompleted: r.yearsCompleted, membersRunning: r.membersRunning,
-        mip: r.mip, cmipPriority: r.cmipPriority, amip: r.amip,
-      };
-    });
-
-    return { configs: importedConfigs, sims: importedSims, costUnit: newCostUnit, warnings };
-  }
-
-  function applyImport(parsed){
-    configs = parsed.configs;
-    sims = parsed.sims;
-    if (parsed.costUnit != null){ costUnit = parsed.costUnit; costUnitInput.value = costUnit; }
-    configSeq = configs.length; simSeq = sims.length;
-    render();
-    const summary = `Loaded ${sims.length} simulations across ${configs.length} configurations.`;
-    if (parsed.warnings.length){
-      console.warn("CSV import warnings:\n" + parsed.warnings.join("\n"));
-      showFileStatus(summary + ` (${parsed.warnings.length} warning${parsed.warnings.length > 1 ? "s" : ""} — see browser console.)`, true);
-    } else {
-      showFileStatus(summary);
-    }
-  }
-
-  uploadBtn.addEventListener("click", () => csvFileInput.click());
-  csvFileInput.addEventListener("change", async () => {
-    const file = csvFileInput.files && csvFileInput.files[0];
-    csvFileInput.value = ""; // allow re-selecting the same file later
-    if (!file) return;
-    showFileStatus("Reading " + file.name + "…");
-    try {
-      const text = await file.text();
-      const parsed = importFromCsv(text);
-      if (parsed.error){ showFileStatus(parsed.error, true); return; }
-      applyImport(parsed);
-    } catch (err){
-      showFileStatus("Couldn't read that file.", true);
-    }
-  });
-
-  // Sync the control inputs to the actual in-memory defaults rather than trusting their
-  // static HTML attributes to match — matters once a regenerated file can carry defaults
-  // other than core-hr, which the markup below was never rewritten to reflect.
-  costUnitInput.value = costUnit;
-
   // ---------------- tabs ----------------
   const TABS = ["tracker", "cost"];
   // The workflow is a section of the tracker: #workflow, or #wf-<step> for one step,
@@ -2432,9 +2156,6 @@
     const want = wanted || (location.hash || "").replace("#", "");
     const tab = TABS.includes(want) ? want : "tracker";
     TABS.forEach(name => { el("tab-" + name).hidden = name !== tab; });
-    costUnitInput.closest("label").hidden = tab !== "cost";
-    // The control bar holds only the cost unit, so it shows on the cost tab alone.
-    costUnitInput.closest(".control-bar").style.display = tab === "cost" ? "" : "none";
     document.querySelectorAll(".tab-nav a").forEach(a => {
       if (a.dataset.tab === tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
     });
