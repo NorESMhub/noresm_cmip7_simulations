@@ -207,13 +207,19 @@ title: it is the last part of the path the script gives `create_newcase
 --case`, with the script's shell variables filled in. The case's directory on
 NIRD has this name. A part of the name the script only knows when it runs, such
 as the date from `$(date +%Y%m%d)`, is taken from the one directory on NIRD
-whose name fits; if several fit, the latest is used and the script says so.
-Until the case has a directory on NIRD, the unknown part is shown as `*`.
+whose name fits. An unknown part stands for one part of the name without a
+dot: piControl's script, with `n1850GHGGaxg.LM.nor30b27.002.$(date +"%Y%m%d")`,
+fits `n1850GHGGaxg.LM.nor30b27.002.20261016`, but not
+`n1850GHGGaxg.LM.nor30b27.002.20261022.oxidtest`, a test made with the same
+script, nor cmip7-prep's `n1850GHGGaxg.LM.nor30b27.002.20261016.cmor`. If
+several directories fit, the latest is used and the script says so. Until the
+case has a directory on NIRD, the unknown part is shown as `*`.
 
 The issue's title is therefore only a label, and changing it changes nothing.
-An issue with no run script on the `CMIP7_Runscripts` branch yet, or whose run
-script names no case, falls back to its title as the case name. When the title
-and the case name differ, the script's line for the issue gives the case name.
+An issue with no run script on the
+`CMIP7_Runscripts` branch yet, or whose run script names no case, falls back to
+its title as the case name. When the title and the case name differ, the
+script's line for the issue gives the case name.
 
 Issues with the `test` label are not CMIP7 runs and are left out. An issue's
 title may have only letters, digits, `.`, `-` and `_`. Any other title, such as
@@ -304,7 +310,8 @@ year, in the following four parts.
 
 The Cost plan multiplies these sizes by each run's number of members and years.
 Measuring takes a long time, so a size that has already been measured over at
-least five years is kept from the previous `progress.json`. To measure every case
+least five years is kept from the previous `progress.json`, as long as the issue's
+case is the same; a case whose name has changed is measured again. To measure every case
 again, for example after output on NIRD has been deleted or moved, or after a
 change to the history output, run the script once with `--remeasure-storage`. These
 sizes are the storage only: the cost comes from the timing files, which are read

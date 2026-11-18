@@ -271,6 +271,15 @@ def script_case_name(text):
     return name if name.strip(UNKNOWN) else None
 
 
+def name_pattern(name, unknown):
+    """A regular expression for the case names that fit name, in which each unknown part
+    stands for one part of a case name without a dot, such as the 20261016 of
+    $(date +%Y%m%d). So n1850GHGGaxg.LM.nor30b27.002.<date> fits
+    n1850GHGGaxg.LM.nor30b27.002.20261016, but not ...002.20261022.oxidtest, a test made
+    with the same script, nor ...002.20261016.cmor, cmip7-prep's output."""
+    return re.compile("[^./]+".join(re.escape(p) for p in name.split(unknown)) + r"\Z")
+
+
 def find_case(name, case_dir):
     """The case's name on NIRD: name itself if all of it is known, or else the one case
     directory, below case_dir with {case} as its last part, whose name fits name with any
@@ -281,8 +290,8 @@ def find_case(name, case_dir):
     parent, last = os.path.split(case_dir)
     if last != "{case}" or not os.path.isdir(parent):
         return None, []
-    pattern = "*".join(glob.escape(p) for p in name.split(UNKNOWN))
-    fits = sorted(d for d in os.listdir(parent) if fnmatch.fnmatchcase(d, pattern))
+    pattern = name_pattern(name, UNKNOWN)
+    fits = sorted(d for d in os.listdir(parent) if pattern.match(d))
     return (fits[-1] if fits else None), fits
 
 
@@ -598,7 +607,9 @@ def main():
     if not a.remeasure_storage:
         try:
             with open(a.out, encoding="utf-8") as f:
-                earlier = {c["issue"]: settled_storage(c.get("storage")) for c in json.load(f)["cases"]}
+                # By issue and case, so a case whose name has changed is measured again.
+                earlier = {(c["issue"], c.get("case")): settled_storage(c.get("storage"))
+                           for c in json.load(f)["cases"]}
         except (OSError, ValueError, KeyError, TypeError):
             pass
 
@@ -717,7 +728,7 @@ def main():
                 # The parent's case name may still have a * for a part only NIRD knows.
                 refcase = start.get("refcase", "")
                 if parent := issue_of_case.get(refcase) or next(
-                        (n for c, n in issue_of_case.items() if "*" in c and fnmatch.fnmatchcase(refcase, c)), None):
+                        (n for c, n in issue_of_case.items() if "*" in c and name_pattern(c, "*").match(refcase)), None):
                     start["parent"] = parent
                 case["start"] = start
         if m := DATA_VERSION.search(body):
@@ -748,7 +759,7 @@ def main():
                 versions["cmor4cmip7"] = v
         if versions:
             case["cmorVersions"] = versions
-        kept = earlier.get(num, {})
+        kept = earlier.get((num, name), {})
         storage = case_storage(CASE_DIR.format(case=name), name,
                                prep_dir, output.get("cmor4cmip7"), labels, kept)
         if storage:
