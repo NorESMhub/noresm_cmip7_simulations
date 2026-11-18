@@ -61,10 +61,15 @@ COMPLETED = re.compile(r"completed_steps_(\d+)-(\d+)\.json$")
 CMOR_FILE = re.compile(r"^(.+)_(\d{4})\d*-(\d{4})\d*\.nc$")
 # The full start and end dates of a CMOR file's time range, e.g. 185001 and 185912.
 CMOR_TIME = re.compile(r"_(\d{4,14})-(\d{4,14})\.nc$")
-# A model date in a file name, its year first: 0001, 0001-01, 0001-01-01-00000, 000101.
 # A kind of output measured over at least this many years is not measured again.
 STORAGE_YEARS = 5
+# A date in a file's name, with its year as the group, written as YYYY, YYYY-MM,
+# YYYY-MM-DD, YYYY-MM-DD-SSSSS, YYYYMM or YYYYMMDD and not part of a longer number:
+# the 0001-01 of n1850GHGGaxg.cam.h0a.0001-01.nc, or each date of _000101-001012.nc.
+# file_years() takes the years a file covers from these.
 NAME_DATE = re.compile(r"(?<!\d)(\d{4})(?:\d{2}|\d{4})?(?:-\d{2}(?:-\d{2}(?:-\d{5})?)?)?(?!\d)")
+
+
 def entry(label, value):
     """An entry of an issue's description: "- entry: value" on one line, the label in bold or
     not, or the label as a heading, "### label", with the value on the next line that isn't

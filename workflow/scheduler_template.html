@@ -1474,16 +1474,20 @@
   // elsewhere or Escape.
   // One case's chip in a CMORize cell, "#002 1–170", and the panel it opens: what is wrong
   // with its files, if anything, its years, its output directory, its issue's CMOR data
-  // version and the version directories its files are in. A cmip7-prep chip is dashed while
-  // no year has every realm. A cmor4cmip7 chip is red when the script found something wrong.
+  // version and the version directories its files are in. A chip is red when no year has
+  // every realm because a cmip7-prep step failed or is still running, or when the script
+  // found something wrong with cmor4cmip7's files. A cmip7-prep chip is dashed while no year
+  // has every realm for another reason.
   function cmorCaseBox(row, step, { member, c, info }, byVariant){
     const tool = step.key === "cmoratm" ? "cmip7prep" : "cmor4cmip7";
     const problems = info.problems || [];
+    const unfinished = tool === "cmip7prep" && !info.years.length;
+    const failed = unfinished && (info.unfinished || []).some(s => s.failed.length);
     const box = document.createElement("details");
-    box.className = "cmor-box" + (problems.length ? " bad" : "");
+    box.className = "cmor-box" + (problems.length || failed ? " bad" : "");
     const summary = document.createElement("summary");
     const chip = document.createElement("span");
-    chip.className = "step-range" + (info.years.length || tool === "cmor4cmip7" ? "" : " partial");
+    chip.className = "step-range" + (unfinished && !failed ? " partial" : "");
     chip.textContent = `#${String(c.issue).padStart(3, "0")} ${yearSpans(info.years.length ? info.years : info.files)}`;
     summary.appendChild(chip);
     box.appendChild(summary);
@@ -1521,6 +1525,15 @@
         : `No year has every ${what} yet; the files cover ${yearSpans(info.files)}.`,
     ]);
     list("Output directory", [c.output[tool] || "None found yet."]);
+    // cmip7-prep's steps not finished, set by set, without the "cmor-" every step starts with.
+    if (info.unfinished && info.unfinished.length){
+      const steps = keys => keys.map(k => k.replace(/^cmor-/, "")).join(", ");
+      list("Steps not finished", info.unfinished.flatMap(s => [
+        ...(s.failed.length ? [`${s.first}–${s.last}: failed or still running: ${steps(s.failed)}. `
+          + `Their logs are in logs/${s.first}-${s.last}/ in the output directory.`] : []),
+        ...(s.notRun.length ? [`${s.first}–${s.last}: not run: ${steps(s.notRun)}.`] : []),
+      ]));
+    }
     add("div", "cp-head", "CMORization issue");
     const issues = add("ul");
     if (!c.cmorIssues.length) issues.appendChild(Object.assign(document.createElement("li"),
@@ -2305,6 +2318,12 @@
           years: sorted(prepComplete),
           files: sorted(prepAny.concat(Object.values(prepVersions).flat())),
           versions: prepVersions,
+          // The sets of years with a step not finished: one with a log but not finished has
+          // failed or is still running; one with no log has not run for that set.
+          unfinished: (c.cmor || []).map(s => ({
+            first: s.first, last: s.last, failed: s.failed || [],
+            notRun: expected.filter(k => !(s.steps || []).includes(k) && !(s.failed || []).includes(k)),
+          })).filter(s => s.failed.length || s.notRun.length),
         },
         cmorocn: {
           years: sorted([...ocn].filter(inCase)),
