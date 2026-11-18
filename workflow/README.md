@@ -208,9 +208,10 @@ An issue with no run script on the `CMIP7_Runscripts` branch yet, or whose run
 script names no case, falls back to its title as the case name. When the title
 and the case name differ, the script's line for the issue gives the case name.
 
-Issues with the `test` label are not CMIP7 runs and are left out. An issue whose
-title has a space in it, such as a placeholder for a run that is not set up
-yet, is left out too. An issue whose case name is not of the form
+Issues with the `test` label are not CMIP7 runs and are left out. An issue's
+title may have only letters, digits, `.`, `-` and `_`. Any other title, such as
+one with a space for a run that is not set up yet, is a note, and the issue is
+left out as soon as the issues are read, before anything from it is used. An issue whose case name is not of the form
 `compset.LM.nor30b28...` is also left out. For each issue left out, the script
 prints a line saying why.
 

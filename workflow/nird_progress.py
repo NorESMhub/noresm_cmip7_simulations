@@ -42,6 +42,8 @@ HIST_PATTERN = "*.cam.i.*.nc"
 # Each tool's output, for a case whose issue gives no output root.
 CMIP7PREP_DIR = CASE_DIR + ".cmor"
 CMOR4CMIP7_DIR = "/nird/datapeak/NS9034K/.CMIP7/NorESM3-{resolution}/{experiment}/{variant}"
+# The characters an issue's title may have.
+TITLE_CHARACTERS = re.compile(r"[A-Za-z0-9._-]+")
 # compset.resolution.version...: n1850GHGGaxg.LM.nor30b28.r1i1p1f1.011.20261102, or without
 # the variant, n1850GHGGaxg.LM.nor30b28.011.20261102. The beta may end in a letter: nor30b29a.
 TITLE = re.compile(r"^[A-Za-z0-9-]+\.(LM|MM)\.nor30(b\d+[a-z]?)\.")
@@ -582,6 +584,16 @@ def main():
             issues = [i for i in json.load(f) if "pull_request" not in i]
     else:
         issues = fetch_issues(REPO)
+    # Only an issue whose title is a name, of letters, digits, ".", "-" and "_", is a case.
+    # Any other title, such as one with a space, is a note or a placeholder for a run not
+    # set up yet, and the issue is left out.
+    named = []
+    for issue in issues:
+        if TITLE_CHARACTERS.fullmatch(issue["title"].strip()):
+            named.append(issue)
+        else:
+            print(f"#{issue['number']}: skipped, its title is not a name: {issue['title'].strip()!r}")
+    issues = named
 
     # A case's CMORization issues are those in CMIP7_CMOR-Publish that name the case.
     try:
@@ -606,11 +618,6 @@ def main():
         num, title = issue["number"], issue["title"].strip()
         labels = [l["name"] for l in issue.get("labels", [])]
         if "test" in labels:
-            continue
-        # A title with a space in it is a note, such as a placeholder for a run not set up
-        # yet. It is left out of the tracker without a mention.
-        if re.search(r"\s", title):
-            print(f"#{num} {title}: skipped, the title has a space in it")
             continue
         script_paths, text, name, notes = scripts_of_issue.get(num, []), None, None, []
         if len(script_paths) == 1:
