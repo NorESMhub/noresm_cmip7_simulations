@@ -228,9 +228,26 @@ def literal(items):
 
 
 def page_text():
-    """The page, built from the copy of the spreadsheet, the plan and the template, with the
-    configurations, the runs and the warnings. The page reads progress.json from next to
-    itself when it is opened. Raises ValueError, or OSError, if the page can't be built."""
+    """The page as text, with the configurations, the runs and the warnings.
+
+    1. It reads the copy of the spreadsheet, noresm3_experiments_decoded.csv.
+    2. For each resolution in PLAN, it picks the experiments the plan includes. Each becomes
+       a run, e.g. "historical LM".
+    3. Each run takes from the spreadsheet its members (Ensemble Members), its years per
+       member (min_yrs_per_sim), its start year, the parent it branches from, its MIP (DECK
+       runs are grouped under CMIP) and its priority (1 for DECK, 2 for the rest).
+    4. Each run is given a configuration from COSTS: one that lists the run's compset, or
+       otherwise land-only, DCPP, AMIP, ESM or coupled, by the rule in this module's
+       docstring.
+    5. It replaces the template's data block with the configurations, the runs, the date and
+       commit of the spreadsheet copy, and the cost unit. The JSON is escaped so that nothing
+       in it can end the page's script.
+
+    It writes no files: nird_progress.py writes the page next to progress.json. It knows
+    nothing about progress: the page reads progress.json each time it is opened, and fills
+    in the cases, the years done, the CMORization and the measured costs.
+
+    Raises ValueError, or OSError, if the page can't be built."""
     configs, sims, warnings = build(read_experiments(EXPERIMENTS), COSTS, PLAN)
     with open(TEMPLATE, encoding="utf-8") as f:
         page = f.read()
