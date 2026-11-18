@@ -102,18 +102,34 @@ TIMING_LINES = {
 }
 
 
+def github_api(url):
+    """The JSON GitHub's API returns for url. GitHub allows 60 anonymous requests an hour
+    from one address, which every user on NIRD shares; once they are used up, this raises
+    Failed with the time they are available again."""
+    req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json",
+                                               "User-Agent": "nird_progress"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        if e.code in (403, 429) and e.headers.get("X-RateLimit-Remaining") == "0":
+            reset = e.headers.get("X-RateLimit-Reset")
+            when = (datetime.datetime.fromtimestamp(int(reset)).astimezone().strftime("%H:%M %Z")
+                    if reset and reset.isdigit() else "within the hour")
+            raise Failed("GitHub's limit of 60 requests an hour from NIRD has been used up, by this "
+                         f"script or by other users on NIRD. Run the script again after {when}.") from e
+        raise
+
+
 def fetch_issues(repo):
     """Every issue in the repository, open and closed, without pull requests."""
     issues, page = [], 1
     while True:
-        url = f"https://api.github.com/repos/{repo}/issues?state=all&per_page=100&page={page}"
-        req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json",
-                                                   "User-Agent": "nird_progress"})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            batch = json.load(r)
-        if not batch:
-            return issues
+        batch = github_api(f"https://api.github.com/repos/{repo}/issues?state=all&per_page=100&page={page}")
         issues.extend(i for i in batch if "pull_request" not in i)
+        # A page with fewer than a hundred is the last, so no empty page is fetched after it.
+        if len(batch) < 100:
+            return issues
         page += 1
 
 
@@ -126,11 +142,7 @@ def list_run_scripts(repo, scripts_dir=None):
                 return None, f"{scripts_dir} is not a directory"
             return [os.path.relpath(os.path.join(d, f), scripts_dir)
                     for d, _, files in os.walk(scripts_dir) for f in files if f.endswith(".sh")], None
-        url = f"https://api.github.com/repos/{repo}/git/trees/{RUNSCRIPTS_BRANCH}?recursive=1"
-        req = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json",
-                                                   "User-Agent": "nird_progress"})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            tree = json.load(r)["tree"]
+        tree = github_api(f"https://api.github.com/repos/{repo}/git/trees/{RUNSCRIPTS_BRANCH}?recursive=1")["tree"]
         return [t["path"][len("scripts/"):] for t in tree
                 if t["type"] == "blob" and t["path"].startswith("scripts/") and t["path"].endswith(".sh")], None
     except (OSError, ValueError, KeyError, http.client.HTTPException) as e:

@@ -182,11 +182,16 @@ python3 -I workflow/nird_progress.py $HOME/tracker_test/progress.json --scripts 
 
 The script reads every issue in `NorESMhub/noresm_cmip7_simulations` and in
 `NorESMhub/CMIP7_CMOR-Publish`. It also reads each case's run script from the
-`CMIP7_Runscripts` branch.
+[`CMIP7_Runscripts`](https://github.com/NorESMhub/noresm_cmip7_simulations/tree/CMIP7_Runscripts/scripts)
+branch of `NorESMhub/noresm_cmip7_simulations`, below `scripts/`.
 
-GitHub allows 60 anonymous requests an hour. The script needs only a few,
-because it fetches the issues a hundred at a time and the run scripts come from
-GitHub's raw file server, which is not counted.
+GitHub allows 60 anonymous requests an hour from one address, and every user on
+NIRD shares that address. The script needs one request for each hundred issues
+in each repository, and one for the list of run scripts: three while each
+repository has fewer than a hundred issues. The run scripts
+themselves come from GitHub's raw file server, which is not counted. If the limit
+has been used up, by this script or by others on NIRD, the script stops, says
+when it can be run again, and leaves `progress.json` and the page as they were.
 
 #### The case and its owner
 
