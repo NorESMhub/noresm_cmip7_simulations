@@ -90,7 +90,7 @@ read by the web page each time the page is opened in a browser.
 
 | File | What it does | When it is run |
 |---|---|---|
-| `nird_progress.py` | It reads the GitHub issues, the run scripts, the case directories on NIRD and the CMORization directories, and writes `progress.json`. It then builds `index.html` with `build_scheduler.py`. If anything can't be read or built, it updates neither file. | It is run on NIRD whenever the tracker is to be updated: after new output reaches NIRD, or after a change to the spreadsheet copy, the template or the plan. |
+| `nird_progress.py` | It reads the GitHub issues, the run scripts, the case directories on NIRD and the CMORization directories, and writes `progress.json`. It then builds `index.html` with `build_scheduler.py`. If anything can't be read or built, it updates neither file. | It is run on NIRD whenever the tracker is to be updated: after new output reaches NIRD. The current plan is to run this as a daily cron job on NIRD. |
 | `build_scheduler.py` | It holds the plan and the cost table, and the code that builds `index.html` from the spreadsheet copy and `scheduler_template.html`. | It is not run on its own: `nird_progress.py` uses it to build the page. |
 | `scheduler_template.html` | It holds the web page's layout, text and JavaScript, and becomes `index.html`. Its JavaScript reads `progress.json` and fills in the tracker. | Its JavaScript runs in the browser each time the web page is opened. |
 
@@ -135,8 +135,9 @@ uses to build `index.html` in five steps.
 ### `nird_progress.py`
 
 `nird_progress.py` generates `progress.json`, and then the web page,
-`index.html`, in the same directory. It is run on NIRD with the following
-command.
+`index.html`, in the same directory. On NIRD it is always run with no
+arguments, as follows. The paths on NIRD that it reads and writes are set at the
+top of the script.
 
 ```bash
 python3 -I workflow/nird_progress.py
@@ -156,6 +157,26 @@ issue, the script also prints one line with the issue's labels, the case's
 latest model date and its start date. A case with no output yet is marked
 "no output on NIRD", or "no run script on GitHub" if its run script is missing
 too.
+
+#### Arguments
+
+The script's arguments are needed only for testing a change without touching the
+published page, or for measuring the output again. Each can be combined with the
+others.
+
+| Argument | What it does |
+| --- | --- |
+| `out` | Writes `progress.json` here instead of to the published page's directory. `index.html` is written next to it. Use it to try a change to the template, the plan or the script. |
+| `--scripts DIR` | Reads the run scripts from `DIR`, a `scripts/` directory such as in a local checkout of the `CMIP7_Runscripts` branch, instead of from GitHub. Use it to check a run script before pushing it. |
+| `--issues FILE` | Reads the case issues from `FILE`, a JSON file in the form GitHub's API returns them, instead of from GitHub. Use it when GitHub can't be reached. |
+| `--remeasure` | Measures every case's output on NIRD again. Without it, a case's storage is taken from the last `progress.json` once it covers enough years. Use it after output on NIRD has been deleted or moved. |
+
+For example, the following command writes a test copy of the page to
+`$HOME/tracker_test`, which must exist, from a local checkout of the run scripts.
+
+```bash
+python3 -I workflow/nird_progress.py $HOME/tracker_test/progress.json --scripts ../CMIP7_Runscripts/scripts
+```
 
 #### Reading GitHub
 

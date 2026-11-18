@@ -32,9 +32,15 @@ class Failed(Exception):
     is updated."""
 
 
-# Where things are on NIRD, the defaults for the options.
+# Where things are on NIRD. {case} is a case's name; {resolution}, {experiment} and
+# {variant} are its simulation's.
 PROGRESS = "/nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json"
 CASE_DIR = "/nird/datalake/NS9560K/noresm3/cases/{case}"
+# A case's model date comes from the dated files that fit HIST_PATTERN in HIST_DIR.
+HIST_DIR = CASE_DIR + "/atm/hist"
+HIST_PATTERN = "*.cam.i.*.nc"
+# Each tool's output, for a case whose issue gives no output root.
+CMIP7PREP_DIR = CASE_DIR + ".cmor"
 CMOR4CMIP7_DIR = "/nird/datapeak/NS9034K/.CMIP7/NorESM3-{resolution}/{experiment}/{variant}"
 # compset.resolution.version...: n1850GHGGaxg.LM.nor30b28.r1i1p1f1.011.20261102, or without
 # the variant, n1850GHGGaxg.LM.nor30b28.011.20261102. The beta may end in a letter: nor30b29a.
@@ -529,32 +535,22 @@ def case_timing(directory):
 
 
 def main():
+    # On NIRD the script is run with no arguments. They are for testing a change without
+    # touching the published page, and for measuring the output again.
     p = argparse.ArgumentParser()
     p.add_argument("out", nargs="?", default=PROGRESS,
                    help=f"where to write progress.json; the page, index.html, goes next to it (default {PROGRESS})")
-    p.add_argument("--case-dir", default=CASE_DIR,
-                   help=f'each case\'s archive directory, with <component>/hist and rest (default "{CASE_DIR}")')
-    p.add_argument("--dir", help='the directory of each case\'s dated files (default "<case-dir>/atm/hist")')
-    p.add_argument("--cmor-dir", help='each case\'s cmip7-prep output directory, for a case whose issue names '
-                                      'no cmip7prep output root (default "<case-dir>.cmor")')
-    p.add_argument("--cmor4cmip7-dir", default=CMOR4CMIP7_DIR,
-                   help='each simulation\'s cmor4cmip7 variant directory, for a case whose issue names no '
-                        f'cmor4cmip7 output root (default "{CMOR4CMIP7_DIR}")')
-    p.add_argument("--pattern", default="*.cam.i.*.nc", help="dated files that count, as a shell pattern")
-    p.add_argument("--repo", default=REPO, help="the repository with the case issues")
-    p.add_argument("--issues", help="read the issues from this JSON file instead of GitHub")
+    p.add_argument("--issues", help="read the case issues from this JSON file instead of GitHub")
     p.add_argument("--scripts", help="read the run scripts from this scripts/ directory, e.g. in a "
                                      "checkout of the CMIP7_Runscripts branch, instead of GitHub")
     p.add_argument("--remeasure", action="store_true",
                    help="measure every case's output again, instead of keeping what the last "
                         "progress.json has for it")
     a = p.parse_args()
-    a.dir = a.dir or a.case_dir + "/atm/hist"
-    a.cmor_dir = a.cmor_dir or a.case_dir + ".cmor"
 
     # Each case's output as the last run measured it, kept where it covers enough years.
     earlier = {}
-    if a.case_dir and not a.remeasure:
+    if not a.remeasure:
         try:
             with open(a.out, encoding="utf-8") as f:
                 earlier = {c["issue"]: settled_storage(c.get("storage")) for c in json.load(f)["cases"]}
@@ -565,7 +561,7 @@ def main():
         with open(a.issues, encoding="utf-8") as f:
             issues = [i for i in json.load(f) if "pull_request" not in i]
     else:
-        issues = fetch_issues(a.repo)
+        issues = fetch_issues(REPO)
 
     # A case's CMORization issues are those in CMIP7_CMOR-Publish that name the case.
     try:
@@ -573,7 +569,7 @@ def main():
     except (OSError, ValueError, http.client.HTTPException) as e:
         raise Failed(f"The CMORization issues in {CMOR_REPO} could not be read: {e}") from e
     # A case's run script is the one whose name starts with its issue number.
-    scripts, why = list_run_scripts(a.repo, a.scripts)
+    scripts, why = list_run_scripts(REPO, a.scripts)
     if scripts is None:
         raise Failed(f"The run scripts could not be listed: {why}")
     scripts_of_issue = {}
@@ -598,11 +594,11 @@ def main():
             continue
         script_paths, text, name, notes = scripts_of_issue.get(num, []), None, None, []
         if len(script_paths) == 1:
-            text, why = read_run_script(a.repo, script_paths[0], a.scripts)
+            text, why = read_run_script(REPO, script_paths[0], a.scripts)
             if text is None:
                 raise Failed(f"#{num}'s run script, scripts/{script_paths[0]}, could not be read: {why}")
             if pattern := script_case_name(text):
-                name, fits = find_case(pattern, a.case_dir)
+                name, fits = find_case(pattern, CASE_DIR)
                 if len(fits) > 1:
                     notes.append("more than one case directory fits its run script: " + ", ".join(fits)
                                  + f"; {name} is used")
@@ -628,7 +624,7 @@ def main():
         case = {"issue": num, "case": name, "resolution": RESOLUTION[m.group(1)],
                 "version": m.group(2), "owner": ", ".join(people), "labels": labels,
                 "completed": "completed" in labels}
-        found_dates = model_dates(a.dir.format(case=name), a.pattern)
+        found_dates = model_dates(HIST_DIR.format(case=name), HIST_PATTERN)
         if found_dates:
             last, missing = found_dates
             case["modelDate"] = "%04d-%02d-%02d" % last
@@ -644,7 +640,7 @@ def main():
         given = {tool: m.group(1) for tool, r in OUTPUT_ROOTS.items() if (m := r.search(body))}
         variant = next((l for l in labels if VARIANT.match(l)), None)
         output = {}
-        for tool, default in (("cmip7prep", a.cmor_dir), ("cmor4cmip7", a.cmor4cmip7_dir)):
+        for tool, default in (("cmip7prep", CMIP7PREP_DIR), ("cmor4cmip7", CMOR4CMIP7_DIR)):
             root = given.get(tool) or default
             if not root:
                 continue
@@ -703,12 +699,12 @@ def main():
         if versions:
             case["cmorVersions"] = versions
         kept = earlier.get(num, {})
-        storage = case_storage(a.case_dir.format(case=name) if a.case_dir else None, name,
+        storage = case_storage(CASE_DIR.format(case=name), name,
                                prep_dir, output.get("cmor4cmip7"), labels, kept)
         if storage:
             case["storage"] = storage
         # Each case's timing files are in <case>/<case>/timing in its archive.
-        timing_dir = (a.case_dir + "/{case}/timing").format(case=name)
+        timing_dir = (CASE_DIR + "/{case}/timing").format(case=name)
         if os.path.isdir(timing_dir):
             timing, machine = case_timing(timing_dir)
             if timing:
@@ -726,7 +722,7 @@ def main():
         print(f"#{num} {title} [{', '.join(labels) or 'no labels'}]: " + "; ".join([report] + problems))
 
     # When the progress was written, in NIRD's local time with its time zone, e.g. CET.
-    data = {"updated": datetime.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z"), "repo": a.repo,
+    data = {"updated": datetime.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z"), "repo": REPO,
             "cases": cases, "skipped": skipped}
     # The page, index.html next to progress.json, built from the experiment sheet, the plan
     # and the template; it reads progress.json when it is opened. It is built before anything
