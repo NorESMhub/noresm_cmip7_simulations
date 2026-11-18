@@ -25,6 +25,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_scheduler  # noqa: E402
 
 REPO = "NorESMhub/noresm_cmip7_simulations"
+
 # The NorESM3 CMIP7 experiments spreadsheet and its DECK_FASTTRACK tab, which the page's runs
 # come from. It is read on every run, so it must stay readable by anyone with the link.
 SHEET = "https://docs.google.com/spreadsheets/d/1PZQHmOHVENJeCqwSfk4wfp8okQXw60Bv"
@@ -40,33 +41,46 @@ class Failed(Exception):
 # {variant} are its simulation's.
 PROGRESS = "/nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning/progress.json"
 CASE_DIR = "/nird/datalake/NS9560K/noresm3/cases/{case}"
+
 # A case's model date comes from the dated files that fit HIST_PATTERN in HIST_DIR.
 HIST_DIR = CASE_DIR + "/atm/hist"
 HIST_PATTERN = "*.cam.i.*.nc"
+
 # Each tool's output, for a case whose issue gives no output root.
 CMIP7PREP_DIR = CASE_DIR + ".cmor"
 CMOR4CMIP7_DIR = "/nird/datapeak/NS9034K/.CMIP7/NorESM3-{resolution}/{experiment}/{variant}"
+
 # The characters an issue's title may have.
 TITLE_CHARACTERS = re.compile(r"[A-Za-z0-9._-]+")
+
 # compset.resolution.version...: n1850GHGGaxg.LM.nor30b28.r1i1p1f1.011.20261102, or without
 # the variant, n1850GHGGaxg.LM.nor30b28.011.20261102. The beta may end in a letter: nor30b29a.
 TITLE = re.compile(r"^[A-Za-z0-9-]+\.(LM|MM)\.nor30(b\d+[a-z]?)\.")
 RESOLUTION = {"LM": "LM", "MM": "MM"}
+
 # YYYY-MM, YYYY-MM-DD or YYYY-MM-DD-SSSSS just before .nc
 DATE = re.compile(r"\.(\d{4})-(\d{2})(?:-(\d{2})(?:-\d{5})?)?\.nc$")
+
 # cmip7-prep's record of the steps that finished for one set of years.
 COMPLETED = re.compile(r"completed_steps_(\d+)-(\d+)\.json$")
+
 # A CMOR file's variable and the years of its time range, before .nc:
 # so_Omon_NorESM3_piControl_r1i1p1f1_gn_000101-001012.nc
 CMOR_FILE = re.compile(r"^(.+)_(\d{4})\d*-(\d{4})\d*\.nc$")
+
 # The full start and end dates of a CMOR file's time range, e.g. 185001 and 185912.
 CMOR_TIME = re.compile(r"_(\d{4,14})-(\d{4,14})\.nc$")
+
 # A kind of output measured over at least this many years is not measured again.
 STORAGE_YEARS = 5
-# A date in a file's name, with its year as the group, written as YYYY, YYYY-MM,
-# YYYY-MM-DD, YYYY-MM-DD-SSSSS, YYYYMM or YYYYMMDD and not part of a longer number:
-# the 0001-01 of n1850GHGGaxg.cam.h0a.0001-01.nc, or each date of _000101-001012.nc.
-# file_years() takes the years a file covers from these.
+
+# Finds the dates in a file's name, so that file_years() can tell which model years the
+# file covers. Only the year of each date is kept. A date is written in one of these
+# forms: YYYY, YYYYMM, YYYYMMDD, YYYY-MM, YYYY-MM-DD or YYYY-MM-DD-SSSSS. Digits that are
+# part of a longer number are not a date. For example:
+#   n1850GHGGaxg.cam.h0a.0001-01.nc has one date, 0001-01, so it covers year 1.
+#   so_Omon_NorESM3_piControl_r1i1p1f1_gn_000101-001012.nc has two, 000101 and 001012,
+#   so it covers years 1 to 10.
 NAME_DATE = re.compile(r"(?<!\d)(\d{4})(?:\d{2}|\d{4})?(?:-\d{2}(?:-\d{2}(?:-\d{5})?)?)?(?!\d)")
 
 
@@ -82,26 +96,33 @@ def entry(label, value):
 # "- cmip7prep output root: /nird/...".
 OUTPUT_ROOTS = {tool: entry(tool + r"[ \t]+output(?:[ \t]+root)?", r"/[^\s`]+")
                 for tool in ("cmip7prep", "cmor4cmip7")}
+
 # The version the case's years are CMORized into, with or without the v:
 # "- cmor data version: v20261028".
 DATA_VERSION = entry(r"cmor[ \t]+data[ \t]+version", r"v?\d{8}\b")
+
 # The CMORization issues, each naming the cases it CMORizes, and the CMOR tag version in its
 # description, on the line after its label: "**cmor tag version (decided by ...)**\n20261109".
 CMOR_REPO = "NorESMhub/CMIP7_CMOR-Publish"
 CMOR_TAG_VERSION = re.compile(r"cmor[ \t]+tag[ \t]+version[^\d]{0,300}?\bv?(\d{8})\b", re.I)
+
 # The run scripts are on this branch, below scripts/, each named after its case's issue:
 # DECK/piControl/011.piControl.LM.beta28.r1i1p1f1.20261102.sh is #11's.
 RUNSCRIPTS_BRANCH = "CMIP7_Runscripts"
 SCRIPT_ISSUE = re.compile(r"^0*(\d+)\..*\.sh$")
+
 # The settings read from a run script's ./xmlchange lines, and the names they are written under.
 RUN_SETTINGS = {"RUN_TYPE": "type", "RUN_REFCASE": "refcase", "RUN_REFDATE": "refdate",
                 "RUN_STARTDATE": "startdate"}
+
 # A shell variable given a plain value: refcase="n1850GHGGaxg.LM.nor30b27.002.20261016"
 SHELL_VARIABLE = re.compile(r"""^(?:export\s+)?([A-Za-z_]\w*)=("[^"$`]*"|'[^']*'|[^\s"'$`;]*)\s*(?:#.*)?$""")
 XMLCHANGE = re.compile(r"^\./xmlchange\s+(.*)$")
+
 # The version directory a CMOR file sits under: .../r1i1p1f1/v20261028/so_..._000101-001012.nc
 VERSION_DIR = re.compile(r"^v\d{8}$")
 VARIANT = re.compile(r"^r\d+i\d+p\d+f\d+$")
+
 # Lines of a timing file, one per job: noresm_timing.<case>.<job id>.<date>.
 TIMING_LINES = {
     "cost": re.compile(r"^\s*Model Cost:\s*([\d.]+)\s+pe-hrs/simulated_year", re.M),
@@ -240,6 +261,7 @@ def run_settings(text):
 
 # Stands for a part of a case name the script only knows when it runs, such as $(date).
 UNKNOWN = "\0"
+
 # Variables that may hold the case name, in a script without a create_newcase line.
 CASE_VARIABLES = ("casename", "CASENAME", "case_name", "CASE_NAME", "case", "CASE")
 
