@@ -823,7 +823,7 @@
             <ul class="wf-parts">
               <li><b>where:</b> the progress script reads the case's own <code>.cmor</code> directory, not the ones below it;</li>
               <li><b>which issue:</b> each case has its own <code>.cmor</code> directory, named after its issue's title, so everything in it belongs to that issue. piControl's #2 can be done while #11 is not;</li>
-              <li><b>years:</b> cmip7-prep writes a <code>completed_steps_&lt;first&gt;-&lt;last&gt;.json</code> file for each set of years it has CMORized. A set counts once its file lists every <code>cmor-</code> step that any of the simulation's files lists, so a set where one realm failed doesn't count. The chip shows the years of the sets that count, e.g. <code>#002 1–50</code>;</li>
+              <li><b>years:</b> cmip7-prep writes a <code>completed_steps_&lt;first&gt;-&lt;last&gt;.json</code> file for each set of years it has CMORized. A set counts once it has finished every <code>cmor-</code> step that any of the simulation's sets has run, so a set where one realm failed doesn't count, even if that realm failed in every set. The chip shows the years of the sets that count, e.g. <code>#002 1–50</code>;</li>
               <li><b>dashed chip:</b> no set counts yet; the chip shows the years of all the sets.</li>
             </ul></li>
           <li id="wf-cmorocn"><div class="wf-title">CMORize the ocean and ocean biogeochemistry using cmor4cmip7</div>
@@ -3168,13 +3168,14 @@
     m.labels = [...new Set(cases.flatMap(c => c.labels || []))];
     if (m.completed) m.years = length;
     // The years each tool has CMORized, from the member's start year to the first one missing.
-    // A cmip7-prep set of years counts once it has every cmor- step any of the member's sets
-    // has, so a set where one realm failed does not. cmor4cmip7's years are the ones every
-    // variable has a file for.
+    // A cmip7-prep set of years counts once it has finished every cmor- step that any of the
+    // member's sets has run: finished, or failed with a log. So a set where one realm failed
+    // does not count, even when that realm failed in every set. cmor4cmip7's years are the
+    // ones every variable has a file for.
     const span = years => { let y = start; while (years.has(y)) y++; return y > start ? { from: start, to: y - 1 } : null; };
     m.cmor = {};
     const sets = cases.flatMap(c => c.cmor || []);
-    const expected = [...new Set(sets.flatMap(s => s.steps || []))];
+    const expected = [...new Set(sets.flatMap(s => [...(s.steps || []), ...(s.failed || [])]))];
     const atm = new Set();
     if (expected.length) sets.forEach(s => {
       if (expected.every(k => (s.steps || []).includes(k))) for (let y = s.first; y <= s.last; y++) atm.add(y);

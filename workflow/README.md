@@ -252,10 +252,15 @@ cmor tag version given in it.
 The web page shows how many years of each case cmip7-prep has CMORized.
 cmip7-prep writes a `completed_steps_<first>-<last>.json` file in the case's
 `.cmor` directory for each set of years it works on, listing the steps that
-finished. The script records the steps in each of these files.
+finished. It also writes a log for each step it runs, finished or not, in
+`logs/<first>-<last>/`. The script records the `cmor-` steps each file lists,
+and the `cmor-` steps that have a log but are not listed, which failed or are
+still running.
 
-A set of years counts as CMORized only once every realm has finished, so a set
-in which one realm failed does not count. The script also records which version
+A set of years counts as CMORized once it has finished every `cmor-` step that
+any set of the same simulation has run. So a set in which one realm failed does
+not count, even if that realm failed in every set. A realm that cmip7-prep has
+never run, in any set, is not noticed. The script also records which version
 directories, `vYYYYMMDD`, the CMORized files are in, along with the years in
 each version directory.
 

@@ -288,7 +288,10 @@ def model_dates(directory, pattern):
 
 
 def cmor_sets(directory):
-    """[{first, last, steps}] for each completed_steps_<first>-<last>.json, with its cmor- steps."""
+    """[{first, last, steps, failed}] for each completed_steps_<first>-<last>.json. steps are
+    the cmor- steps it lists, the ones that finished. failed are the cmor- steps that ran, so
+    have a log in logs/<first>-<last>/, but are not listed: they failed or are still running.
+    The file alone can't show a realm that failed in every set, since it lists no failures."""
     sets = []
     for path in glob.glob(os.path.join(glob.escape(directory), "completed_steps_*.json")):
         m = COMPLETED.search(os.path.basename(path))
@@ -299,7 +302,11 @@ def cmor_sets(directory):
                 steps = sorted(k for k in json.load(f) if isinstance(k, str) and k.startswith("cmor-"))
         except (OSError, ValueError):
             continue
-        sets.append({"first": int(m.group(1)), "last": int(m.group(2)), "steps": steps})
+        logs = os.path.join(directory, "logs", f"{m.group(1)}-{m.group(2)}")
+        ran = {n[:-len(".log")] for n in (os.listdir(logs) if os.path.isdir(logs) else [])
+               if n.startswith("cmor-") and n.endswith(".log")}
+        sets.append({"first": int(m.group(1)), "last": int(m.group(2)), "steps": steps,
+                     "failed": sorted(ran - set(steps))})
     return sorted(sets, key=lambda s: s["first"])
 
 
