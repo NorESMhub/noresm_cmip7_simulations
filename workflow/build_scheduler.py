@@ -3,8 +3,8 @@ page. nird_progress.py, next to this module, calls page_text() each time it runs
 the page as index.html next to progress.json.
 
 The runs on the page are the experiments of the copy of the spreadsheet,
-noresm3_experiments_decoded.csv, in the tiers (DECK, Fast Track) or activities
-(ScenarioMIP, C4MIP) that PLAN lists for each resolution. Each run's members and years
+noresm3_experiments_decoded.csv, that PLAN lists for each resolution: all of a tier
+(DECK, Fast Track), or only some of its activities (ScenarioMIP, C4MIP). Each run's members and years
 come from the sheet's Ensemble Members and min_yrs_per_sim columns. With more than one
 resolution in PLAN, run names carry their resolution.
 
@@ -35,11 +35,15 @@ START_MARKER = "let DEFAULT_CONFIGS = ["
 END_MARKER = "let configs = clone(DEFAULT_CONFIGS);"
 NO_PARENT = {"", "-", "obs product"}
 
-# The plan: each resolution, and the tiers or activities whose experiments are run at it.
-PLAN = [
-    ("LM", ["DECK", "Fast Track"]),
-    ("MM", ["DECK", "ScenarioMIP"]),
-]
+# The experiments run at each resolution: for each tier in the spreadsheet's Tier
+# column, either all its experiments, or only those of the activities listed
+# (the activity_id column).
+PLAN = {
+    # At LM: every DECK and every Fast Track experiment.
+    "LM": {"DECK": "all", "Fast Track": "all"},
+    # At MM: every DECK experiment, and of the Fast Track only ScenarioMIP.
+    "MM": {"DECK": "all", "Fast Track": ["ScenarioMIP"]},
+}
 
 
 def read_experiments(path):
@@ -132,16 +136,19 @@ def config_name(exp, resolution, rules=()):
     return f"NorESM3 {resolution}"
 
 
-def matches(exp, selector):
-    """An experiment matches when its Tier or its activity_id is in the selector."""
-    tier = exp.get("Tier", "").strip()
+def in_plan(exp, tiers):
+    """Whether the plan for a resolution, tiers, runs the experiment: all of its tier, or
+    one of its activities in its tier. An activity_id can name several, e.g. C4MIP/CFMIP."""
+    chosen = tiers.get(exp.get("Tier", "").strip())
+    if chosen == "all":
+        return True
     activities = [a.strip() for a in exp.get("activity_id", "").split("/")]
-    return tier in selector or any(a in selector for a in activities)
+    return bool(chosen) and any(a in chosen for a in activities)
 
 
 def build(experiments, costs, plans):
-    """The configurations, the runs and the warnings. plans: list of (resolution, selector)
-    pairs, one per resolution."""
+    """The configurations, the runs and the warnings. plans: as PLAN, the tiers and
+    activities run at each resolution."""
     configs = [{"id": f"c{i}", "name": c["name"], "costPerYear": c["costPerYear"],
                 "throughput": c["throughput"], "betzyCostPerYear": c.get("betzyCostPerYear"),
                 "betzyThroughput": c.get("betzyThroughput")} for i, c in enumerate(costs, 1)]
@@ -151,8 +158,8 @@ def build(experiments, costs, plans):
 
     warnings = []
     sims = []
-    for resolution, selector in plans:
-        chosen = [e for e in experiments if matches(e, selector)]
+    for resolution, tiers in plans.items():
+        chosen = [e for e in experiments if in_plan(e, tiers)]
         selected = []
         for e in chosen:
             if config_name(e, resolution, rules) in cfg_id:

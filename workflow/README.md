@@ -101,10 +101,21 @@ table, which are changed by editing them there, and the code `nird_progress.py`
 uses to build `index.html` in five steps.
 
 1. It reads the experiments from `noresm3_experiments_decoded.csv`.
-2. It chooses which experiments are run at each resolution. The plan at the top
-   of `build_scheduler.py` lists the tiers and activities for each resolution,
-   e.g. the DECK and Fast Track experiments at LM resolution. The plan is
-   changed by editing it there and running `nird_progress.py` again.
+2. It chooses which experiments are run at each resolution. `PLAN`, near the
+   top of `build_scheduler.py`, lists for each resolution the tiers from the
+   spreadsheet's Tier column, and for each tier either all its experiments or
+   only those of some of its activities:
+
+   ```python
+   PLAN = {
+       "LM": {"DECK": "all", "Fast Track": "all"},
+       "MM": {"DECK": "all", "Fast Track": ["ScenarioMIP"]},
+   }
+   ```
+
+   That is, every DECK and Fast Track experiment at LM, and at MM every DECK
+   experiment and, of the Fast Track, only ScenarioMIP. The plan is changed by
+   editing it there and running `nird_progress.py` again.
 3. It gives each run an estimated cost and throughput. The estimates come from
    the `COSTS` table in `build_scheduler.py`, which has one estimate for each
    model configuration, e.g. `NorESM3 LM` for the coupled model at LM
