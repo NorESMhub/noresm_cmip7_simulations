@@ -227,26 +227,8 @@
     gap: 12px;
   }
   .card h2{ margin:0; font-size: 16px; font-weight: 700; }
-  .chart-card-head{
-    display:flex;
-    justify-content: space-between;
-    align-items:center;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .chart-controls{ display:flex; align-items:center; gap: 18px; flex-wrap: wrap; }
-
-  .toggle{ display:flex; align-items:center; gap:7px; font-size: 13px; color: var(--text-secondary); cursor:pointer; user-select:none; }
-  .toggle input{ width: 15px; height: 15px; accent-color: var(--accent); cursor:pointer; }
-
-  .legend{ display:flex; align-items:center; gap: 14px; flex-wrap: wrap; }
-  .legend-item{ display:flex; align-items:center; gap:6px; font-size: 12.5px; color: var(--text-secondary); }
-  .legend-swatch{ width:11px; height:11px; border-radius:3px; flex:none; }
   .config-name-wrap{ display:flex; align-items:center; gap:8px; }
   .config-name-wrap input{ flex:1 1 auto; }
-
-  .chart-scroll{ overflow-x: auto; border-radius: 8px; }
-  .chart-hint{ margin:0; font-size: 12px; color: var(--text-muted); }
 
   /* ---------- cost breakdown cards (by MIP, by priority, ...) ---------- */
   .cost-breakdown{ display:flex; flex-direction:column; gap:9px; }
@@ -280,14 +262,6 @@
   }
   .cost-row .cost-figures b{ color:var(--text-primary); font-weight:600; }
   .cost-breakdown-note{ margin:2px 0 0; font-size:12px; color:var(--text-muted); }
-  .error-banner{
-    background: var(--danger-wash);
-    color: var(--danger);
-    border-radius: 8px;
-    padding: 12px 14px;
-    font-size: 13.5px;
-    font-weight: 600;
-  }
   .timing-note{
     background: var(--accent-wash);
     color: var(--text-primary);
@@ -621,56 +595,6 @@
   #simTables tr.row-disabled td.col-name .sim-name{ text-decoration: line-through; text-decoration-color: var(--text-muted); }
   #simTables tr.row-completed td.col-name .sim-name{ font-style: italic; }
 
-  /* ---------- svg chart ---------- */
-  .gantt-bar{ cursor: pointer; }
-  .gantt-bar rect.bar{ stroke: none; }
-  .gantt-bar.dimmed{ opacity: 0.22; }
-  .gantt-bar.chain rect.bar{ stroke: var(--text-primary); stroke-width: 2.5px; }
-  .bar-cfg-1{ fill: var(--series-1); }
-  .bar-cfg-2{ fill: var(--series-2); }
-  .bar-cfg-3{ fill: var(--series-3); }
-  .bar-cfg-4{ fill: var(--series-4); }
-  .bar-cfg-5{ fill: var(--series-5); }
-  .bar-cfg-6{ fill: var(--series-6); }
-  .bar-cfg-7{ fill: var(--series-7); }
-  .bar-cfg-8{ fill: var(--series-8); }
-  /* `fill` only paints the SVG bars above — swatches are plain HTML spans and need background */
-  .legend-swatch.bar-cfg-1{ background: var(--series-1); }
-  .legend-swatch.bar-cfg-2{ background: var(--series-2); }
-  .legend-swatch.bar-cfg-3{ background: var(--series-3); }
-  .legend-swatch.bar-cfg-4{ background: var(--series-4); }
-  .legend-swatch.bar-cfg-5{ background: var(--series-5); }
-  .legend-swatch.bar-cfg-6{ background: var(--series-6); }
-  .legend-swatch.bar-cfg-7{ background: var(--series-7); }
-  .legend-swatch.bar-cfg-8{ background: var(--series-8); }
-  .bar-label{ font-family:"JetBrains Mono",monospace; font-size: 11px; pointer-events:none; }
-  .axis-text{ font-family:"JetBrains Mono",monospace; font-size: 11px; fill: var(--text-muted); }
-  .lane-text{ font-family:"JetBrains Mono",monospace; font-size: 12px; fill: var(--text-secondary); font-weight: 600; }
-  .gridline{ stroke: var(--gridline); stroke-width: 1; }
-  .lane-band{ fill: var(--surface-raised); }
-  .bar-elapsed{ opacity: 0.38; }
-  .today-line{ stroke: var(--text-primary); stroke-width: 1.5; stroke-dasharray: 3,3; opacity: 0.55; }
-  .today-text{ font-family:"JetBrains Mono",monospace; font-size: 10.5px; font-weight: 600; fill: var(--text-secondary); text-anchor: middle; }
-
-  /* ---------- tooltip ---------- */
-  .tooltip{
-    position: fixed;
-    z-index: 40;
-    pointer-events: none;
-    background: var(--surface-raised);
-    border: 1px solid var(--border-strong);
-    border-radius: 8px;
-    padding: 10px 12px;
-    font-size: 12.5px;
-    color: var(--text-primary);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.18);
-    max-width: 260px;
-  }
-  .tooltip[hidden]{ display:none; }
-  .tooltip .tt-title{ font-weight: 700; margin-bottom: 4px; font-family:"JetBrains Mono",monospace; }
-  .tooltip .tt-row{ display:flex; justify-content: space-between; gap: 10px; color: var(--text-secondary); }
-  .tooltip .tt-row b{ color: var(--text-primary); font-weight: 600; font-family:"JetBrains Mono",monospace; }
-
   @media (prefers-reduced-motion: no-preference){
     .btn, .row-del{ transition: border-color .12s ease, color .12s ease, background .12s ease; }
   }
@@ -691,10 +615,6 @@
   </nav>
 
   <section class="control-bar" aria-label="Controls">
-    <label class="control" hidden="">
-      <span>Parallel slots</span>
-      <input type="number" id="slotsInput" min="1" max="24" step="1" value="5">
-    </label>
     <label class="control">
       <span>Cost unit label</span>
       <input type="text" id="costUnitInput" value="core-hr" maxlength="14">
@@ -884,8 +804,6 @@
 
   <section class="stats-grid" id="statsGrid" aria-label="Summary"></section>
 
-  <section id="errorBanner" class="error-banner" hidden=""></section>
-
   <section id="timingNote" class="timing-note" hidden=""></section>
 
   <section class="card" id="costTableCard">
@@ -895,19 +813,6 @@
       <p class="editor-caption">The four TB columns are the output each run will leave on NIRD once all its members and years are done, not what is there now: members × years × the GB per simulated year its cases have on NIRD so far, measured by the progress script. History is the model's history files, restarts the restart sets as kept, time series cmip7-prep's time series, which are to be deleted, and CMOR the CMORized files of both tools. A run with no output of its own takes its configuration's, in grey; hover a value for the GB per simulated year and its parts.</p>
     </div>
     <div id="costTables"></div>
-  </section>
-
-  <!-- The run schedule is hidden for now; the page is a cost plan. Remove hidden to bring it back. -->
-  <section class="card chart-card" id="scheduleCard" hidden="">
-    <div class="chart-card-head">
-      <h2>Run schedule</h2>
-      <div class="chart-controls">
-        <label class="toggle"><input type="checkbox" id="criticalPathToggle"><span>Highlight critical-path chain</span></label>
-        <div class="legend" id="legend"></div>
-      </div>
-    </div>
-    <div class="chart-scroll"><div id="chartContainer"></div></div>
-    <p class="chart-hint">Hover a run for details · click a run to trace its dependency chain · click empty space to clear.</p>
   </section>
 
   <section class="card" id="mipCard">
@@ -930,7 +835,6 @@
 
   </div>
 
-  <div id="tooltip" class="tooltip" hidden=""></div>
 </div>
 
 <script>
@@ -938,21 +842,19 @@
   "use strict";
 
   // ---------------- the plan ----------------
-  // build_scheduler.py replaces the six lines below with the configurations from its COSTS
+  // build_scheduler.py replaces the five lines below with the configurations from its COSTS
   // table, the runs built from the spreadsheet, the progress and when the spreadsheet was
   // last committed, so the template holds none.
   // It finds them by the DEFAULT_CONFIGS line and the configs line after them, so neither
   // may be changed or written out in full anywhere above them.
   let DEFAULT_CONFIGS = [];
   let DEFAULT_SIMS = [];
-  let DEFAULT_SLOTS = 5;
   let DEFAULT_COST_UNIT = "core-hr";
   let DEFAULT_PROGRESS = null;
   let DEFAULT_SHEET = null;
 
   let configs = clone(DEFAULT_CONFIGS);
   let sims = clone(DEFAULT_SIMS);
-  let slots = DEFAULT_SLOTS;
   let costUnit = DEFAULT_COST_UNIT;
   // Nothing is kept in the browser: everyone sees the plan the page was built with and
   // what progress.json says, and edits made here last until the page is reloaded. Clear
@@ -1014,24 +916,18 @@
   const issueOpened = row => row.status === "pending" && Array.isArray(row.cases) && row.cases.length > 0;
   let configSeq = configs.length, simSeq = sims.length;
 
-  let selectedChainRoot = null; // job id clicked, for highlight
-  let lastResult = null;
 
   function clone(x){ return JSON.parse(JSON.stringify(x)); }
   function uid(prefix, n){ return prefix + n; }
 
   // ---------------- DOM refs ----------------
   const el = (id) => document.getElementById(id);
-  const slotsInput = el("slotsInput");
   const costUnitInput = el("costUnitInput");
   const fileStatus = el("fileStatus");
   const uploadBtn = el("uploadBtn");
   const csvFileInput = el("csvFileInput");
   const statsGrid = el("statsGrid");
-  const errorBanner = el("errorBanner");
   const timingNote = el("timingNote");
-  const legendEl = el("legend");
-  const chartContainer = el("chartContainer");
   const mipCard = el("mipCard");
   const mipCaption = el("mipCaption");
   const mipBreakdownEl = el("mipBreakdown");
@@ -1039,234 +935,42 @@
   const priorityCaption = el("priorityCaption");
   const priorityBreakdownEl = el("priorityBreakdown");
   const priorityExcludedNote = el("priorityExcludedNote");
-  const cpToggle = el("criticalPathToggle");
   const simTables = el("simTables");
   let simTbody = null; // the table body rows are being added to
-  const tooltip = el("tooltip");
 
-  // ---------------- scheduling engine ----------------
-  function computeSchedule(configs, sims, slots){
+  // ---------------- cost ----------------
+  // Each run's members as jobs, each with the cost it has left, and the total. A completed
+  // run, or one with priority 0, has no jobs. An in-progress run's first membersRunning
+  // members have only their remaining years to go; its other members, like a pending run's,
+  // have all of them. A run on a configuration with no timing yet has no cost, so it is left
+  // out and listed in untimedRows.
+  function computeCosts(configs, sims){
     const configById = new Map(configs.map(c => [c.id, c]));
-    const rowById = new Map(sims.map(r => [r.id, r]));
-    const depsOf = (r) => (Array.isArray(r.dependsOn) ? r.dependsOn : (r.dependsOn ? [r.dependsOn] : [])).filter(Boolean);
-
-    // cycle detection (row-level dependency graph, up to 2 parents per row)
-    const visiting = new Set(), visited = new Set();
-    let cyclePath = null;
-    function dfs(rowId, stack){
-      if (cyclePath) return;
-      if (visiting.has(rowId)){ cyclePath = stack.concat([rowId]); return; }
-      if (visited.has(rowId)) return;
-      visiting.add(rowId); stack.push(rowId);
-      const r = rowById.get(rowId);
-      if (r){
-        for (const dep of depsOf(r)){
-          if (rowById.has(dep)) dfs(dep, stack);
-          if (cyclePath) break;
-        }
-      }
-      stack.pop(); visiting.delete(rowId); visited.add(rowId);
-    }
-    sims.forEach(r => dfs(r.id, []));
-    if (cyclePath){
-      return { error: "Circular dependency: " + cyclePath.map(id => (rowById.get(id)||{}).name || id).join(" → ") };
-    }
-
-    // expand rows into jobs (one per ensemble member). A completed run contributes no jobs
-    // at all — it's already done and simply drops out. A priority-0 run means "this won't be
-    // conducted" and drops out the same way, regardless of ensemble/status. An in-progress run
-    // contributes jobs for only its REMAINING duration/cost, pinned to start "now" (day 0)
-    // below, since it's already occupying a slot in real life rather than waiting in the queue.
-    // A run on a configuration with no throughput yet has no duration, so it is left out of
-    // the schedule like a priority-0 run and reported in untimedRows. Its dependents are not
-    // blocked by it, so the schedule is a lower bound until every configuration has a timing.
     const jobs = [];
-    const rowJobIds = new Map();
     const untimedRows = [];
     sims.forEach(row => {
-      if (row.status === "completed" || normalizePriority(row.priority) === 0){ rowJobIds.set(row.id, []); return; }
+      if (row.status === "completed" || normalizePriority(row.priority) === 0) return;
       const cfg = configById.get(row.configId) || configs[0];
-      if (!cfg){ rowJobIds.set(row.id, []); return; }
+      if (!cfg) return;
       if (!hasTiming(cfg, row)){
         if (ensembleCount(row) > 0) untimedRows.push(row);
-        rowJobIds.set(row.id, []);
         return;
       }
-      const throughput = Number(sypdOn(cfg, row));
       const years = Math.max(Number(row.years) || 0, 0);
-      const fullDuration = years / throughput;
       const inProgress = row.status === "in-progress";
-      // Progress is tracked in years completed (the unit NorESM users actually track, e.g. off
-      // a restart file's model year) rather than a percentage, which is easy to enter wrong —
-      // clamp to the run's own length so a typo can't imply more progress than the run has.
+      // Years done are clamped to the run's length, so they can't imply more progress than it has.
       const yearsCompleted = inProgress ? Math.min(years, Math.max(0, Number(row.yearsCompleted) || 0)) : 0;
       const progressFrac = years > 0 ? (yearsCompleted / years) : 0;
       const costPerYear = Number(costOn(cfg, row)) || 0;
       const ens = ensembleCount(row);
-      // Only the first membersRunning members of an in-progress run are already going;
-      // the others wait in the queue like any pending run.
       const running = inProgress ? runningCount(row) : 0;
-      const ids = [];
       for (let k = 0; k < ens; k++){
-        const jid = ens === 1 ? row.id : (row.id + "__" + k);
-        const pinned = k < running;
-        const frac = pinned ? progressFrac : 0;
-        jobs.push({
-          id: jid, rowId: row.id,
-          label: ens === 1 ? row.name : (row.name + " #" + (k+1)),
-          cfgId: cfg.id, cfgIndex: configs.indexOf(cfg),
-          years, remainingYears: years - (pinned ? yearsCompleted : 0),
-          duration: fullDuration * (1 - frac), cost: years * (1 - frac) * costPerYear,
-          depRowIds: pinned ? [] : depsOf(row),
-          rowPriority: normalizePriority(row.priority),
-          pinned, elapsed: fullDuration * frac,
-          yearsCompleted: pinned ? yearsCompleted : null,
-          progressPct: pinned ? frac * 100 : null,
-        });
-        ids.push(jid);
+        const frac = k < running ? progressFrac : 0;
+        jobs.push({ rowId: row.id, cost: years * (1 - frac) * costPerYear, rowPriority: normalizePriority(row.priority) });
       }
-      rowJobIds.set(row.id, ids);
     });
-
-    if (!jobs.length){
-      return { jobs: [], makespan: 0, totalWork: 0, totalCost: 0, criticalPath: 0, chainJobIds: new Set(), jobCount: 0, maxElapsed: 0, untimedRows };
-    }
-
-    // row-level successor map + per-row duration (jobs of a row share duration).
-    // A row can have up to 2 parents, so it appears as a "child" under each parent it depends on.
-    const childRows = new Map(sims.map(r => [r.id, []]));
-    sims.forEach(r => { depsOf(r).forEach(dep => { if (childRows.has(dep)) childRows.get(dep).push(r.id); }); });
-    const rowDuration = new Map();
-    sims.forEach(r => {
-      // a completed run, a priority-0 run, or one with 0 ensemble members, contributes nothing
-      // to the critical path — none of them actually run. An in-progress run contributes only
-      // what's left, matching the remaining duration its jobs actually carry above.
-      if (r.status === "completed" || normalizePriority(r.priority) === 0){ rowDuration.set(r.id, 0); return; }
-      const cfg = configById.get(r.configId) || configs[0];
-      if (!cfg || !hasTiming(cfg, r)){ rowDuration.set(r.id, 0); return; }
-      const throughput = Number(sypdOn(cfg, r));
-      const ens = ensembleCount(r);
-      if (ens === 0){ rowDuration.set(r.id, 0); return; }
-      const years = Math.max(Number(r.years)||0,0);
-      const fullDuration = years / throughput;
-      const yearsCompleted = r.status === "in-progress" ? Math.min(years, Math.max(0, Number(r.yearsCompleted) || 0)) : 0;
-      const progressFrac = years > 0 ? (yearsCompleted / years) : 0;
-      rowDuration.set(r.id, fullDuration * (1 - progressFrac));
-    });
-
-    const bMemo = new Map();
-    function bLevel(rowId){
-      if (bMemo.has(rowId)) return bMemo.get(rowId);
-      bMemo.set(rowId, 0); // guard (shouldn't recurse due to cycle check above)
-      const kids = childRows.get(rowId) || [];
-      const dur = rowDuration.get(rowId) || 0;
-      const val = kids.length ? dur + Math.max.apply(null, kids.map(bLevel)) : dur;
-      bMemo.set(rowId, val);
-      return val;
-    }
-    sims.forEach(r => bLevel(r.id));
-
-    const roots = sims.filter(r => depsOf(r).every(dep => !rowById.has(dep)));
-    const criticalPath = roots.length ? Math.max.apply(null, roots.map(r => bLevel(r.id))) : 0;
-
-    // critical chain trace (rows), then expand to jobs
-    let chainRows = [];
-    if (roots.length){
-      let cur = roots.reduce((a,b) => bLevel(a.id) >= bLevel(b.id) ? a : b);
-      chainRows.push(cur.id);
-      let guard0 = 0;
-      while (guard0++ < 10000){
-        const kids = childRows.get(cur.id) || [];
-        if (!kids.length) break;
-        const nextId = kids.reduce((a,b) => bLevel(a) >= bLevel(b) ? a : b);
-        cur = rowById.get(nextId);
-        chainRows.push(cur.id);
-      }
-    }
-    const chainJobIds = new Set();
-    chainRows.forEach(rid => (rowJobIds.get(rid) || []).forEach(jid => chainJobIds.add(jid)));
-
-    // discrete-event list scheduling on `slots` identical machines.
-    // A dependency row is "satisfied" as soon as its FIRST ensemble member completes —
-    // downstream runs do not wait for every member of a multi-member dependency to finish.
-    // In-progress runs are already occupying a slot right now — pin them to start at day 0
-    // for their remaining duration, rather than letting them compete through the ready queue
-    // (they can't be "scheduled later"; they're already happening). There are always at
-    // least as many slots as runs in progress.
-    const pinnedJobs = jobs.filter(j => j.pinned);
-    slots = Math.max(slots, pinnedJobs.length);
-    const machineFree = new Array(slots).fill(0);
-    const scheduled = new Set();
-    const result = [];
-    pinnedJobs.forEach((job, idx) => {
-      const start = 0, end = job.duration;
-      machineFree[idx] = end;
-      scheduled.add(job.id);
-      result.push(Object.assign({}, job, { start, end, machine: idx }));
-    });
-    const maxElapsed = pinnedJobs.length ? Math.max.apply(null, pinnedJobs.map(j => j.elapsed)) : 0;
-
-    const rowDone = new Set();
-    // a run with 0 ensemble members doesn't exist, so it can't block anything that depends on it
-    sims.forEach(r => { if ((rowJobIds.get(r.id) || []).length === 0) rowDone.add(r.id); });
-    const processedForCompletion = new Set();
-    let currentTime = 0;
-    const totalJobs = jobs.length;
-    const EPS = 1e-9;
-
-    function processCompletions(t){
-      for (let i = 0; i < result.length; i++){
-        const j = result[i];
-        if (j.end <= t + EPS && !processedForCompletion.has(j.id)){
-          processedForCompletion.add(j.id);
-          rowDone.add(j.rowId); // first completion of the row is enough to satisfy dependents
-        }
-      }
-    }
-    function isReady(job){
-      if (!job.depRowIds.length) return true;
-      return job.depRowIds.every(dep => !rowById.has(dep) || rowDone.has(dep));
-    }
-    // A row's full bLevel (which bundles in its downstream children's urgency) only belongs to
-    // whichever of its ensemble members has yet to finish and unlock those children. Once the row
-    // has already unlocked them (its first member completed), remaining siblings are just ordinary
-    // work — racing them ahead of other ready runs no longer serves any dependent.
-    function jobPriority(job){
-      return rowDone.has(job.rowId) ? job.duration : (bMemo.get(job.rowId) || job.duration);
-    }
-
-    let guard = 0;
-    while (scheduled.size < totalJobs){
-      guard++;
-      if (guard > 500000) return { error: "Scheduling failed to converge — check for malformed dependencies." };
-      processCompletions(currentTime);
-      const freeIdxs = [];
-      for (let i = 0; i < slots; i++) if (machineFree[i] <= currentTime + EPS) freeIdxs.push(i);
-      const ready = jobs.filter(j => !scheduled.has(j.id) && isReady(j));
-      if (ready.length && freeIdxs.length){
-        // explicit user priority (lower number = scheduled first) wins outright; the critical-path
-        // heuristic only breaks ties between runs that share the same priority level.
-        ready.sort((a,b) => (a.rowPriority - b.rowPriority) || (jobPriority(b) - jobPriority(a)) || (b.duration - a.duration) || a.id.localeCompare(b.id));
-        const n = Math.min(ready.length, freeIdxs.length);
-        for (let k = 0; k < n; k++){
-          const job = ready[k], m = freeIdxs[k];
-          const start = currentTime, end = start + job.duration;
-          machineFree[m] = end;
-          scheduled.add(job.id);
-          result.push(Object.assign({}, job, { start, end, machine: m }));
-        }
-        continue;
-      }
-      const future = machineFree.filter(t => t > currentTime + EPS);
-      if (!future.length) return { error: "Scheduling deadlock — some simulations can never become ready. Check dependency names." };
-      currentTime = Math.min.apply(null, future);
-    }
-
-    const makespan = result.reduce((m, j) => Math.max(m, j.end), 0);
-    const totalWork = jobs.reduce((s, j) => s + j.duration, 0);
     const totalCost = jobs.reduce((s, j) => s + j.cost, 0);
-
-    return { jobs: result, makespan, totalWork, totalCost, criticalPath, chainJobIds, jobCount: jobs.length, maxElapsed, untimedRows };
+    return { jobs, totalCost, jobCount: jobs.length, untimedRows };
   }
 
   // Each configuration has a cost and throughput on each machine. A run is costed on the
@@ -1378,21 +1082,12 @@
   }
 
   // ---------------- formatting helpers ----------------
-  function fmtDays(d){ return d.toFixed(1); }
   function fmtCompact(n){
     const abs = Math.abs(n);
     if (abs >= 1e6) return (n/1e6).toFixed(2) + "M";
     if (abs >= 1e3) return (n/1e3).toFixed(1) + "K";
     return Math.round(n).toLocaleString();
   }
-  function relLuminance(hex){
-    const c = hex.replace('#','');
-    const r = parseInt(c.substring(0,2),16)/255, g = parseInt(c.substring(2,4),16)/255, b = parseInt(c.substring(4,6),16)/255;
-    const lin = v => v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
-    return 0.2126*lin(r) + 0.7152*lin(g) + 0.0722*lin(b);
-  }
-  const SERIES_HEX_LIGHT = ["#2a78d6","#eb6834","#1baf7a","#eda100","#e87ba4","#008300","#4a3aa7","#e34948"];
-
   const STATUS_LABELS = { pending: "Pending", "in-progress": "In progress", completed: "Completed" };
   function normalizeStatus(s){
     const v = (s || "").trim().toLowerCase().replace(/[\s_]+/g, "-");
@@ -1409,71 +1104,9 @@
     return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 1;
   }
 
-  // ---------------- SVG helpers ----------------
-  const SVGNS = "http://www.w3.org/2000/svg";
-  function svgEl(tag, attrs){
-    const e = document.createElementNS(SVGNS, tag);
-    for (const k in attrs) e.setAttribute(k, attrs[k]);
-    return e;
-  }
-  let measureCanvas = null;
-  function textWidth(str, fontPx){
-    if (!measureCanvas) measureCanvas = document.createElement("canvas");
-    const ctx = measureCanvas.getContext("2d");
-    ctx.font = fontPx + 'px "JetBrains Mono", monospace';
-    return ctx.measureText(str).width;
-  }
-  const LABEL_DEFAULT_PX = 11, LABEL_MIN_PX = 7, LABEL_PAD = 8;
-  // Every bar carries a label: shrink the font to fit a narrow bar, and only
-  // truncate (with an ellipsis) once even the smallest legible size can't fit.
-  function fitBarLabel(label, barWidthPx){
-    const available = barWidthPx - LABEL_PAD;
-    if (available <= 2) return null;
-    const fullWidth = textWidth(label, LABEL_DEFAULT_PX);
-    if (fullWidth <= available) return { text: label, fontPx: LABEL_DEFAULT_PX };
-    const scaled = LABEL_DEFAULT_PX * (available / fullWidth);
-    if (scaled >= LABEL_MIN_PX) return { text: label, fontPx: scaled };
-    let s = label;
-    while (s.length > 1 && textWidth(s + "…", LABEL_MIN_PX) > available) s = s.slice(0, -1);
-    return { text: s.length < label.length ? s + "…" : s, fontPx: LABEL_MIN_PX };
-  }
-  function niceStep(range, targetTicks){
-    if (range <= 0) return 1;
-    const raw = range / targetTicks;
-    const mag = Math.pow(10, Math.floor(Math.log10(raw)));
-    const norm = raw / mag;
-    let step;
-    if (norm < 1.5) step = 1; else if (norm < 3) step = 2; else if (norm < 7) step = 5; else step = 10;
-    return step * mag;
-  }
-
   // ---------------- rendering ----------------
   function render(){
-    const result = computeSchedule(configs, sims, slots);
-    lastResult = result;
-    renderCostTable();
-    renderTrackerStats();
-
-    if (result.error){
-      errorBanner.hidden = false;
-      errorBanner.textContent = result.error;
-      timingNote.hidden = true;
-      statsGrid.innerHTML = "";
-      chartContainer.innerHTML = "";
-      legendEl.innerHTML = "";
-      mipCard.hidden = true; mipBreakdownEl.innerHTML = "";
-      priorityCard.hidden = true; priorityBreakdownEl.innerHTML = ""; priorityExcludedNote.hidden = true;
-      renderTables(); // still allow fixing the data
-      return;
-    }
-    errorBanner.hidden = true;
-
-    renderTimingNote(result);
-    renderStats(result);
-    renderLegend();
-    renderChart(result);
-    renderMipBreakdown(result);
-    renderPriorityBreakdown(result);
+    renderCostSummary();
     renderTables();
   }
 
@@ -1674,9 +1307,6 @@
   }
 
   function renderStats(result){
-    const utilization = (result.makespan > 0) ? (result.totalWork / (result.makespan * slots)) * 100 : 0;
-    const idleSlotDays = Math.max(0, result.makespan * slots - result.totalWork);
-    const gapVsCritical = result.makespan - result.criticalPath;
     const completedCount = sims.filter(r => r.status === "completed").length;
     const inProgressCount = sims.filter(r => r.status === "in-progress").length;
     const progressNote = (completedCount || inProgressCount)
@@ -1684,17 +1314,9 @@
       : "";
 
     statsGrid.innerHTML = "";
-    const scheduleShown = !el("scheduleCard").hidden;
     const tiles = [
       {
         hero: true,
-        schedule: true,
-        label: "Fastest completion",
-        value: fmtDays(result.makespan) + " days",
-        sub: `${gapVsCritical >= 0.05 ? '+' + fmtDays(gapVsCritical) + ' d above the ' : 'at the '}<span class="mono tabular">${fmtDays(result.criticalPath)}</span>-day critical-path floor${progressNote}`,
-      },
-      {
-        hero: !scheduleShown,
         label: (completedCount || inProgressCount) ? `Compute cost remaining (${costUnit})` : `Total compute cost (${costUnit})`,
         value: fmtCompact(result.totalCost),
         sub: `across <span class="mono tabular">${result.jobCount}</span> simulation members${progressNote}`,
@@ -1709,20 +1331,8 @@
           sub: `${k.note}${missing ? `; <span class="mono tabular">${missing}</span> of ${planned.length} runs not measured yet` : ""}`,
         };
       }),
-      {
-        schedule: true,
-        label: "Slot utilization",
-        value: utilization.toFixed(0) + "%",
-        sub: `<span class="mono tabular">${fmtDays(result.totalWork)}</span> slot-days of work on ${slots} slots`,
-      },
-      {
-        schedule: true,
-        label: "Idle slot-time",
-        value: fmtDays(idleSlotDays) + " d",
-        sub: `mostly early — few runs are ready until dependencies clear`,
-      },
     ];
-    tiles.filter(t => scheduleShown || !t.schedule).forEach(t => {
+    tiles.forEach(t => {
       const tile = document.createElement("div");
       tile.className = "stat-tile" + (t.hero ? " hero" : "");
       const label = document.createElement("div");
@@ -1759,7 +1369,7 @@
     });
     return { list: Array.from(groups.values()).sort((a, b) => b.cost - a.cost) };
   }
-  // Colour of each resolution in Cost by MIP: the series its coupled runs use in the chart.
+  // Colour of each resolution in Cost by MIP.
   const RES_SERIES = { "LM": 1, "MM": 7 };
   // A run's resolution is its own; a row without one takes it from its configuration's name.
   function resolutionOf(row){
@@ -1855,7 +1465,7 @@
     renderCostRows(mipBreakdownEl, list, result.totalCost || 0, g => g.mip);
   }
 
-  // A priority-0 row never reaches computeSchedule's job-building loop, so it has no job to
+  // A priority-0 row never reaches computeCosts' job-building loop, so it has no job to
   // read a cost off of. Mirror that loop's cost formula for a single row here instead, so the
   // note below can report what the excluded runs would have cost. A completed run still
   // nominally costs $0 either way — "excluded" means compute avoided, not compute already spent.
@@ -1911,264 +1521,16 @@
     }
   }
 
-  // Bars are coloured by model type and resolution, not by configuration, so the
-  // per-experiment timings of one model (piControl, 1pctCO2, 4xCO2, ...) share a colour.
-  // Each type has a pair of related hues: the first for LM, the second for MM.
-  const TYPE_SERIES = { "Coupled": [1, 7], "ESM": [2, 8], "AMIP": [3, 6] };
-  function colourGroupOf(cfg){
-    const name = (cfg && cfg.name) || "";
-    const type = /\bAMIP\b/.test(name) ? "AMIP" : /\bESM\b/.test(name) ? "ESM" : "Coupled";
-    const m = /\b(LM|MM)\b/.exec(name);
-    const res = m ? m[0] : "";
-    const pair = TYPE_SERIES[type];
-    const series = res === "MM" ? pair[1] : pair[0];
-    return { key: type + " " + res, label: res ? `${type} ${res}` : type, series };
-  }
-  function seriesOf(cfgId){
-    return colourGroupOf(configs.find(c => c.id === cfgId)).series;
-  }
-
-  function renderLegend(){
-    legendEl.innerHTML = "";
-    const seen = new Set();
-    configs.forEach(cfg => {
-      const g = colourGroupOf(cfg);
-      if (seen.has(g.key)) return;
-      seen.add(g.key);
-      const item = document.createElement("div");
-      item.className = "legend-item";
-      const sw = document.createElement("span");
-      sw.className = "legend-swatch bar-cfg-" + g.series;
-      const label = document.createElement("span");
-      label.textContent = g.label;
-      item.appendChild(sw); item.appendChild(label);
-      legendEl.appendChild(item);
-    });
-  }
-
   function jobRowLookup(){
     const map = new Map();
     sims.forEach(r => map.set(r.id, r));
     return map;
   }
-  function rowDeps(row){
-    if (!row) return [];
-    return (Array.isArray(row.dependsOn) ? row.dependsOn : (row.dependsOn ? [row.dependsOn] : [])).filter(Boolean);
-  }
   // Ensemble 0 and Priority 0 both mean "this run won't happen" — same visual treatment,
-  // same exclusion from the schedule — just two different ways a user might express it.
+  // same exclusion from the cost — just two different ways a user might express it.
   function isRowOff(row){
     return ensembleCount(row) === 0 || normalizePriority(row.priority) === 0;
   }
-
-  function renderChart(result){
-    chartContainer.innerHTML = "";
-    const jobs = result.jobs;
-    if (!jobs.length){
-      const p = document.createElement("p");
-      p.className = "chart-hint";
-      p.textContent = "No simulations to schedule yet — add a row in the simulation plan below.";
-      chartContainer.appendChild(p);
-      return;
-    }
-    const rowMap = jobRowLookup();
-
-    const margin = { top: 26, right: 20, bottom: 34, left: 110 };
-    const laneHeight = 50, barHeight = 30;
-    const makespan = Math.max(result.makespan, 1);
-    // An in-progress run's already-elapsed portion is drawn before "today" (day 0), so the
-    // axis extends left to fit the longest one — everything else is unaffected (minDay stays 0).
-    const maxElapsed = result.maxElapsed || 0;
-    const minDay = maxElapsed > 0 ? -maxElapsed : 0;
-    const range = Math.max(makespan - minDay, 1);
-    const pxPerDay = Math.max(3, Math.min(18, 900 / range));
-    const plotWidth = range * pxPerDay;
-    const dayToX = (d) => margin.left + (d - minDay) * pxPerDay;
-    const width = margin.left + plotWidth + margin.right;
-    const height = margin.top + slots * laneHeight + margin.bottom;
-
-    const svg = svgEl("svg", { width, height, viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": "Gantt chart of scheduled CMIP7 simulations" });
-
-    // alternating lane bands
-    for (let i = 0; i < slots; i++){
-      if (i % 2 === 1){
-        svg.appendChild(svgEl("rect", {
-          class: "lane-band", x: margin.left, y: margin.top + i*laneHeight,
-          width: plotWidth, height: laneHeight,
-        }));
-      }
-    }
-
-    // gridlines + x ticks
-    const step = niceStep(range, 8);
-    const firstTick = Math.ceil(minDay / step) * step;
-    for (let d = firstTick; d <= makespan + step*0.001; d += step){
-      const x = dayToX(d);
-      svg.appendChild(svgEl("line", { class:"gridline", x1:x, x2:x, y1: margin.top, y2: margin.top + slots*laneHeight }));
-      const t = svgEl("text", { class:"axis-text", x, y: margin.top + slots*laneHeight + 18, "text-anchor":"middle" });
-      t.textContent = Math.round(d);
-      svg.appendChild(t);
-    }
-    // "Today" marker — only meaningful (and only drawn) once some run's progress pushes the
-    // axis before day 0, since otherwise day 0 is already the obvious left edge of the chart.
-    if (minDay < 0){
-      const todayX = dayToX(0);
-      svg.appendChild(svgEl("line", {
-        class: "today-line", x1: todayX, x2: todayX, y1: margin.top - 8, y2: margin.top + slots*laneHeight,
-      }));
-      const todayLabel = svgEl("text", { class: "today-text", x: todayX, y: margin.top - 12, "text-anchor":"middle" });
-      todayLabel.textContent = "Today";
-      svg.appendChild(todayLabel);
-    }
-    const xlab = svgEl("text", { class:"axis-text", x: margin.left + plotWidth/2, y: height - 4, "text-anchor":"middle" });
-    xlab.textContent = "Elapsed time (days)";
-    svg.appendChild(xlab);
-
-    // lane labels
-    for (let i = 0; i < slots; i++){
-      const t = svgEl("text", { class:"lane-text", x: margin.left - 12, y: margin.top + i*laneHeight + laneHeight/2 + 4, "text-anchor":"end" });
-      t.textContent = "Slot " + (i+1);
-      svg.appendChild(t);
-    }
-
-    // bars
-    jobs.forEach(job => {
-      const x = dayToX(job.start);
-      const w = Math.max(2, job.duration * pxPerDay);
-      const y = margin.top + job.machine * laneHeight + (laneHeight - barHeight)/2;
-      const g = svgEl("g", { class: "gantt-bar", "data-job": job.id, "data-row": job.rowId, tabindex: "0" });
-
-      // The portion already run before today, shown desaturated and ending exactly at day 0 —
-      // only the solid segment to its right is what still needs to be scheduled/waited on.
-      // Part of the same hoverable/clickable group as the main bar, not a separate element.
-      if (job.pinned && job.elapsed > 0){
-        const ex = dayToX(job.start - job.elapsed);
-        const ew = Math.max(1, job.elapsed * pxPerDay);
-        g.appendChild(svgEl("rect", {
-          class: "bar bar-elapsed bar-cfg-" + seriesOf(job.cfgId),
-          x: ex, y, width: ew, height: barHeight, rx: 4,
-        }));
-      }
-
-      const rect = svgEl("rect", {
-        class: "bar bar-cfg-" + seriesOf(job.cfgId),
-        x, y, width: w, height: barHeight, rx: 4,
-      });
-      g.appendChild(rect);
-
-      const fit = fitBarLabel(job.label, w);
-      if (fit){
-        const hex = SERIES_HEX_LIGHT[seriesOf(job.cfgId) - 1];
-        const lum = relLuminance(hex);
-        const textColor = lum > 0.5 ? "#0b0b0b" : "#ffffff";
-        const label = svgEl("text", {
-          class: "bar-label", x: x + w/2, y: y + barHeight/2 + fit.fontPx*0.36,
-          "text-anchor":"middle", fill: textColor, style: "font-size:" + fit.fontPx.toFixed(2) + "px",
-        });
-        label.textContent = fit.text;
-        g.appendChild(label);
-      }
-
-      g.addEventListener("mouseenter", (ev) => showTooltip(ev, job, rowMap));
-      g.addEventListener("mousemove", (ev) => positionTooltip(ev));
-      g.addEventListener("mouseleave", hideTooltip);
-      g.addEventListener("click", (ev) => { ev.stopPropagation(); toggleChain(job.id); });
-      g.addEventListener("focus", (ev) => showTooltip(ev, job, rowMap));
-      g.addEventListener("blur", hideTooltip);
-      svg.appendChild(g);
-    });
-
-    chartContainer.appendChild(svg);
-    svg.addEventListener("click", () => clearChain());
-    applyChainHighlight();
-  }
-
-  function toggleChain(jobId){
-    selectedChainRoot = (selectedChainRoot === jobId) ? null : jobId;
-    applyChainHighlight();
-  }
-  function clearChain(){ selectedChainRoot = null; applyChainHighlight(); }
-
-  function applyChainHighlight(){
-    const bars = chartContainer.querySelectorAll(".gantt-bar");
-    if (!selectedChainRoot){
-      bars.forEach(b => b.classList.remove("dimmed", "chain"));
-      return;
-    }
-    if (!lastResult || !lastResult.jobs) return;
-    const byId = new Map(lastResult.jobs.map(j => [j.id, j]));
-    const rowMap = jobRowLookup();
-    const related = new Set([selectedChainRoot]);
-    const start = byId.get(selectedChainRoot);
-    if (start){
-      const addJobsOfRow = (rowId) => { lastResult.jobs.forEach(j => { if (j.rowId === rowId) related.add(j.id); }); };
-      addJobsOfRow(start.rowId);
-      // walk ancestors (row-level, up to 2 parents per row) back to every root
-      const seenRows = new Set([start.rowId]);
-      const stack = rowDeps(rowMap.get(start.rowId)).slice();
-      while (stack.length){
-        const rid = stack.pop();
-        if (seenRows.has(rid)) continue;
-        seenRows.add(rid);
-        addJobsOfRow(rid);
-        const r = rowMap.get(rid);
-        if (r) stack.push(...rowDeps(r));
-      }
-      // direct descendant rows (anything that lists this row as one of its dependencies)
-      sims.forEach(r => { if (rowDeps(r).includes(start.rowId)) addJobsOfRow(r.id); });
-    }
-    bars.forEach(b => {
-      const jid = b.getAttribute("data-job");
-      if (related.has(jid)){ b.classList.remove("dimmed"); b.classList.add("chain"); }
-      else { b.classList.add("dimmed"); b.classList.remove("chain"); }
-    });
-  }
-
-  function showTooltip(ev, job, rowMap){
-    const row = rowMap.get(job.rowId) || {};
-    const cfg = configs.find(c => c.id === job.cfgId) || {};
-    const depNames = rowDeps(row).map(id => (rowMap.get(id)||{}).name).filter(Boolean);
-    tooltip.innerHTML = "";
-    const title = document.createElement("div");
-    title.className = "tt-title"; title.textContent = job.label;
-    tooltip.appendChild(title);
-    const rows = [
-      ["Configuration", cfg.name || "—"],
-      ["Priority", row.priority == null ? 1 : row.priority],
-      ["Years", job.years],
-    ];
-    if (job.pinned){
-      rows.push(["Status", `In progress (${job.yearsCompleted.toFixed(1)}/${job.years} yr, ${job.progressPct.toFixed(1)}%)`]);
-      rows.push(["Years remaining", job.remainingYears.toFixed(1)]);
-    }
-    rows.push(
-      ["Start", fmtDays(job.start) + " d"],
-      ["End", fmtDays(job.end) + " d"],
-      ["Duration", fmtDays(job.duration) + " d" + (job.pinned ? " left" : "")],
-      ["Cost", fmtCompact(job.cost) + " " + costUnit + (job.pinned ? " left" : "")],
-      ["Depends on", depNames.length ? depNames.join(", ") : "none"],
-    );
-    rows.forEach(([k,v]) => {
-      const r = document.createElement("div");
-      r.className = "tt-row";
-      const kk = document.createElement("span"); kk.textContent = k;
-      const vv = document.createElement("b"); vv.textContent = v;
-      r.appendChild(kk); r.appendChild(vv);
-      tooltip.appendChild(r);
-    });
-    tooltip.hidden = false;
-    positionTooltip(ev);
-  }
-  function positionTooltip(ev){
-    const pad = 14;
-    let x = ev.clientX + pad, y = ev.clientY + pad;
-    const tw = 260, th = 180;
-    if (x + tw > window.innerWidth) x = ev.clientX - tw - pad;
-    if (y + th > window.innerHeight) y = ev.clientY - th - pad;
-    tooltip.style.left = Math.max(4,x) + "px";
-    tooltip.style.top = Math.max(4,y) + "px";
-  }
-  function hideTooltip(){ tooltip.hidden = true; }
 
   // A CMORize cell's panel opens under its years, one at a time, and closes on a click
   // elsewhere or Escape.
@@ -2825,56 +2187,22 @@
     }
   }
 
-  function recomputeAndRenderChartAndStats(){
-    const result = computeSchedule(configs, sims, slots);
-    lastResult = result;
+  // The cost tables, the tracker's tiles, the cost tiles and the cost by MIP.
+  function renderCostSummary(){
+    const result = computeCosts(configs, sims);
     renderCostTable();
     renderTrackerStats();
-    if (result.error){
-      errorBanner.hidden = false;
-      errorBanner.textContent = result.error;
-      timingNote.hidden = true;
-      statsGrid.innerHTML = "";
-      chartContainer.innerHTML = "";
-      legendEl.innerHTML = "";
-      mipCard.hidden = true; mipBreakdownEl.innerHTML = "";
-      priorityCard.hidden = true; priorityBreakdownEl.innerHTML = ""; priorityExcludedNote.hidden = true;
-      return;
-    }
-    errorBanner.hidden = true;
     renderTimingNote(result);
     renderStats(result);
-    renderLegend();
-    renderChart(result);
     renderMipBreakdown(result);
     renderPriorityBreakdown(result);
   }
 
   // ---------------- top-level controls ----------------
-  slotsInput.addEventListener("input", () => {
-    const v = Math.max(1, Math.round(parseFloat(slotsInput.value) || 1));
-    slots = v;
-    recomputeAndRenderChartAndStats();
-  });
   costUnitInput.addEventListener("input", () => {
     costUnit = costUnitInput.value || "units";
-    recomputeAndRenderChartAndStats();
+    renderCostSummary();
   });
-  cpToggle.addEventListener("change", () => {
-    if (cpToggle.checked){
-      if (!lastResult || !lastResult.chainJobIds) return;
-      chartContainer.querySelectorAll(".gantt-bar").forEach(b => {
-        const jid = b.getAttribute("data-job");
-        if (lastResult.chainJobIds.has(jid)) b.classList.add("chain");
-      });
-    } else {
-      chartContainer.querySelectorAll(".gantt-bar.chain").forEach(b => {
-        if (!selectedChainRoot) b.classList.remove("chain");
-      });
-      applyChainHighlight();
-    }
-  });
-
   function showFileStatus(msg, isError){
     fileStatus.textContent = msg;
     fileStatus.classList.toggle("status-error", !!isError);
@@ -2915,7 +2243,7 @@
     const rows = parseCsv(text);
     let section = null;
     const rawConfigs = [], rawSims = [];
-    let newSlots = null, newCostUnit = null;
+    let newCostUnit = null;
 
     // A re-saved (e.g. Excel/Sheets) CSV often pads every row to the same column count with
     // trailing commas, so "only one cell" is not a reliable test for a section-header row —
@@ -3002,8 +2330,7 @@
           mip: currentMip,
         });
       } else if (section === "settings"){
-        if (label === "Parallel slots") newSlots = Math.max(1, Math.round(parseFloat(row[1]) || 1));
-        else if (label === "Cost unit label") newCostUnit = row[1] || null;
+        if (label === "Cost unit label") newCostUnit = row[1] || null;
       }
       // section === "schedule" (or null, before the first header) — ignored
     }
@@ -3046,16 +2373,14 @@
       };
     });
 
-    return { configs: importedConfigs, sims: importedSims, slots: newSlots, costUnit: newCostUnit, warnings };
+    return { configs: importedConfigs, sims: importedSims, costUnit: newCostUnit, warnings };
   }
 
   function applyImport(parsed){
     configs = parsed.configs;
     sims = parsed.sims;
-    if (parsed.slots != null){ slots = parsed.slots; slotsInput.value = slots; }
     if (parsed.costUnit != null){ costUnit = parsed.costUnit; costUnitInput.value = costUnit; }
     configSeq = configs.length; simSeq = sims.length;
-    cpToggle.checked = false; selectedChainRoot = null;
     render();
     const summary = `Loaded ${sims.length} simulations across ${configs.length} configurations.`;
     if (parsed.warnings.length){
@@ -3084,8 +2409,8 @@
 
   // Sync the control inputs to the actual in-memory defaults rather than trusting their
   // static HTML attributes to match — matters once a regenerated file can carry defaults
-  // other than slots=5/core-hr, which the markup below was never rewritten to reflect.
-  slotsInput.value = slots; costUnitInput.value = costUnit;
+  // other than core-hr, which the markup below was never rewritten to reflect.
+  costUnitInput.value = costUnit;
 
   // ---------------- tabs ----------------
   const TABS = ["tracker", "cost"];

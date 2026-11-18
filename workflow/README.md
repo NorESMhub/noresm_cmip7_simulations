@@ -370,9 +370,3 @@ above the tables shows every run in the plan.
   the machine its latest case ran on, and on Olivia until its cases have timing
   files.
 - The output sizes give the storage estimate for each run in the Cost plan.
-- The page can also lay the runs out as a schedule, with a number of parallel
-  slots, the runs that can go at once, set to 5. The schedule, its slot control
-  and the tiles that use the slots are hidden for now, so the slots change
-  nothing on the page; the cost does not depend on them. To show the schedule,
-  remove `hidden` from `scheduleCard` and from the Parallel slots control in
-  `scheduler_template.html`.
