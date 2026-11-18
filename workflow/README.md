@@ -169,7 +169,7 @@ others.
 | `out` | Writes `progress.json` here instead of to the published page's directory. `index.html` is written next to it. Use it to try a change to the template, the plan or the script. |
 | `--scripts DIR` | Reads the run scripts from `DIR`, a `scripts/` directory such as in a local checkout of the `CMIP7_Runscripts` branch, instead of from GitHub. Use it to check a run script before pushing it. |
 | `--issues FILE` | Reads the case issues from `FILE`, a JSON file in the form GitHub's API returns them, instead of from GitHub. Use it when GitHub can't be reached. |
-| `--remeasure` | Measures every case's output on NIRD again. Without it, a case's storage is taken from the last `progress.json` once it covers enough years. Use it after output on NIRD has been deleted or moved. |
+| `--remeasure-storage` | Measures every case's storage on NIRD again. Without it, a case's storage is taken from the last `progress.json` once it covers enough years. Use it after output on NIRD has been deleted or moved. The cost and throughput are not affected: they are read from the timing files on every run. |
 
 For example, the following command writes a test copy of the page to
 `$HOME/tracker_test`, which must exist, from a local checkout of the run scripts.
@@ -296,7 +296,11 @@ year, in the following four parts.
 
 The Cost plan multiplies these sizes by each run's number of members and years.
 Measuring takes a long time, so a size that has already been measured over at
-least five years is kept from the previous `progress.json`.
+least five years is kept from the previous `progress.json`. To measure every case
+again, for example after output on NIRD has been deleted or moved, or after a
+change to the history output, run the script once with `--remeasure-storage`. These
+sizes are the storage only: the cost comes from the timing files, which are read
+again on every run.
 
 #### Timing
 
@@ -309,7 +313,10 @@ year, the throughput in simulated years per day, and the date the job ended.
 
 The script averages the case's jobs for each machine, giving a job that
 simulated more years more weight. It also records the machine of the latest job, because the web page
-costs the rest of the run on that machine.
+costs the rest of the run on that machine. If the PE layout changes during a
+run, the average mixes the old and new layouts, weighted by the years run with
+each. The page plots each job's cost and throughput, so a change of layout shows
+there.
 
 ### `scheduler_template.html`
 

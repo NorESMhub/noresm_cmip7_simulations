@@ -555,21 +555,22 @@ def case_timing(directory):
 
 def main():
     # On NIRD the script is run with no arguments. They are for testing a change without
-    # touching the published page, and for measuring the output again.
+    # touching the published page, and for measuring the storage again.
     p = argparse.ArgumentParser()
     p.add_argument("out", nargs="?", default=PROGRESS,
                    help=f"where to write progress.json; the page, index.html, goes next to it (default {PROGRESS})")
     p.add_argument("--issues", help="read the case issues from this JSON file instead of GitHub")
     p.add_argument("--scripts", help="read the run scripts from this scripts/ directory, e.g. in a "
                                      "checkout of the CMIP7_Runscripts branch, instead of GitHub")
-    p.add_argument("--remeasure", action="store_true",
-                   help="measure every case's output again, instead of keeping what the last "
-                        "progress.json has for it")
+    p.add_argument("--remeasure-storage", action="store_true",
+                   help="measure every case's storage on NIRD again, instead of keeping what the "
+                        "last progress.json has for it; the cost and throughput are read again "
+                        "on every run regardless")
     a = p.parse_args()
 
     # Each case's output as the last run measured it, kept where it covers enough years.
     earlier = {}
-    if not a.remeasure:
+    if not a.remeasure_storage:
         try:
             with open(a.out, encoding="utf-8") as f:
                 earlier = {c["issue"]: settled_storage(c.get("storage")) for c in json.load(f)["cases"]}
