@@ -219,8 +219,10 @@ the plan and a variant label, e.g. `historical` and `r2i1p1f1`. Until then, the
 issue is listed under "Not shown" below the tracker, together with the issues
 whose case names are not of that form.
 
-The case's owner is the person assigned to the issue. If nobody is assigned,
-the owner is the person who opened the issue.
+The case's owner is the person assigned to the issue. If several people are
+assigned, all of them are owners, and the tracker shows them all, separated by
+commas. If nobody is assigned, the owner is the person who opened the issue. A
+run's owners are those of all its cases, each named once.
 
 #### How far the case has run
 

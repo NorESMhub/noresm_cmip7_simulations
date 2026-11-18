@@ -496,7 +496,7 @@
   /* A run with one member is framed the same way. */
   #simTables tr.member-single > td{ border-top: 2px solid var(--text-secondary); border-bottom: 2px solid var(--text-secondary); }
   #simTables input.num{ width: 58px; min-width: 50px; }
-  #simTables td.col-owner{ font-size: 12.5px; color: var(--text-secondary); white-space: nowrap; }
+  #simTables td.col-owner{ font-size: 12.5px; color: var(--text-secondary); }
   #simTables td.col-parent{ font-size: 12.5px; color: var(--text-secondary); }
   #simTables td.col-parent .parent-chip{ white-space: normal; }
   /* Each case's issue and script chips are a line of their own. */
@@ -757,7 +757,7 @@
                 <li><b>title:</b> the <a href="#wf-casename">case name</a>, with no spaces. The tracker takes the case name from the run script's <code>create_newcase --case</code>, so the title is only a label until the run script is on the branch;</li>
                 <li><b>experiment label:</b> the CMIP7 experiment, e.g. <code>esm-hist</code>, spelt as in the tracker;</li>
                 <li><b>variant label:</b> the ensemble member, e.g. <code>r1i1p1f1</code>;</li>
-                <li><b>assignee:</b> whoever runs it, shown as the run's owner;</li>
+                <li><b>assignees:</b> whoever runs it, shown as the run's owner; with several, all of them are shown;</li>
                 <li><b><code class="wf-labelname">completed</code>:</b> add this label when the run has finished;</li>
                 <li><b><code class="wf-labelname">test</code>:</b> add this label to a case that is not a CMIP7 run, to leave it out;</li>
                 <li><b><code class="wf-labelname">esgf</code>:</b> add this label when the data is on ESGF;</li>
@@ -1358,6 +1358,10 @@
     const n = normalizeEnsemble(row.ensemble);
     return n === null ? 1 : n;
   }
+  // Everyone who owns one of the cases, each once. A case's owner can name several
+  // people, "alice, bob", when its issue has several assignees.
+  const owners = cases => [...new Set(cases.flatMap(c => (c.owner || "").split(", ").filter(Boolean)))].join(", ");
+
   // Members of an in-progress run that are already going. Blank means all of them.
   function runningCount(row){
     const ens = ensembleCount(row);
@@ -2571,7 +2575,7 @@
       return {
         ...row, memberOf: row, memberProgress: p, variant, hasIssue: !!m,
         name: `${row.name} ${variant}`, ensemble: 1, membersRunning: 1, cases,
-        owner: [...new Set(cases.map(c => c.owner))].join(", "), status,
+        owner: owners(cases), status,
         yearsCompleted: status === "completed" ? Number(row.years) || 0
           : p ? Math.max(0, Math.min(Number(row.years) || 0, p.yearsCompleted || 0)) : 0,
       };
@@ -3383,7 +3387,7 @@
     const runs = {};
     sims.forEach(row => {
       if (!row.cases) return;
-      row.owner = [...new Set(row.cases.map(c => c.owner))].join(", ");
+      row.owner = owners(row.cases);
       // The run is on the machine its latest case's latest job ran on.
       const latest = row.cases.filter(c => c.machine).sort((a, b) => a.issue - b.issue).pop();
       if (latest) row.machine = latest.machine;
