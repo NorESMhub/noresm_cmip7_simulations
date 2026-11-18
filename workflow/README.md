@@ -43,9 +43,11 @@ read by the web page each time the page is opened in a browser.
 
 - **The run scripts**
 
-  The run scripts are in the `scripts/` directory on this repository's
-  `CMIP7_Runscripts` branch. There is one run script for each case, and the
-  name of each run script starts with the number of its case issue.
+  The run scripts are in the
+  [scripts](https://github.com/NorESMhub/noresm_cmip7_simulations/tree/CMIP7_Runscripts/scripts)
+  sub-directory directory on this repository's `CMIP7_Runscripts`
+  branch. There is one run script for each case, and the name of each
+  run script starts with the number of its case issue.
 
 - **The CMORization issues**
 
@@ -86,15 +88,17 @@ read by the web page each time the page is opened in a browser.
 
 ## Scripts
 
-| Script | What it does | When it is run |
+| File | What it does | When it is run |
 |---|---|---|
-| `nird_progress.py` | It generates `progress.json` from GitHub and the case files on NIRD, and then `index.html` with `build_scheduler.py`. | It is run whenever the progress, the spreadsheet copy, the template or the plan changes. |
-| `build_scheduler.py` | It combines the experiments, the plan and the template into `index.html`. | It is run by `nird_progress.py`, or by hand to build a copy of the page. |
-| `scheduler_template.html` | It contains the JavaScript that combines `index.html` and `progress.json` in the browser. | Its JavaScript is run each time the web page is opened. |
+| `nird_progress.py` | It reads the GitHub issues, the run scripts, the case directories on NIRD and the CMORization directories, and writes `progress.json`. It then builds `index.html` with `build_scheduler.py`. If anything can't be read or built, it updates neither file. | It is run on NIRD whenever the tracker is to be updated: after new output reaches NIRD, or after a change to the spreadsheet copy, the template or the plan. |
+| `build_scheduler.py` | It holds the plan and the cost table, and the code that builds `index.html` from the spreadsheet copy and `scheduler_template.html`. | It is not run on its own: `nird_progress.py` uses it to build the page. |
+| `scheduler_template.html` | It holds the web page's layout, text and JavaScript, and becomes `index.html`. Its JavaScript reads `progress.json` and fills in the tracker. | Its JavaScript runs in the browser each time the web page is opened. |
 
 ### `build_scheduler.py`
 
-`build_scheduler.py` generates `index.html` in five steps.
+`build_scheduler.py` is not run on its own. It holds the plan and the cost
+table, which are changed by editing them there, and the code `nird_progress.py`
+uses to build `index.html` in five steps.
 
 1. It reads the experiments from `noresm3_experiments_decoded.csv`.
 2. It chooses which experiments are run at each resolution. The plan at the top
@@ -111,20 +115,8 @@ read by the web page each time the page is opened in a browser.
    so they are left out of the web page.
 4. It takes the number of members and years of each run from the spreadsheet.
 5. It writes the runs and their estimates into a copy of
-   `scheduler_template.html`, which becomes `index.html`. Like `progress.json`,
-   the page is written to a temporary file first and then moved into place.
-
-`nird_progress.py` runs these steps each time it is run. To build a copy of the
-page by hand, e.g. to look at it as a local file with the progress built in:
-
-```bash
-python3 -I workflow/build_scheduler.py --out tracker.html --progress progress.json
-```
-
-On the web page, these estimates are used only until real timings exist. Once
-cases of a configuration have timing files on NIRD, the web page replaces the
-estimate with the mean of those cases' measured timings, worked out machine by
-machine.
+   `scheduler_template.html`, which `nird_progress.py` then writes as
+   `index.html`.
 
 ### `nird_progress.py`
 
@@ -301,6 +293,11 @@ above the tables shows every run in the plan.
 - The cmip7prep chip is dashed until at least one of the case's sets of years
   counts. The cmor4cmip7 chip is red when there is a problem in the case's
   years.
-- Each configuration's estimated cost and throughput are replaced with the mean
-  of its cases' measured timings.
+- Each run is costed from measured timings once there are any, separately for
+  Olivia and Betzy. A run whose cases have timing files uses its own measured
+  cost and throughput. Any other run uses the mean over all the cases of its
+  configuration that have timing files. A configuration with no timing files at
+  all keeps its estimate from `COSTS` in `build_scheduler.py`. A run is costed on
+  the machine its latest case ran on, and on Olivia until its cases have timing
+  files.
 - The output sizes give the storage estimate for each run in the Cost plan.

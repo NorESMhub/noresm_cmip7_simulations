@@ -1,49 +1,30 @@
-"""Build the NorESM3 CMIP7 scheduler page from the experiment sheet.
+"""The plan and the cost table of the NorESM3 CMIP7 tracker, and the code that builds its
+page. nird_progress.py, next to this module, calls page_text() each time it runs and writes
+the page as index.html next to progress.json.
 
-Reads the experiment table (noresm3_experiments_decoded.csv, decoded from the
-DECK/FASTTRACK tab of the experiment sheet) and the scheduler template, and
-writes a page whose default plan is the selected experiments at each
-resolution. The configurations' costs are in COSTS below.
+The runs on the page are the experiments of the copy of the spreadsheet,
+noresm3_experiments_decoded.csv, in the tiers (DECK, Fast Track) or activities
+(ScenarioMIP, C4MIP) that PLAN lists for each resolution. Each run's members and years
+come from the sheet's Ensemble Members and min_yrs_per_sim columns. With more than one
+resolution in PLAN, run names carry their resolution.
 
-Each experiment is assigned a configuration. A configuration whose compsets
-(in COSTS) include the experiment's compset at that
-resolution wins; shell-style wildcards are allowed (N7*EsmGhgGaxg). Otherwise
-the required model components and compset decide:
+Each run is assigned a configuration from COSTS. A configuration whose compsets include
+the run's compset at that resolution wins; shell-style wildcards are allowed
+(N7*EsmGhgGaxg). Otherwise the required model components and compset decide:
   LAND                          -> land-only
   DCPP activity                 -> DCPP
-  AGCM...                       -> AMIP at the chosen resolution
-  emission-driven (esm-*, *Esm*) -> ESM at the chosen resolution
-  anything else                 -> coupled at the chosen resolution
-
-On NIRD, nird_progress.py builds the published page with write_page() each time it
-runs. A copy can also be built by hand, e.g. to look at as a local file:
-  python3 -I workflow/build_scheduler.py --out noresm3_cmip7_scheduler.html
-
-The experiments on the page are those in the tiers or activities that PLAN
-below lists for each resolution. Each run's members and years come from the
-sheet's Ensemble Members and min_yrs_per_sim columns.
---running "historical LM=1" marks one member of a run as already going;
-progress (years done) is then entered on the page.
-The runs' cases and progress come from progress.json, which
-nird_progress.py, next to this script, writes on NIRD from the case
-issues and the files there; the published page reads it on load.
---progress progress.json builds a copy into the page, for viewing it where
-progress.json can't be fetched (a local file); a fetched one replaces it.
---defer ScenarioMIP keeps those runs in the plan with priority 0, so they are
-not scheduled or costed until their priority is set on the page.
-
-A selector lists tiers (DECK, Fast Track) or activities (ScenarioMIP, C4MIP).
-With more than one resolution in PLAN, run names carry their resolution.
+  AGCM...                       -> AMIP at the resolution
+  emission-driven (esm-*, *Esm*) -> ESM at the resolution
+  anything else                 -> coupled at the resolution
+A run whose configuration is not in COSTS is left out of the page, with a warning.
 """
 
-import argparse
 import csv
 import datetime
 import fnmatch
 import json
 import os
 import subprocess
-import sys
 
 # The repository's copy of the experiment sheet and the page template, next to this script.
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -68,7 +49,7 @@ def read_experiments(path):
         if HEADER_KEY in [c.strip() for c in row]:
             header = [c.strip() for c in row]
             return [dict(zip(header, r)) for r in rows[i + 1:] if any(c.strip() for c in r)]
-    sys.exit(f"{path}: no header row with {HEADER_KEY}")
+    raise ValueError(f"{path}: no header row with {HEADER_KEY}")
 
 
 # The configurations: cost in core-hours per simulated year and throughput in
@@ -158,10 +139,9 @@ def matches(exp, selector):
     return tier in selector or any(a in selector for a in activities)
 
 
-def build(experiments, costs, plans, deferred=()):
-    """plans: list of (resolution, selector) pairs, one per resolution.
-    deferred: tiers, activities or experiment_ids whose runs get priority 0, so
-    they stay in the plan but are not scheduled or costed."""
+def build(experiments, costs, plans):
+    """The configurations, the runs and the warnings. plans: list of (resolution, selector)
+    pairs, one per resolution."""
     configs = [{"id": f"c{i}", "name": c["name"], "costPerYear": c["costPerYear"],
                 "throughput": c["throughput"], "betzyCostPerYear": c.get("betzyCostPerYear"),
                 "betzyThroughput": c.get("betzyThroughput")} for i, c in enumerate(costs, 1)]
@@ -210,7 +190,7 @@ def build(experiments, costs, plans, deferred=()):
                 "years": int(years) if years else 0,
                 "ensemble": int(ens) if ens is not None else None,
                 "configId": cfg_id[config_name(e, resolution, rules)],
-                "priority": 0 if matches(e, deferred) or name in deferred else 1 if tier == "DECK" else 2,
+                "priority": 1 if tier == "DECK" else 2,
                 "status": "pending",
                 "yearsCompleted": 0,
                 "steps": [],
@@ -226,21 +206,11 @@ def literal(items):
     return "\n".join("    " + json.dumps(x, ensure_ascii=False) + "," for x in items)
 
 
-def page_text(progress=None, slots=5, running=(), defer=()):
-    """The page, built from the experiment sheet, the plan and the template, with the
-    configurations, the runs and the warnings. progress is a progress.json's contents to
-    build into the page, or None for a page that reads progress.json from next to itself.
-    Raises ValueError, or OSError, if the page can't be built."""
-    configs, sims, warnings = build(read_experiments(EXPERIMENTS), COSTS, PLAN, defer)
-    by_name = {s["name"]: s for s in sims}
-    for spec in running:
-        name, _, n = spec.partition("=")
-        name = name.strip()
-        if name not in by_name:
-            raise ValueError(f"--running {name!r}: no such run (names look like 'historical LM')")
-        by_name[name]["status"] = "in-progress"
-        by_name[name]["membersRunning"] = int(n or 1)
-
+def page_text():
+    """The page, built from the copy of the spreadsheet, the plan and the template, with the
+    configurations, the runs and the warnings. The page reads progress.json from next to
+    itself when it is opened. Raises ValueError, or OSError, if the page can't be built."""
+    configs, sims, warnings = build(read_experiments(EXPERIMENTS), COSTS, PLAN)
     with open(TEMPLATE, encoding="utf-8") as f:
         page = f.read()
     s, e = page.find(START_MARKER), page.find(END_MARKER)
@@ -248,59 +218,8 @@ def page_text(progress=None, slots=5, running=(), defer=()):
         raise ValueError(f"{TEMPLATE} has no default-data block")
     block = (START_MARKER + "\n" + literal(configs) + "\n  ];\n"
              + "  let DEFAULT_SIMS = [\n" + literal(sims) + "\n  ];\n"
-             + f"  let DEFAULT_SLOTS = {slots};\n"
-             + f"  let DEFAULT_PROGRESS = {json.dumps(progress, ensure_ascii=False)};\n"
+             + "  let DEFAULT_SLOTS = 5;\n"
+             + "  let DEFAULT_PROGRESS = null;\n"
              + f"  let DEFAULT_SHEET = {json.dumps(sheet_version(EXPERIMENTS))};\n"
              + '  let DEFAULT_COST_UNIT = "core-hr";\n\n  ')
-    page = page[:s] + block + page[e:]
-    page = page.replace('id="slotsInput" min="1" max="24" step="1" value="5"',
-                        f'id="slotsInput" min="1" max="24" step="1" value="{slots}"')
-    return page, configs, sims, warnings
-
-
-def write_page(out, progress=None, slots=5, running=(), defer=()):
-    """Build the page and write it to out through a temporary file, so the page is never read
-    half-written. Returns the configurations, the runs and the warnings."""
-    page, configs, sims, warnings = page_text(progress, slots, running, defer)
-    tmp = out + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        f.write(page)
-    os.replace(tmp, out)
-    return configs, sims, warnings
-
-
-def main():
-    """Build a copy of the page by hand, e.g. to look at it as a local file. On NIRD,
-    nird_progress.py builds the published page."""
-    p = argparse.ArgumentParser()
-    p.add_argument("--out", required=True)
-    p.add_argument("--slots", type=int, default=5)
-    p.add_argument("--running", action="append", default=[], metavar="NAME=N",
-                   help='members of a run already going, e.g. "historical LM=1"; repeatable')
-    p.add_argument("--progress", help="a progress.json to build into the page; see the docstring")
-    p.add_argument("--defer", action="append", default=[], metavar="SELECTOR",
-                   help="tier, activity or experiment_id to keep in the plan but not schedule yet "
-                        "(priority 0), e.g. ScenarioMIP; repeatable")
-    a = p.parse_args()
-    progress = None
-    if a.progress:
-        with open(a.progress, encoding="utf-8") as f:
-            progress = json.load(f)
-    try:
-        configs, sims, warnings = write_page(a.out, progress, a.slots, a.running, a.defer)
-    except (ValueError, OSError) as err:
-        sys.exit(f"{err}\nThe page was not written.")
-
-    for w in warnings:
-        print("warning:", w)
-    by_cfg = {}
-    for r in sims:
-        by_cfg.setdefault(r["configId"], []).append(r["name"])
-    for c in configs:
-        if c["id"] in by_cfg:
-            print(f"{c['name']}: {len(by_cfg[c['id']])} runs")
-    print(f"{a.out}: {len(sims)} runs, {len(configs)} configurations")
-
-
-if __name__ == "__main__":
-    main()
+    return page[:s] + block + page[e:], configs, sims, warnings
