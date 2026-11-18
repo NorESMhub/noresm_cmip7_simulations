@@ -799,8 +799,8 @@
 
   // ---------------- the plan ----------------
   // build_scheduler.py replaces the five lines below with the configurations from its COSTS
-  // table, the runs built from the spreadsheet, the progress and when the spreadsheet was
-  // last committed, so the template holds none.
+  // table, the runs built from the spreadsheet, the cost unit, no progress, and where and
+  // when the spreadsheet was read, so the template holds none.
   // It finds them by the DEFAULT_CONFIGS line and the configs line after them, so neither
   // may be changed or written out in full anywhere above them.
   let DEFAULT_CONFIGS = [];
@@ -2466,19 +2466,17 @@
   }
   const updatedOn = data => `<b>${String(data.updated || "an unknown time").replace(/[<>&]/g, "")}</b>`;
 
-  // The line under it: the date of the copy of the spreadsheet the plan was built from, which
-  // is when its CSV was last committed.
-  const SHEET_URL = "https://docs.google.com/spreadsheets/d/1PZQHmOHVENJeCqwSfk4wfp8okQXw60Bv/edit?gid=13331701#gid=13331701";
+  // The line under it: when the spreadsheet the plan was built from was read, or the file it
+  // was read from instead, which only a test run uses.
   (() => {
     const p = el("sheetStatus"), s = DEFAULT_SHEET;
     if (!s){ p.hidden = true; return; }
-    const date = `<b>${String(s.date).replace(/[<>&]/g, "")}</b>`;
-    const sheet = `a copy of the <a href="${SHEET_URL}" target="_blank" rel="noopener">NorESM3 CMIP7 experiments spreadsheet</a>`;
-    p.innerHTML = s.commit
-      ? `Plan built from ${sheet} as of ${date}` + (s.uncommitted ? ", with changes not yet committed." : ".")
-      : `⚠ Plan built from ${sheet} that is not in git, as of ${date}.`;
-    p.title = s.commit ? `noresm3_experiments_decoded.csv, last committed in ${s.commit}` : "noresm3_experiments_decoded.csv";
-    p.classList.toggle("is-error", !!s.uncommitted);
+    const clean = v => String(v).replace(/[<>&"]/g, "");
+    const sheet = `<a href="${clean(s.url)}" target="_blank" rel="noopener">NorESM3 CMIP7 experiments spreadsheet</a>`;
+    p.innerHTML = s.file
+      ? `⚠ Plan built from <b>${clean(s.file)}</b>, a copy of the ${sheet}, at <b>${clean(s.read)}</b>.`
+      : `Plan built from the ${sheet} as read at <b>${clean(s.read)}</b>.`;
+    p.classList.toggle("is-error", !!s.file);
   })();
 
   applyAutoProgress(DEFAULT_PROGRESS);

@@ -25,6 +25,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_scheduler  # noqa: E402
 
 REPO = "NorESMhub/noresm_cmip7_simulations"
+# The NorESM3 CMIP7 experiments spreadsheet and its DECK_FASTTRACK tab, which the page's runs
+# come from. It is read on every run, so it must stay readable by anyone with the link.
+SHEET = "https://docs.google.com/spreadsheets/d/1PZQHmOHVENJeCqwSfk4wfp8okQXw60Bv"
+SHEET_TAB = "13331701"
 
 
 class Failed(Exception):
@@ -121,6 +125,23 @@ def github_api(url):
             raise Failed("GitHub's limit of 60 requests an hour from NIRD has been used up, by this "
                          f"script or by other users on NIRD. Run the script again after {when}.") from e
         raise
+
+
+def fetch_sheet():
+    """The spreadsheet's DECK_FASTTRACK tab as CSV text. Raises Failed if it can't be read,
+    including when Google sends a sign-in page because the spreadsheet is no longer shared."""
+    url = f"{SHEET}/export?format=csv&gid={SHEET_TAB}"
+    req = urllib.request.Request(url, headers={"User-Agent": "nird_progress"})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            kind = r.headers.get_content_type()
+            text = r.read().decode("utf-8")
+    except (OSError, ValueError, http.client.HTTPException) as e:
+        raise Failed(f"The spreadsheet could not be read: {getattr(e, 'reason', None) or e}") from e
+    if kind != "text/csv":
+        raise Failed(f"The spreadsheet came back as {kind}, not CSV: it may no longer be readable "
+                     "by anyone with the link.")
+    return text
 
 
 def fetch_issues(repo):
@@ -561,6 +582,8 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("out", nargs="?", default=PROGRESS,
                    help=f"where to write progress.json; the page, index.html, goes next to it (default {PROGRESS})")
+    p.add_argument("--sheet", help="read the experiments from this CSV file, the spreadsheet's "
+                                   "DECK_FASTTRACK tab, instead of from the spreadsheet")
     p.add_argument("--issues", help="read the case issues from this JSON file instead of GitHub")
     p.add_argument("--scripts", help="read the run scripts from this scripts/ directory, e.g. in a "
                                      "checkout of the CMIP7_Runscripts branch, instead of GitHub")
@@ -749,16 +772,25 @@ def main():
         print(f"#{num} {title} [{', '.join(labels) or 'no labels'}]: " + "; ".join([report] + problems))
 
     # When the progress was written, in NIRD's local time with its time zone, e.g. CET.
-    data = {"updated": datetime.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z"), "repo": REPO,
-            "cases": cases, "skipped": skipped}
-    # The page, index.html next to progress.json, built from the experiment sheet, the plan
-    # and the template; it reads progress.json when it is opened. It is built before anything
-    # is written, so that if it can't be built neither file is updated.
+    now = datetime.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %Z")
+    data = {"updated": now, "repo": REPO, "cases": cases, "skipped": skipped}
+    # The page, index.html next to progress.json, built from the spreadsheet, the plan and the
+    # template; it reads progress.json when it is opened. It is built before anything is
+    # written, so that if it can't be built neither file is updated.
     page = os.path.join(os.path.dirname(os.path.abspath(a.out)), "index.html")
+    sheet = {"url": f"{SHEET}/edit?gid={SHEET_TAB}#gid={SHEET_TAB}", "read": now, "file": None}
     try:
-        text, _, sims, warnings = build_scheduler.page_text()
+        if a.sheet:
+            with open(a.sheet, encoding="utf-8") as f:
+                sheet_text = f.read()
+            sheet["file"] = os.path.basename(a.sheet)
+        else:
+            sheet_text = fetch_sheet()
+        text, _, sims, warnings = build_scheduler.page_text(sheet_text, sheet)
     except (OSError, ValueError) as e:
         raise Failed(f"The page could not be built: {e}") from e
+    if not sims:
+        raise Failed("The page could not be built: the spreadsheet has no runs in the plan.")
 
     # Both files are written to temporary files first and then moved into place, so the page
     # never reads a half-written file.
@@ -787,4 +819,4 @@ if __name__ == "__main__":
     except Failed as e:
         sys.exit(f"{e}\nNothing was updated: progress.json and the page are as they were.")
     except (OSError, ValueError, http.client.HTTPException) as e:
-        sys.exit(f"GitHub or NIRD could not be read: {e}\nNothing was updated: progress.json and the page are as they were.")
+        sys.exit(f"GitHub, the spreadsheet or NIRD could not be read: {e}\nNothing was updated: progress.json and the page are as they were.")

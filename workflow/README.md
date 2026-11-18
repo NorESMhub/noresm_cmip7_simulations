@@ -23,13 +23,16 @@ read by the web page each time the page is opened in a browser.
 
 ### Input files
 
-- **`noresm3_experiments_decoded.csv`**
+- **The experiments spreadsheet**
 
-  This file is a copy of the DECK_FASTTRACK tab of the
-  [NorESM3 CMIP7 experiments spreadsheet](https://docs.google.com/spreadsheets/d/1PZQHmOHVENJeCqwSfk4wfp8okQXw60Bv/edit?gid=13331701#gid=13331701).
-  It contains each experiment's tier, activity, compset, required model
-  components, number of members and number of years. When the spreadsheet
-  changes, the tab is exported as a CSV file and saved over this file.
+  The DECK_FASTTRACK tab of the
+  [NorESM3 CMIP7 experiments spreadsheet](https://docs.google.com/spreadsheets/d/1PZQHmOHVENJeCqwSfk4wfp8okQXw60Bv/edit?gid=13331701#gid=13331701)
+  contains each experiment's tier, activity, compset, required model
+  components, number of members and number of years. `nird_progress.py`
+  downloads the tab as CSV each time it runs, so a change to the spreadsheet
+  reaches the web page at the next run, without being reviewed. The spreadsheet
+  must stay readable by anyone with the link, since NIRD reads it without
+  signing in.
 
 - **`scheduler_template.html`**
 
@@ -75,23 +78,23 @@ read by the web page each time the page is opened in a browser.
 
 ### Requirements
 
-- The scripts need Python 3.8 or later and only use the Python standard library. They also
-  run `git`, to find the date of the last commit of the spreadsheet copy.
+- The scripts need Python 3.8 or later and only use the Python standard library.
 - The scripts are run on NIRD, in the repository's clone at
   `/projects/NS9560K/www/diagnostics/noresm/noresm_cmip7_simulations`.
 - The user running the scripts needs read access to
   `/nird/datalake/NS9560K/noresm3/cases` and `/nird/datapeak/NS9034K/.CMIP7`,
   along with write access to
   `/nird/datalake/NS9560K/www/diagnostics/noresm/cmip7_planning`.
-- The scripts need internet access to `api.github.com` and
-  `raw.githubusercontent.com`. GitHub is read anonymously, without a token.
+- The scripts need internet access to `api.github.com`,
+  `raw.githubusercontent.com` and `docs.google.com`. GitHub and the spreadsheet
+  are read anonymously, without a token.
 
 ## Scripts
 
 | File | What it does | When it is run |
 |---|---|---|
-| `nird_progress.py` | It reads the GitHub issues, the run scripts, the case directories on NIRD and the CMORization directories, and writes `progress.json`. It then builds `index.html` with `build_scheduler.py`. If anything can't be read or built, it updates neither file. | It is run on NIRD whenever the tracker is to be updated: after new output reaches NIRD. The current plan is to run this as a daily cron job on NIRD. |
-| `build_scheduler.py` | It holds the plan and the cost table, and the code that builds `index.html` from the spreadsheet copy and `scheduler_template.html`. | It is not run on its own: `nird_progress.py` uses it to build the page. |
+| `nird_progress.py` | It reads the GitHub issues, the run scripts, the case directories on NIRD and the CMORization directories, and writes `progress.json`. It then downloads the spreadsheet and builds `index.html` from it with `build_scheduler.py`. If anything can't be read or built, it updates neither file. | It is run on NIRD whenever the tracker is to be updated: after new output reaches NIRD, or after the spreadsheet changes. The current plan is to run this as a daily cron job on NIRD. |
+| `build_scheduler.py` | It holds the plan and the cost table, and the code that builds `index.html` from the spreadsheet and `scheduler_template.html`. | It is not run on its own: `nird_progress.py` uses it to build the page. |
 | `scheduler_template.html` | It holds the web page's layout, text and JavaScript, and becomes `index.html`. Its JavaScript reads `progress.json` and fills in the tracker. | Its JavaScript runs in the browser each time the web page is opened. |
 
 ### `build_scheduler.py`
@@ -100,7 +103,9 @@ read by the web page each time the page is opened in a browser.
 table, which are changed by editing them there, and the code `nird_progress.py`
 uses to build `index.html` in five steps.
 
-1. It reads the experiments from `noresm3_experiments_decoded.csv`.
+1. It reads the experiments from the spreadsheet's tab, which
+   `nird_progress.py` has downloaded. Rows above the header row, the one with
+   an `experiment_id` column, are notes and are skipped.
 2. It chooses which experiments are run at each resolution. `PLAN`, near the
    top of `build_scheduler.py`, lists for each resolution the tiers from the
    spreadsheet's Tier column, and for each tier either all its experiments or
@@ -149,7 +154,8 @@ information for every case issue, as described in the sections below.
 
 The script updates `progress.json` and `index.html` only if it has read
 everything and built the page without an error. If GitHub can't be read, a run
-script can't be read, or the page can't be built, the script stops with a
+script can't be read, the spreadsheet can't be downloaded, the spreadsheet has
+no runs in the plan, or the page can't be built, the script stops with a
 message saying why, and both files stay as they were. It builds the page before
 writing anything, writes both files to temporary files, and then moves them into
 place, so that the web page never reads a half-written file. For each
@@ -169,6 +175,7 @@ others.
 | `out` | Writes `progress.json` here instead of to the published page's directory. `index.html` is written next to it. Use it to try a change to the template, the plan or the script. |
 | `--scripts DIR` | Reads the run scripts from `DIR`, a `scripts/` directory such as in a local checkout of the `CMIP7_Runscripts` branch, instead of from GitHub. Use it to check a run script before pushing it. |
 | `--issues FILE` | Reads the case issues from `FILE`, a JSON file in the form GitHub's API returns them, instead of from GitHub. Use it when GitHub can't be reached. |
+| `--sheet FILE` | Reads the experiments from `FILE`, the spreadsheet's DECK_FASTTRACK tab saved as CSV, instead of downloading it. Use it to try a change to the spreadsheet before making it, or when the spreadsheet can't be reached. The page then says which file it was built from, in bold red. |
 | `--remeasure-storage` | Measures every case's storage on NIRD again. Without it, a case's storage is taken from the last `progress.json` once it covers enough years. Use it after output on NIRD has been deleted or moved. The cost and throughput are not affected: they are read from the timing files on every run. |
 
 For example, the following command writes a test copy of the page to
@@ -331,10 +338,9 @@ there.
 The JavaScript in the web page combines the runs in `index.html` with the cases
 in `progress.json` each time the page is opened. The top of the tracker says
 when `nird_progress.py` last wrote `progress.json`, in NIRD's local time, or in
-bold red why the progress could not be read. The line under it gives the date
-and commit of the last change to `noresm3_experiments_decoded.csv` that the plan
-was built from, which `build_scheduler.py` reads from git. It is in bold red if
-the file had changes not yet committed when the page was built. The tracker first shows only
+bold red why the progress could not be read. The line under it says when the
+spreadsheet the plan was built from was downloaded, or, in bold red, the file
+given with `--sheet` instead. The tracker first shows only
 the runs that are waiting to start, in progress or completed, and a button
 above the tables shows every run in the plan.
 

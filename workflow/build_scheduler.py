@@ -1,12 +1,12 @@
 """The plan and the cost table of the NorESM3 CMIP7 tracker, and the code that builds its
-page. nird_progress.py, next to this module, calls page_text() each time it runs and writes
-the page as index.html next to progress.json.
+page. nird_progress.py, next to this module, downloads the spreadsheet's DECK_FASTTRACK tab,
+calls page_text() with it each time it runs, and writes the page as index.html next to
+progress.json.
 
-The runs on the page are the experiments of the copy of the spreadsheet,
-noresm3_experiments_decoded.csv, that PLAN lists for each resolution: all of a tier
-(DECK, Fast Track), or only some of its activities (ScenarioMIP, C4MIP). Each run's members and years
-come from the sheet's Ensemble Members and min_yrs_per_sim columns. With more than one
-resolution in PLAN, run names carry their resolution.
+The runs on the page are the experiments of the spreadsheet that PLAN lists for each
+resolution: all of a tier (DECK, Fast Track), or only some of its activities (ScenarioMIP,
+C4MIP). Each run's members and years come from the sheet's Ensemble Members and
+min_yrs_per_sim columns. With more than one resolution in PLAN, run names carry their resolution.
 
 Each run is assigned a configuration from COSTS. A configuration whose compsets include
 the run's compset at that resolution wins; shell-style wildcards are allowed
@@ -20,16 +20,13 @@ A run whose configuration is not in COSTS is left out of the page, with a warnin
 """
 
 import csv
-import datetime
 import fnmatch
+import io
 import json
 import os
-import subprocess
 
-# The repository's copy of the experiment sheet and the page template, next to this script.
-HERE = os.path.dirname(os.path.abspath(__file__))
-EXPERIMENTS = os.path.join(HERE, "noresm3_experiments_decoded.csv")
-TEMPLATE = os.path.join(HERE, "scheduler_template.html")
+# The page template, next to this script.
+TEMPLATE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scheduler_template.html")
 HEADER_KEY = "experiment_id"
 START_MARKER = "let DEFAULT_CONFIGS = ["
 END_MARKER = "let configs = clone(DEFAULT_CONFIGS);"
@@ -46,14 +43,15 @@ PLAN = {
 }
 
 
-def read_experiments(path):
-    with open(path, newline="", encoding="utf-8") as f:
-        rows = list(csv.reader(f))
+def read_experiments(text):
+    """The experiments in the CSV text of the spreadsheet's tab, one dictionary per row below
+    the header row, the row with an experiment_id column. Rows above it are notes."""
+    rows = list(csv.reader(io.StringIO(text, newline="")))
     for i, row in enumerate(rows):
         if HEADER_KEY in [c.strip() for c in row]:
             header = [c.strip() for c in row]
             return [dict(zip(header, r)) for r in rows[i + 1:] if any(c.strip() for c in r)]
-    raise ValueError(f"{path}: no header row with {HEADER_KEY}")
+    raise ValueError(f"the spreadsheet has no header row with {HEADER_KEY}")
 
 
 # The configurations: cost in core-hours per simulated year and throughput in
@@ -93,24 +91,6 @@ COSTS = [
     {"name": "NorESM3 DCPP", "resolution": "LM", "costPerYear": None, "throughput": None,
      "compsets": ""},
 ]
-
-
-def sheet_version(path):
-    """When the experiment sheet was last changed: the date and short hash of the last
-    commit that changed it, and whether it has changes not yet committed. Outside git, or
-    before it is first committed, the date the file was last modified."""
-    def git(*args):
-        return subprocess.run(["git", "-C", os.path.dirname(path), *args, "--", os.path.basename(path)],
-                              capture_output=True, text=True, timeout=30).stdout.strip()
-    try:
-        last = git("log", "-1", "--format=%cd %h", "--date=short")
-        if last:
-            date, commit = last.split()
-            return {"date": date, "commit": commit, "uncommitted": bool(git("status", "--porcelain"))}
-    except (OSError, ValueError, subprocess.SubprocessError):
-        pass
-    mtime = datetime.date.fromtimestamp(os.path.getmtime(path))
-    return {"date": mtime.isoformat(), "commit": None, "uncommitted": True}
 
 
 def number(v):
@@ -227,10 +207,13 @@ def literal(items):
     return "\n".join("    " + script_json(x) + "," for x in items)
 
 
-def page_text():
-    """The page as text, with the configurations, the runs and the warnings.
+def page_text(sheet_text, sheet):
+    """The page as text, with the configurations, the runs and the warnings. sheet_text is
+    the CSV text of the spreadsheet's DECK_FASTTRACK tab. sheet says where it came from, for
+    the line on the page: its "url", when it was "read", and the "file" it was read from
+    instead, if any.
 
-    1. It reads the copy of the spreadsheet, noresm3_experiments_decoded.csv.
+    1. It reads the experiments from sheet_text.
     2. For each resolution in PLAN, it picks the experiments the plan includes. Each becomes
        a run, e.g. "historical LM".
     3. Each run takes from the spreadsheet its members (Ensemble Members), its years per
@@ -239,16 +222,16 @@ def page_text():
     4. Each run is given a configuration from COSTS: one that lists the run's compset, or
        otherwise land-only, DCPP, AMIP, ESM or coupled, by the rule in this module's
        docstring.
-    5. It replaces the template's data block with the configurations, the runs, the date and
-       commit of the spreadsheet copy, and the cost unit. The JSON is escaped so that nothing
-       in it can end the page's script.
+    5. It replaces the template's data block with the configurations, the runs, sheet and
+       the cost unit. The JSON is escaped so that nothing in it can end the page's script.
 
-    It writes no files: nird_progress.py writes the page next to progress.json. It knows
-    nothing about progress: the page reads progress.json each time it is opened, and fills
-    in the cases, the years done, the CMORization and the measured costs.
+    It reads and writes no files but the template: nird_progress.py reads the spreadsheet
+    and writes the page next to progress.json. It knows nothing about progress: the page
+    reads progress.json each time it is opened, and fills in the cases, the years done, the
+    CMORization and the measured costs.
 
     Raises ValueError, or OSError, if the page can't be built."""
-    configs, sims, warnings = build(read_experiments(EXPERIMENTS), COSTS, PLAN)
+    configs, sims, warnings = build(read_experiments(sheet_text), COSTS, PLAN)
     with open(TEMPLATE, encoding="utf-8") as f:
         page = f.read()
     s, e = page.find(START_MARKER), page.find(END_MARKER)
@@ -257,6 +240,6 @@ def page_text():
     block = (START_MARKER + "\n" + literal(configs) + "\n  ];\n"
              + "  let DEFAULT_SIMS = [\n" + literal(sims) + "\n  ];\n"
              + "  let DEFAULT_PROGRESS = null;\n"
-             + f"  let DEFAULT_SHEET = {script_json(sheet_version(EXPERIMENTS))};\n"
+             + f"  let DEFAULT_SHEET = {script_json(sheet)};\n"
              + '  let DEFAULT_COST_UNIT = "core-hr";\n\n  ')
     return page[:s] + block + page[e:], configs, sims, warnings
