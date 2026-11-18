@@ -307,9 +307,16 @@ again on every run.
 The web page replaces the estimated cost and throughput with measured values
 once a case has timing files. The script reads every `noresm_timing.*` file in
 `/nird/datalake/NS9560K/noresm3/cases/<case>/<case>/timing`, gzipped or not.
-Each file
-comes from one job, and gives the machine, the cost in pe-hours per simulated
-year, the throughput in simulated years per day, and the date the job ended.
+Each file comes from one job, and gives the machine, the cost in core-hours per
+simulated year, the throughput in simulated years per day, and the date the job
+ended.
+
+The timing files give the cost in pe-hours, which are core-hours on both Betzy
+and Olivia. CIME counts every core of each node a job uses, whether or not the
+job runs on all of them: 128 cores per node on Betzy and 256 on Olivia. The
+tracker calls them core-hours throughout. The cores of the two machines differ,
+so a case's cost on Betzy is not its cost on Olivia, and the page keeps the two
+apart.
 
 The script averages the case's jobs for each machine, giving a job that
 simulated more years more weight. It also records the machine of the latest job, because the web page

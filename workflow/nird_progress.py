@@ -526,8 +526,8 @@ def read_timing_file(path):
 
 def case_timing(directory):
     """The case's cost and throughput on each machine it ran on, averaged over all its
-    timing files there with each job weighted by the years it simulated: cost in pe-hours
-    per simulated year, throughput in simulated years per day. Each machine's entry also
+    timing files there with each job weighted by the years it simulated: cost in pe-hours,
+    which are core-hours, per simulated year, throughput in simulated years per day. Each machine's entry also
     lists its jobs, [end date, cost, throughput, years], for the page's plot of how the
     timings vary. Returns ([{machine, jobs, years, cost, sypd, pes, runs}], the machine of
     its latest job), or (None, None) if there are no readable timing files."""

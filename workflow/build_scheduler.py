@@ -61,6 +61,9 @@ def read_experiments(path):
 # there is no timing yet), and the compsets that belong to each. A configuration
 # can also carry betzyCostPerYear and betzyThroughput. The page replaces these
 # with the values measured from the cases' timing files on NIRD, machine by machine.
+# A core-hour is what the timing files call a pe-hour: CIME counts every core of each
+# node a job uses, 128 per node on Betzy and 256 on Olivia. The two machines' cores
+# differ, so a configuration's cost on one is not its cost on the other.
 COSTS = [
     # N1850GhgGaxg piControl LM timing file (2048 PEs, 2036 active; 256 tasks per node)
     {"name": "NorESM3 LM", "resolution": "LM", "costPerYear": 2564.96, "throughput": 19.16,
