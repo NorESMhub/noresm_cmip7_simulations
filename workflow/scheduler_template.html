@@ -1,0 +1,2539 @@
+<!DOCTYPE html>
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+
+<title>CMIP7 Simulation Tracker Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: light;
+    --page:            #f9f9f7;
+    --surface:         #fcfcfb;
+    --surface-raised:  #ffffff;
+    --text-primary:    #0b0b0b;
+    --text-secondary:  #52514e;
+    --text-muted:      #898781;
+    --gridline:        #e1e0d9;
+    --border:          rgba(11,11,11,0.10);
+    --border-strong:   rgba(11,11,11,0.18);
+
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --series-4: #eda100;
+    --series-5: #e87ba4;
+    --series-6: #008300;
+    --series-7: #4a3aa7;
+    --series-8: #e34948;
+
+    --accent:          #2a78d6;
+    --accent-wash:     #eaf1fb;
+    --danger:          #d03b3b;
+    --danger-wash:     #fceceb;
+
+    --focus-ring: #2a78d6;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --page:            #0d0d0d;
+      --surface:         #1a1a19;
+      --surface-raised:  #212120;
+      --text-primary:    #ffffff;
+      --text-secondary:  #c3c2b7;
+      --text-muted:      #898781;
+      --gridline:        #2c2c2a;
+      --border:          rgba(255,255,255,0.10);
+      --border-strong:   rgba(255,255,255,0.20);
+
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --series-3: #199e70;
+      --series-4: #c98500;
+      --series-5: #d55181;
+      --series-6: #008300;
+      --series-7: #9085e9;
+      --series-8: #e66767;
+
+      --accent:          #3987e5;
+      --accent-wash:     #17223a;
+      --danger:          #e66767;
+      --danger-wash:     #3a1c1c;
+      --focus-ring: #3987e5;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --page:            #0d0d0d;
+    --surface:         #1a1a19;
+    --surface-raised:  #212120;
+    --text-primary:    #ffffff;
+    --text-secondary:  #c3c2b7;
+    --text-muted:      #898781;
+    --gridline:        #2c2c2a;
+    --border:          rgba(255,255,255,0.10);
+    --border-strong:   rgba(255,255,255,0.20);
+
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
+
+    --accent:          #3987e5;
+    --accent-wash:     #17223a;
+    --danger:          #e66767;
+    --danger-wash:     #3a1c1c;
+    --focus-ring: #3987e5;
+  }
+
+  *{ box-sizing: border-box; }
+  html, body{ margin:0; padding:0; }
+  body{
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.45;
+  }
+  .mono{ font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace; }
+  .tabular{ font-variant-numeric: tabular-nums; }
+
+  #app{
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 32px 20px 64px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  /* ---------- header ---------- */
+  .page-header{ display:flex; flex-direction:column; gap:6px; }
+  .eyebrow{
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  h1{
+    margin:0;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+  }
+  .subtitle{
+    margin:0;
+    color: var(--text-secondary);
+    font-size: 14.5px;
+    max-width: 68ch;
+  }
+
+  .btn{
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    border: 1px solid var(--border-strong);
+    background: var(--surface-raised);
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+  .btn:hover{ border-color: var(--accent); }
+  .btn:focus-visible{ outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+  .btn-ghost{ background: transparent; }
+  .btn-sm{ padding: 4px 9px; font-size: 12px; }
+  .btn[disabled]{ opacity: 0.5; cursor: default; }
+
+  /* ---------- stats ---------- */
+  .stats-grid{
+    display:grid;
+    grid-template-columns: 1.3fr 1fr 1fr 1fr;
+    gap: 12px;
+  }
+  /* The cost plan's tiles: the compute cost and the four kinds of output, in one row. */
+  #statsGrid{ grid-template-columns: 1.3fr repeat(4, 1fr); }
+  @media (max-width: 860px){ .stats-grid, #statsGrid{ grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px){ .stats-grid, #statsGrid{ grid-template-columns: 1fr; } }
+
+  .stat-tile{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display:flex;
+    flex-direction:column;
+    gap: 6px;
+  }
+  .stat-tile.hero{ background: var(--accent-wash); border-color: transparent; }
+  .stat-label{ font-size: 12px; color: var(--text-secondary); font-weight: 600; }
+  .stat-value{
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .stat-tile.hero .stat-value{ font-size: 42px; }
+  .stat-sub{ font-size: 12px; color: var(--text-muted); }
+  .stat-sub .mono{ color: var(--text-secondary); }
+
+  /* ---------- cards ---------- */
+  .card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .card h2{ margin:0; font-size: 16px; font-weight: 700; }
+  .config-name-wrap{ display:flex; align-items:center; gap:8px; }
+  .config-name-wrap input{ flex:1 1 auto; }
+
+  /* ---------- cost breakdown cards (by MIP, by priority, ...) ---------- */
+  .cost-breakdown{ display:flex; flex-direction:column; gap:9px; }
+  .cost-group-head{
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap;
+    padding-top:10px; border-top:1px solid var(--border);
+  }
+  .cost-breakdown > .cost-group-head:first-child{ padding-top:0; border-top:none; }
+  .cost-group-title{ font-weight:700; font-size:14px; color:var(--text-primary); }
+  .cost-row{
+    display:grid; grid-template-columns: minmax(84px,150px) 1fr minmax(120px,auto);
+    align-items:center; gap:12px; font-size:13px;
+  }
+  .cost-row .cost-name{
+    font-weight:600; color:var(--text-primary);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .cost-bar-track{ height:10px; border-radius:5px; background:var(--gridline); overflow:hidden; }
+  .cost-bar-fill{ height:100%; background:var(--res-colour, var(--accent)); border-radius:5px; }
+  /* One block per resolution in Cost by MIP, edged and filled in that resolution's colour. */
+  .cost-res-group{
+    display:flex; flex-direction:column; gap:9px;
+    padding-left:12px; border-left:4px solid var(--res-colour, var(--accent));
+  }
+  .cost-res-group + .cost-res-group{ margin-top:12px; }
+  .cost-res-group > .cost-group-head{ padding-top:0; border-top:none; }
+  .cost-res-group .cost-group-title{ color:var(--res-colour, var(--text-primary)); }
+  .cost-row .cost-figures{
+    font-family:"JetBrains Mono",monospace; font-size:12px; color:var(--text-secondary);
+    text-align:right; white-space:nowrap; font-variant-numeric: tabular-nums;
+  }
+  .cost-row .cost-figures b{ color:var(--text-primary); font-weight:600; }
+  .cost-breakdown-note{ margin:2px 0 0; font-size:12px; color:var(--text-muted); }
+  .timing-note{
+    background: var(--accent-wash);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13.5px;
+    line-height: 1.5;
+  }
+  .timing-note b{ font-weight: 600; }
+  .cost-table td, .cost-table th{ white-space: nowrap; }
+  .cost-table td.n, .cost-table th.n{ text-align: right; font-variant-numeric: tabular-nums; }
+  /* A table for each MIP, with the same fixed column widths, as in the tracker. */
+  #costTables table{ min-width: 900px; table-layout: fixed; }
+  /* Each table is framed like the tracker's: a line down each side and along the bottom,
+     the title row giving the top. */
+  #costTables tr > :first-child{ border-left: 2px solid var(--text-secondary); }
+  #costTables tr > :last-child{ border-right: 2px solid var(--text-secondary); }
+  #costTables tbody tr:last-child > td{ border-bottom: 2px solid var(--text-secondary); }
+  /* The numbers sit centred under their headings. */
+  #costTables td.n, #costTables th.n{ text-align: center; }
+  #costTables .table-scroll + .table-scroll{ margin-top: 28px; }
+  #costTables .table-scroll{ scroll-margin-top: 12px; }
+  .cost-table td{ overflow: hidden; text-overflow: ellipsis; }
+  .cost-table tr.ct-title th{ text-align: left; font-size: 13.5px; font-weight: 700; color: var(--series-1); background: color-mix(in srgb, var(--series-1) 12%, transparent); border-top: 2px solid var(--text-secondary); }
+  .cost-table tr.ct-cols th{ white-space: normal; font-size: 11.5px; vertical-align: bottom; }
+  #costTables p.ct-note{ color: var(--text-muted); font-size: 12px; margin: 12px 0 0; }
+  /* Resolution heading rows in the configuration table. */
+  #expTimingTable tr.cfg-res th{
+    background: var(--accent-wash); font-size: 13.5px; font-weight: 700; text-align: left;
+    color: var(--res-colour, var(--text-primary));
+    border-left: 4px solid var(--res-colour, var(--accent));
+  }
+  .cost-table tr.ct-total td{ font-weight: 700; border-top: 2px solid var(--border-strong); }
+  .cost-table tr.ct-off td{ color: var(--text-muted); }
+  .cost-table .ct-name{ font-weight: 600; }
+  .cost-table .ct-muted{ color: var(--text-muted); }
+  /* The storage columns start after a line, apart from the compute columns. */
+  .cost-table th.ct-storage-start, .cost-table td:nth-last-child(4){ border-left: 1px solid var(--border); }
+  .cost-table .ct-groupinfo{ margin-left: 10px; font-weight: 400; color: var(--text-secondary); }
+  #expTimingTable .cfg-machine-start{ border-left: 1px solid color-mix(in srgb, var(--text-primary) 30%, transparent); padding-left: 12px; }
+  #expTimingTable .cfg-num{ text-align: center; }
+  #expTimingTable td{ font-family: "JetBrains Mono", monospace; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+  #expTimingTable td.col-name{ font-family: inherit; }
+  #expTimingTable td.measured{ font-weight: 600; }
+  /* Both machines are green wherever a timing is shown by machine; Betzy's marks are diamonds. */
+  :root{ --olivia: var(--series-6); --betzy: var(--series-6); }
+  #expTimingTable td.machine-olivia{ color: var(--olivia); }
+  #expTimingTable td.machine-betzy{ color: var(--betzy); }
+  .machine-tag{ display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-secondary); }
+  .machine-tag::before{ content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--olivia); }
+  .machine-tag.machine-betzy::before{ background: var(--betzy); border-radius: 1px; transform: rotate(45deg); width: 8px; height: 8px; }
+  #expTimingTable td.estimate{ color: var(--text-muted); }
+  #expTimingTable tr.cfg-res th{ text-align: left; }
+  .spark-btn{ display: inline-flex; align-items: center; gap: 6px; padding: 2px 6px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-raised); color: var(--text-primary); font: inherit; cursor: pointer; }
+  .spark-btn:hover{ border-color: var(--accent); }
+  .spark-btn svg{ display: block; }
+  .spark-btn .spark{ fill: none; stroke: var(--olivia); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+  .timing-dialog{ width: min(680px, calc(100vw - 32px)); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px 10px; background: var(--surface-raised); color: var(--text-primary); }
+  .timing-dialog::backdrop{ background: rgba(0,0,0,.35); }
+  .timing-dialog-head{ display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .timing-dialog-head h3{ margin: 0; font-size: 15px; }
+  .timing-dialog .tchart{ position: relative; margin-top: 10px; }
+  .timing-dialog .tchart h4{ margin: 0 0 2px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+  .timing-dialog .tchart svg{ display: block; width: 100%; height: auto; overflow: visible; }
+  .timing-dialog .grid{ stroke: var(--border); stroke-width: 1; }
+  .timing-dialog .axis-label{ fill: var(--text-muted); font-size: 11px; }
+  .timing-dialog .series{ fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .spark-btn .spark.betzy{ stroke: var(--betzy); }
+  .timing-dialog .series.olivia{ stroke: var(--olivia); }
+  .timing-dialog .series.betzy{ stroke: var(--betzy); }
+  .timing-dialog .job{ stroke: var(--surface-raised); stroke-width: 2; }
+  .timing-dialog .job.olivia{ fill: var(--olivia); }
+  .timing-dialog .job.betzy{ fill: var(--betzy); }
+  .timing-dialog .mean{ stroke: var(--text-secondary); stroke-width: 1; stroke-dasharray: 4 3; }
+  .timing-dialog .mean-label{ fill: var(--text-secondary); font-size: 11px; }
+  .timing-dialog .hit{ fill: transparent; }
+  .exp-timing-tip{ position: absolute; pointer-events: none; background: var(--surface-raised); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; font-size: 12px; color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,.12); white-space: nowrap; z-index: 5; }
+  .cost-table .ct-offtoggle{ all: unset; cursor: pointer; color: var(--text-primary); font-weight: 600; }
+  .cost-table .ct-offtoggle:focus-visible{ outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: 3px; }
+  input.num.needs-timing{ border-color: var(--accent); }
+
+  /* ---------- editor tables ---------- */
+  .editor-head{ display:flex; flex-direction: column; gap: 2px; }
+  .editor-caption{ margin:0; font-size: 12.5px; color: var(--text-muted); }
+  .table-scroll{ overflow-x: auto; }
+  table.data-table{
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 620px;
+    font-size: 13px;
+  }
+  /* The simulations, one table for each group, with space between them. */
+  #simTables table{ min-width: 990px; table-layout: fixed; }
+  #simTables td, #simTables th{ overflow: hidden; text-overflow: ellipsis; }
+  #simTables .table-scroll + .table-scroll{ margin-top: 36px; }
+  #simTables .table-scroll{ scroll-margin-top: 12px; }
+  /* The index of the tables above them. */
+  .sim-index{ margin: 4px 0 20px; display: grid; gap: 6px; font-size: 13px; }
+  .sim-index-line{ display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+  .sim-index-res{ min-width: 30px; padding-left: 8px; font-weight: 700; color: var(--series-1); border-left: 4px solid var(--series-1); }
+  /* Each entry a light blue chip, in the blue of the tables' heading bars. */
+  .sim-index a{ display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12px; color: var(--text-primary); text-decoration: none; background: color-mix(in srgb, var(--series-1) 16%, transparent); }
+  .sim-index a:hover{ background: color-mix(in srgb, var(--series-1) 30%, transparent); }
+  .sim-index{ scroll-margin-top: 12px; }
+  .sim-index-hint{ margin: 0 0 2px; font-size: 12px; color: var(--text-secondary); }
+  .sim-toggle{ margin-left: 10px; padding: 2px 10px; font-size: 12px; }
+  #simTables .sim-index-up, #costTables .sim-index-up{ margin-left: 10px; font-size: 11px; font-weight: 500; color: var(--text-muted); text-decoration: none; }
+  #simTables .sim-index-up:hover, #costTables .sim-index-up:hover{ color: var(--accent); text-decoration: underline; }
+  html{ scroll-behavior: smooth; }
+  /* Each table is framed: a line along the top of its heading bar and below its last row. */
+  #simTables thead tr.sim-group > th{ border-top: 2px solid var(--text-secondary); }
+  #simTables tbody tr:last-child > td{ border-bottom: 2px solid var(--text-secondary); }
+  /* The table's left and right edges, in the darker line that frames a run's members. */
+  #simTables tr > :first-child{ border-left: 2px solid var(--text-secondary); }
+  #simTables tr > :last-child{ border-right: 2px solid var(--text-secondary); }
+  .sim-name-wrap{ display:flex; align-items:center; gap:6px; }
+  .sim-name-wrap input{ flex:1 1 auto; }
+  .status-badge{
+    flex: none; font-family:"JetBrains Mono",monospace; font-size: 10.5px; font-weight: 700;
+    padding: 1px 5px; border-radius: 999px; line-height: 1.5; white-space: nowrap;
+  }
+  .status-badge.badge-completed{ background: color-mix(in srgb, var(--series-6) 18%, transparent); color: var(--series-6); }
+  .status-cell{ display:flex; align-items:center; gap:5px; }
+  .status-cell .status-text{ min-width: 84px; font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
+  /* In progress is blue, Waiting yellow and Completed green, as pills so the text stays readable. */
+  .status-cell .status-text.is-inprogress,
+  .status-cell .status-text.is-waiting,
+  .status-cell .status-text.is-completed{ min-width: 0; padding: 1px 8px; border-radius: 9px; font-weight: 600; }
+  .status-cell .status-text.is-completed{ background: color-mix(in srgb, var(--series-6) 18%, transparent); color: color-mix(in srgb, var(--series-6) 80%, var(--text-primary)); }
+  .status-cell .status-text.is-inprogress{ background: color-mix(in srgb, var(--series-1) 32%, transparent); color: color-mix(in srgb, var(--series-1) 60%, var(--text-primary)); }
+  /* An in-progress run's share of years done, as a ring with the percentage inside. */
+  .status-pct{ position: relative; width: 30px; height: 30px; flex: none; display: inline-grid; place-items: center;
+    font-size: 9.5px; font-weight: 700; font-variant-numeric: tabular-nums;
+    color: color-mix(in srgb, var(--series-1) 60%, var(--text-primary)); }
+  .status-pct[hidden]{ display: none; }
+  .status-pct::before{ content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: conic-gradient(var(--series-1) calc(var(--p, 0) * 1%), color-mix(in srgb, var(--series-1) 22%, transparent) 0);
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px));
+    mask: radial-gradient(farthest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); }
+  .status-cell .status-text.is-waiting{ background: color-mix(in srgb, var(--series-4) 28%, transparent); color: color-mix(in srgb, var(--series-4) 45%, var(--text-primary)); }
+  .progress-cell{ display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  .progress-bar{ width: 56px; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--text-muted) 22%, transparent); overflow: hidden; flex: none; }
+  .progress-fill{ height: 100%; background: var(--accent); }
+  .progress-bar.is-done .progress-fill{ background: var(--series-6); }
+  .progress-text{ font-size: 12px; color: var(--text-secondary); }
+  /* In the fixed-width tables the progress text wraps instead of being cut off. */
+  #simTables .progress-cell{ white-space: normal; }
+  #simTables .progress-bar{ flex: none; width: 80px; }
+  /* The step headings in the bars are compact, so the CMORize columns can be narrow. */
+  #simTables tr.sim-group th.step-h{ font-size: 10px; padding-left: 2px; padding-right: 2px; }
+  /* A long group name wraps rather than being cut off. */
+  #simTables tr.sim-group th.sim-group-name{ white-space: normal; }
+  #simTables .col-cmor{ text-align: center; }
+  #simTables .col-cmor input{ width: 16px; height: 16px; }
+  table.data-table th{
+    text-align: left;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border-strong);
+    white-space: nowrap;
+  }
+  table.data-table td{
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--gridline);
+    vertical-align: middle;
+  }
+  table.data-table tr:last-child td{ border-bottom: none; }
+  table.data-table input[type="text"],
+  table.data-table input[type="number"],
+  table.data-table select{
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    padding: 5px 7px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface-raised);
+    color: var(--text-primary);
+    width: 100%;
+    min-width: 90px;
+  }
+  table.data-table input:focus-visible,
+  table.data-table select:focus-visible{ outline: 2px solid var(--focus-ring); outline-offset: 0; border-color: transparent; }
+  table.data-table td.col-name input{ min-width: 150px; }
+  table.data-table td.col-narrow{ width: 1%; }
+  table.data-table input.num{ width: 76px; min-width: 60px; text-align:right; }
+  .row-del{
+    border:none; background:transparent; color: var(--text-muted);
+    cursor:pointer; font-size: 15px; line-height:1; padding: 4px 6px; border-radius: 6px;
+  }
+  .row-del:hover{ color: var(--danger); background: var(--danger-wash); }
+  /* The runs' state on the first row; CMORization and publication on the second. */
+  /* Each resolution's tiles in one row. */
+  #trackerStats{ grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  #trackerStats .stat-heading{ grid-column: 1 / -1; margin: 10px 0 -2px; padding-left: 8px; font-size: 14px; font-weight: 700; color: var(--series-1); border-left: 4px solid var(--series-1); }
+  #trackerStats .stat-heading:first-child{ margin-top: 0; }
+  @media (max-width: 760px){ #trackerStats{ grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  #simTables td.col-name .sim-name{ font-weight: 600; }
+  #simTables td.sim-unset{ color: var(--text-muted); font-style: italic; }
+  /* A run's member rows are framed together by a darker line above the first and below the last. */
+  #simTables tr.run-shade > td{ background: color-mix(in srgb, var(--text-muted) 8%, transparent); }
+  #simTables tr.member-first > td{ border-top: 2px solid var(--text-secondary, var(--text-muted)); }
+  #simTables tr.member-last > td{ border-bottom: 2px solid var(--text-secondary, var(--text-muted)); }
+  /* A run with one member is framed the same way. */
+  #simTables tr.member-single > td{ border-top: 2px solid var(--text-secondary); border-bottom: 2px solid var(--text-secondary); }
+  #simTables input.num{ width: 58px; min-width: 50px; }
+  #simTables td.col-owner{ font-size: 12.5px; color: var(--text-secondary); }
+  #simTables td.col-parent{ font-size: 12.5px; color: var(--text-secondary); }
+  #simTables td.col-parent .parent-chip{ white-space: normal; }
+  /* Each case's issue and script chips are a line of their own. */
+  #simTables td.col-cases{ white-space: normal; line-height: 1.9; }
+  #simTables td.col-cases .case-pair{ display: block; white-space: nowrap; }
+  #simTables .case-arrow{ color: var(--text-muted); margin: 0 4px 0 0; cursor: default; }
+  a.case-chip{ text-decoration: none; cursor: pointer; }
+  a.case-chip:hover{ text-decoration: underline; }
+  /* A case's run script, a small chip after its issue, in the issue's colour. */
+  a.script-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 1px 5px; margin-right: 5px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); text-decoration: none; }
+  a.script-chip:hover{ text-decoration: underline; }
+  /* A case whose cam.i files skip some years. */
+  .gap-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 10px; padding: 1px 5px; margin-right: 5px; border-radius: 8px; background: var(--danger-wash); color: var(--danger); font-weight: 700; cursor: default; }
+  /* A case whose run script is missing or sets no RUN_STARTDATE, and a member whose years
+     done are counted from the spreadsheet's start year instead. */
+  /* When nird_progress.py last wrote the progress, at the top of the tracker. */
+  .progress-status{ margin: 0 0 12px; font-size: 13px; color: var(--text-secondary); }
+  /* The Simulation tracker box: how the tracker is updated, and when it last was. */
+  #trackerHead{ gap: 6px; margin-bottom: 20px; }
+  #trackerHead .progress-status, #trackerHead #progressCommand{ margin: 0; }
+  /* When the progress was last updated, just above the title. */
+  .page-header #progressStatus{ margin: 0; font-size: 14px; }
+  #trackerHead .editor-head{ margin-bottom: 4px; }
+  /* In the colour of the Workflow steps heading. */
+  #trackerHead h2{ color: color-mix(in srgb, var(--series-2) 75%, var(--text-primary)); }
+  /* The workflow steps and the runs, without a box around them. */
+  #simPlanCard{ display: flex; flex-direction: column; gap: 12px; }
+  .progress-status b{ color: var(--text-primary); }
+  .progress-status.is-error{ color: var(--danger); font-weight: 700; }
+  .warn-chip{ display:block; width: fit-content; max-width: 100%; box-sizing: border-box; margin-top: 2px; font-size: 11px; line-height: 1.4; padding: 1px 6px; border-radius: 8px; background: var(--danger-wash); color: var(--danger); font-weight: 700; white-space: normal; cursor: default; }
+  #simTables .progress-cell:has(.progress-warn:not([hidden])){ flex-wrap: wrap; }
+  .progress-warn{ flex-basis: auto; width: fit-content; max-width: 100%; box-sizing: border-box; font-size: 11px; line-height: 1.4; padding: 1px 6px; border-radius: 8px; background: var(--danger-wash); color: var(--danger); font-weight: 700; white-space: normal; }
+  /* On its own line under the bar and the years done. */
+  #simTables .progress-cell:has(.progress-warn:not([hidden]))::after{ content: ""; order: 1; flex-basis: 100%; }
+  #simTables .progress-cell .progress-warn{ order: 2; }
+  .case-chip{ display:inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 1px 6px; margin-right: 3px; border-radius: 8px; background: color-mix(in srgb, var(--series-7) 18%, transparent); color: var(--text-primary); cursor: default; }
+  .tab-nav{ display:flex; gap:4px; margin: 4px 0 18px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .tab-nav a{ padding: 9px 16px; font-weight: 600; font-size: 14px; color: var(--text-secondary); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab-nav a:hover{ color: var(--text-primary); }
+  .tab-nav a[aria-current="page"]{ color: var(--accent); border-bottom-color: var(--accent); }
+  .wf-details{ margin: 4px 0 14px; border: 1px solid var(--border); border-radius: 8px; padding: 0 14px; }
+  .wf-details[open]{ padding-bottom: 10px; }
+  .wf-head{ cursor: pointer; padding: 10px 0; font-size: 15px; font-weight: 600; color: color-mix(in srgb, var(--series-2) 75%, var(--text-primary)); }
+  .wf-details[open] > .wf-head{ border-bottom: 1px solid var(--border); }
+  .wf-intro{ margin: 10px 0 0; font-size: 13px; color: var(--text-secondary); }
+  .wf-steps{ margin: 0; padding-left: 0; list-style: none; }
+  .wf-steps > li{ padding: 8px 0 10px; border-bottom: 1px solid var(--border); }
+  .wf-steps > li:last-child{ border-bottom: none; }
+  .wf-steps > li:target, .wf-steps > li.wf-hit{ background: var(--accent-wash); }
+  .wf-title{ font-weight: 600; }
+  .wf-steps p{ margin: 4px 0 0; color: var(--text-secondary); font-size: 13px; }
+  .wf-more{ margin: 6px 0 2px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px; }
+  .wf-more[open]{ padding-bottom: 8px; }
+  .wf-more > summary{ cursor: pointer; padding: 5px 0; font-weight: 600; color: var(--accent); }
+  .wf-more[open] > summary{ border-bottom: 1px solid var(--border); }
+  .wf-decide{ margin-top: 5px; font-size: 13px; color: var(--text-secondary); }
+  .wf-alert, .wf-warn{ color: var(--danger); font-weight: 700; }
+  .wf-note{ margin: 6px 0 0; font-size: 13px; color: var(--text-secondary); }
+  .wf-pre{ margin: 4px 0 0; padding: 6px 8px; font-size: 12px; background: color-mix(in srgb, var(--text-muted) 10%, transparent); border-radius: 4px; overflow-x: auto; }
+  .wf-decide ul{ margin: 3px 0 0; padding-left: 18px; }
+  .wf-parts{ margin: 3px 0 0; padding-left: 18px; font-size: 13px; color: var(--text-secondary); }
+  .wf-parts code{ overflow-wrap: anywhere; }
+  .wf-tag{ display:inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 9px; margin-left: 6px; vertical-align: 1px; }
+  /* A script's path, e.g. workflow/nird_progress.py. */
+  /* A GitHub label's name, e.g. esgf. */
+  code.wf-labelname{ padding: 1px 5px; border-radius: 4px; background: color-mix(in srgb, var(--series-6) 18%, transparent); color: var(--text-primary); }
+  /* Label tags, in the green of the label names, as on GitHub. */
+  .wf-label{ background: color-mix(in srgb, var(--series-6) 18%, transparent); color: var(--text-primary); }
+  #simTables th.step-h{ font-size: 11px; padding: 4px 3px; text-align: center; white-space: nowrap; }
+  #simTables th.step-h a{ color: inherit; text-decoration: none; display: inline-block; min-width: 18px; }
+  #simTables th.step-group{ text-align: center; font-size: 11px; color: var(--text-muted); padding: 4px; border-bottom: 1px solid var(--border); }
+  #simTables td.step-c{ text-align: center; padding: 3px; }
+  #simTables th.step-h.step-wide{ text-align: left; padding: 4px 8px; }
+  #simTables th.step-h.step-wide + th.step-h.step-wide{ border-left: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent); }
+  #simTables td.step-c input{ width: 15px; height: 15px; min-width: 0; }
+  #simTables td.step-c .step-mark{ font-size: 13px; color: var(--text-muted); }
+  #simTables td.step-c .step-mark.done{ color: var(--series-6); font-weight: 700; }
+  #simTables td.step-c .step-mark.running{ color: var(--accent); }
+  #simTables .th-note{ font-size: 10px; font-weight: 500; color: var(--series-1); white-space: nowrap; }
+  #simTables td.step-c .step-range{ display: inline-block; font-family: "JetBrains Mono", monospace; font-size: 11px; white-space: nowrap; padding: 1px 6px; border-radius: 8px; color: var(--text-primary); background: color-mix(in srgb, var(--series-7) 18%, transparent); }
+  #simTables td.step-c .step-range.done{ font-weight: 700; }
+  #simTables td.step-c .step-range.partial{ background: transparent; border: 1px dashed currentColor; padding: 0 5px; }
+  /* Several cases' cmip7prep chips wrap, one under the other. */
+  #simTables td.step-c .step-ranges{ display: inline-flex; flex-wrap: wrap; justify-content: center; gap: 3px; }
+  /* A CMORize cell's years open a panel with where the output is and its version directories;
+     the years are red when the progress script found something wrong with the files. */
+  #simTables details.cmor-box{ display: inline-block; }
+  #simTables details.cmor-box > summary{ list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
+  #simTables details.cmor-box > summary::-webkit-details-marker{ display: none; }
+  #simTables details.cmor-box > summary::after{ content: "▸"; font-size: 9px; color: var(--text-muted); }
+  #simTables details.cmor-box[open] > summary::after{ content: "▾"; }
+  #simTables details.cmor-box.bad .step-range{ color: var(--danger); background: color-mix(in srgb, var(--danger) 16%, transparent); }
+  .cmor-pop{ position: fixed; z-index: 45; width: min(480px, calc(100vw - 16px)); max-height: 60vh; overflow: auto;
+    text-align: left; white-space: normal; padding: 10px 12px; font-size: 12px; line-height: 1.45;
+    background: var(--surface-raised); border: 1px solid var(--border-strong); border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.18); color: var(--text-primary); cursor: auto; }
+  .cmor-pop h4{ margin: 0 0 4px; font-size: 13px; }
+  .cmor-pop .cp-head{ margin: 8px 0 2px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
+  .cmor-pop ul{ margin: 0; padding-left: 16px; }
+  .cmor-pop li{ margin: 1px 0; overflow-wrap: anywhere; }
+  .cmor-pop .bad{ color: var(--danger); }
+  .cmor-pop code{ font-family: "JetBrains Mono", monospace; font-size: 11px; }
+  .cmor-pop p{ margin: 4px 0 0; }
+  /* A finished CMORize cell shows its years in green; a finished label step shows a green ✓. */
+  #simTables td.step-c.auto-done details.cmor-box:not(.bad) .step-range{ background: color-mix(in srgb, var(--series-6) 18%, transparent); }
+  #simTables thead th[rowspan]:not(:first-child):not(.col-narrow),
+  #simTables tbody td:not(:first-child):not(.step-c):not(.col-narrow):not(.phase-start){ border-left: 1px solid color-mix(in srgb, var(--text-muted) 35%, transparent); }
+  #simTables td.phase-start,
+  #simTables th.step-h.phase-start,
+  #simTables th.step-group{ border-left: 2px solid color-mix(in srgb, var(--text-muted) 60%, transparent); }
+  /* Within a phase, a line between groups of steps, such as the two CMORization tools. */
+  #simTables td.split-start,
+  #simTables th.step-h.split-start{ border-left: 1px solid color-mix(in srgb, var(--text-muted) 60%, transparent); }
+  .auto-note{ color: var(--text-muted); }
+  /* Each group's bar: its name, then the column headings. */
+  #simTables tr.sim-group th{ font-size: 11px; font-weight: 600; padding: 9px 6px 6px; color: var(--series-1); background: color-mix(in srgb, var(--series-1) 14%, transparent); white-space: nowrap; vertical-align: bottom; }
+  #simTables tr.sim-group th.sim-group-name{ text-align: left; font-size: 13px; font-weight: 700; padding-left: 10px; border-left: 4px solid var(--series-1); }
+  #simTables tr.sim-group th:not(.sim-group-name){ text-align: center; }
+  #simTables tr.sim-group-off th{ color: var(--text-muted); background: color-mix(in srgb, var(--text-muted) 10%, transparent); }
+  #simTables tr.sim-group-off th.sim-group-name{ border-left-color: var(--text-muted); }
+  #simTables tr.row-disabled{ opacity: 0.5; }
+  #simTables tr.row-disabled td.col-name .sim-name{ text-decoration: line-through; text-decoration-color: var(--text-muted); }
+  #simTables tr.row-completed td.col-name .sim-name{ font-style: italic; }
+
+  @media (prefers-reduced-motion: no-preference){
+    .btn, .row-del{ transition: border-color .12s ease, color .12s ease, background .12s ease; }
+  }
+</style>
+
+<div id="app">
+
+  <header class="page-header">
+    <div class="eyebrow">NorESM3 · CMIP7</div>
+    <p class="progress-status" id="progressStatus"></p>
+    <h1>CMIP7 Simulation Tracker Dashboard</h1>
+    <p class="subtitle">Where each NorESM3 CMIP7 run stands, the steps every run goes through from GitHub issue to ESGF, and what the plan costs on Olivia and Betzy.</p>
+  </header>
+
+  <nav class="tab-nav" aria-label="Contents">
+    <a href="#tracker" data-tab="tracker">Tracker</a>
+    <a href="#cost" data-tab="cost">Cost plan</a>
+  </nav>
+
+  <div class="tab-panel" id="tab-tracker">
+  <section class="card editor-card" id="trackerHead">
+    <div class="editor-head"><h2>Simulation tracker</h2></div>
+    <p class="progress-status" id="trackerSource">The simulation tracker is updated by running <code>workflow/nird_progress.py</code> in the <a href="https://github.com/NorESMhub/noresm_cmip7_simulations" target="_blank" rel="noopener">noresm_cmip7_simulations</a> repository.</p>
+      <details class="wf-more" id="progressCommand">
+        <summary>Run <code>nird_progress.py</code></summary>
+        <p class="editor-caption">To update the tables, run it from the clone on NIRD:</p>
+        <pre class="wf-pre">cd /projects/NS9560K/www/diagnostics/noresm/noresm_cmip7_simulations
+  git pull
+  python3 -I workflow/nird_progress.py</pre>
+        <p class="editor-caption">The script finds each case's directory, <code>/nird/datalake/NS9560K/noresm3/cases/&lt;case&gt;</code>, from the case name its run script gives <code>create_newcase</code>, and writes <code>progress.json</code> next to this page. It then builds this page again from the copy of the spreadsheet in the repository. It is run with no arguments; the arguments are for testing and are described in the workflow README.</p>
+        <p class="editor-caption">The script uses information from the GitHub issues, the run scripts on GitHub that go with the issues, the case directories on NIRD and the CMORization directories:</p>
+        <ul class="editor-caption wf-parts">
+          <li>The <b>GitHub issues</b> determine each case's labels and assignee, and the CMORization issues in CMIP7_CMOR-Publish that name the case.</li>
+          <li>The <b>run scripts</b> on the <code>CMIP7_Runscripts</code> branch determine how each case started and which case it continues or branches from.</li>
+          <li>The <b>case directories on NIRD</b> determine each case's latest model date, its cost and throughput, and the size of its history and restart output.</li>
+          <li>The <b>CMORization directories</b> of cmip7-prep and cmor4cmip7 determine the years each tool has CMORized and the size of the time series and CMOR output.</li>
+        </ul>
+      </details>
+    <p class="progress-status" id="sheetStatus"></p>
+  </section>
+  <section class="stats-grid" id="trackerStats" aria-label="Tracker summary"></section>
+
+  <section class="editor-card" id="simPlanCard">
+    <div class="editor-head">
+      <p class="editor-caption auto-note" id="autoNote" hidden></p>
+    </div>
+    <details class="wf-details" id="workflow" open>
+      <summary class="wf-head">Workflow steps</summary>
+
+      <div class="wf-phase">
+        <ul class="wf-steps">
+          <li id="wf-prepare">
+            <details class="wf-more" id="wf-casename">
+              <summary>Determine the case name</summary>
+              <p>A case is named <code>compset.resolution.version.variant.issue.date</code>, for example <code>n1850GHGGaxg.LM.nor30b28.r1i1p1f1.011.20261102</code>. Names without the variant, such as piControl's #11, <code>n1850GHGGaxg.LM.nor30b28.011.20261102</code>, are read too.</p>
+              <ul class="wf-parts">
+              <li><b>compset:</b> see column M of the <a href="https://docs.google.com/spreadsheets/d/1PZQHmOHVENJeCqwSfk4wfp8okQXw60Bv/edit?gid=13331701#gid=13331701" target="_blank" rel="noopener">NorESM3 CMIP7 experiments spreadsheet</a>;</li>
+              <li><b>resolution:</b> <code>LM</code> for ne16pg3_tn14, <code>MM</code> for ne30pg3_tn14;</li>
+              <li><b>version:</b> <code>nor30</code> for noresm3_0_, followed by the beta, e.g. <code>b28</code> for beta28 or <code>b29a</code> for beta29a;</li>
+              <li><b>variant:</b> the ensemble member, as in the issue's <a href="#wf-issue">variant label</a>, e.g. <code>r1i1p1f1</code>;</li>
+              <li><b>issue:</b> the number the case's <a href="#wf-issue">GitHub issue</a> will have;</li>
+              <li><b>date:</b> the date the case is made, as YYYYMMDD.</li>
+              </ul>
+            </details>
+            <details class="wf-more" id="wf-issue">
+              <summary>Make the experiment's GitHub issue</summary>
+              <p>Issues go in <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/issues" target="_blank" rel="noopener">NorESMhub/noresm_cmip7_simulations</a>, one per case. The tracker is filled in from them, so:</p>
+              <ul class="wf-parts">
+                <li><b>title:</b> the <a href="#wf-casename">case name</a>, with no spaces. The tracker takes the case name from the run script's <code>create_newcase --case</code>, so the title is only a label until the run script is on the branch;</li>
+                <li><b>experiment label:</b> the CMIP7 experiment, e.g. <code>esm-hist</code>, spelt as in the tracker;</li>
+                <li><b>variant label:</b> the ensemble member, e.g. <code>r1i1p1f1</code>;</li>
+                <li><b>assignees:</b> whoever runs it, shown as the run's owner; with several, all of them are shown;</li>
+                <li><b><code class="wf-labelname">completed</code>:</b> add this label when the run has finished;</li>
+                <li><b><code class="wf-labelname">test</code>:</b> add this label to a case that is not a CMIP7 run, to leave it out;</li>
+                <li><b><code class="wf-labelname">esgf</code>:</b> add this label when the data is on ESGF;</li>
+                <li><b>continuing a simulation in a new case:</b> give the new issue the same experiment and variant labels. Its run script's <code>RUN_REFCASE</code> is the earlier case. The tracker reads the two as one simulation and takes its progress from the later model date, as with #2 and #11;</li>
+                <li><b>another member of the ensemble:</b> give it its own variant, e.g. <code>r2i1p1f1</code>. The run's years done are the mean over the members that have an issue.</li>
+              </ul>
+            </details>
+            <details class="wf-more" id="wf-script">
+              <summary>Archive the run script</summary>
+              <p>Push the case's run script straight to its directory under <a href="https://github.com/NorESMhub/noresm_cmip7_simulations/tree/CMIP7_Runscripts/scripts" target="_blank" rel="noopener"><code>scripts/</code></a> on the <code>CMIP7_Runscripts</code> branch; this needs write access to the repository.</p>
+              <ul class="wf-parts">
+                <li><b>directory:</b> <code>scripts/&lt;MIP&gt;/&lt;experiment&gt;/</code>. A case that is not a CMIP7 run, whose issue has the <code class="wf-labelname">test</code> label, goes in <code>scripts/test/</code>;</li>
+                <li><b>name:</b> <code>issue.experiment.resolution.beta.variant.date.sh</code>. The progress script finds the case's script by the issue number it starts with, so no other script may start with it:
+                  <ul>
+                    <li>the experiment and variant from the issue's labels, the rest from the case name, e.g. <code>011.piControl.LM.beta28.r1i1p1f1.20261102.sh</code> for <code>n1850GHGGaxg.LM.nor30b28.011.20261102</code>;</li>
+                  </ul></li>
+                <li><b>push:</b> in a clone of the repository,
+                  <ul>
+                    <li><code>git switch CMIP7_Runscripts</code> and <code>git pull</code>;</li>
+                    <li>copy the script into its directory under its name;</li>
+                    <li><code>git add</code> the script;</li>
+                    <li><code>git commit</code> with the message:
+                      <ul>
+                        <li><code>Run script for #&lt;case issue&gt;</code>, e.g. <code>Run script for #11</code>. Naming the issue makes GitHub list the commit on it. Don't use <code>Closes #11</code> or <code>Fixes #11</code>, as those close the issue;</li>
+                      </ul></li>
+                    <li><code>git push</code>;</li>
+                  </ul></li>
+                <li><b>tracker:</b> after the next run of the progress script, the tracker links the script after the case's issue, as <a class="script-chip">sh</a>.</li>
+              </ul>
+            </details></li>
+        </ul>
+      </div>
+
+      <div class="wf-phase">
+        <ul class="wf-steps">
+          <li id="wf-runstep">
+            <details class="wf-more" id="wf-run">
+              <summary>How the run is done and tracked</summary>
+              <p>The progress script reads the run's Status and Progress on NIRD.</p>
+              <p>Create and build the case. On Olivia and Betzy, cases go in <code>/cluster/projects/nn9560k/$USER</code>, each in a directory named after the case: <code>/cluster/projects/nn9560k/$USER/&lt;case&gt;</code>.</p>
+              <p>Set the run's priority and coordinate it with the other runs. Copy the output to NIRD by hand with rsync while the run is going. The progress script reads the years done from the atmosphere history files copied there, and the tracker shows them in the Progress column and sets the Status to In progress. To set it to Completed, add the <code class="wf-labelname">completed</code> label to its issue.</p>
+              <div class="wf-decide"><b>To decide:</b>
+                <ul>
+                  <li>how often to write restarts (every 5 or 10 years?);</li>
+                  <li>how to log what was run (code version and settings);</li>
+                  <li>whether the case directory is archived on NIRD too;</li>
+                  <li>which files are removed (for example intermediate restart files).</li>
+                </ul></div>
+            </details></li>
+        </ul>
+      </div>
+
+      <div class="wf-phase">
+        <details class="wf-more">
+        <summary>The CMORization steps</summary>
+        <ul class="wf-steps">
+          <li id="wf-cmorissue"><div class="wf-title">Make the CMORization issue</div>
+            <p>Once the simulation has finished, open an issue in <a href="https://github.com/NorESMhub/CMIP7_CMOR-Publish/issues" target="_blank" rel="noopener">NorESMhub/CMIP7_CMOR-Publish</a> from its template, which is like the CMIP6 one, and label it <code class="wf-labelname">cmorization</code>. The repository's other labels are <code class="wf-labelname">publication</code>, <code class="wf-labelname">archive</code>, <code class="wf-labelname">cmor_bug</code>, <code class="wf-labelname">publication_bug</code> and <code class="wf-labelname">retract</code>.</p>
+            <p>Name each case the issue CMORizes by its case name, e.g. <code>n1850GHGGaxg.LM.nor30b27.002.20261016</code>, as the template asks. The progress script finds the CMORization issues that name a case, and the tracker links each after the case's issue as <a class="script-chip cmor-chip">cmor</a>. Clicking a case's chip in the cmip7prep or cmor4cmip7 column shows the CMORization issue and its cmor tag version too.</p>
+            <div class="wf-decide"><b>To decide:</b> how urgency is shown.</div></li>
+          <li id="wf-cmoratm"><div class="wf-title">CMORize the atmosphere, land, sea ice and land ice using cmip7-prep</div>
+            <p>The CMORized output goes in <code>/nird/datalake/NS9560K/noresm3/cases/$CASE.cmor</code> for now, and will later go in <code>/nird/datapeak/NS9034K</code> with the cmor4cmip7 output. The tracker's cmip7prep column shows it as follows:</p>
+            <ul class="wf-parts">
+              <li><b>where:</b> the progress script reads the case's own <code>.cmor</code> directory, not the ones below it;</li>
+              <li><b>which issue:</b> each case has its own <code>.cmor</code> directory, named after its issue's title, so everything in it belongs to that issue. piControl's #2 can be done while #11 is not;</li>
+              <li><b>years:</b> cmip7-prep writes a <code>completed_steps_&lt;first&gt;-&lt;last&gt;.json</code> file for each set of years it has CMORized. A set counts once it has finished every <code>cmor-</code> step that any of the simulation's sets has run, so a set where one realm failed doesn't count, even if that realm failed in every set. The chip shows the years of the sets that count, e.g. <code>#002 1–50</code>;</li>
+              <li><b>dashed chip:</b> no set counts yet; the chip shows the years of all the sets.</li>
+            </ul></li>
+          <li id="wf-cmorocn"><div class="wf-title">CMORize the ocean and ocean biogeochemistry using cmor4cmip7</div>
+            <p>The CMORized output goes in <code>/nird/datapeak/NS9034K/.CMIP7</code>, under the model, experiment, variant and version, e.g. <code>NorESM3-LM/piControl/r1i1p1f1/v20261028</code>. The tracker's cmor4cmip7 column shows it as follows:</p>
+            <ul class="wf-parts">
+              <li><b>where:</b> the progress script reads the simulation's variant directory, named from the issue's resolution, experiment and variant, e.g. <code>/nird/datapeak/NS9034K/.CMIP7/NorESM3-LM/piControl/r1i1p1f1</code>, and every version below it. It takes the files whose names have the issue's experiment and variant, e.g. <code>_piControl_r1i1p1f1_</code>;</li>
+              <li><b>which issue:</b> the variant directory holds the whole simulation, so every issue with the same experiment and variant shares it. Each file goes to an issue by its years, from the time range in its name, e.g. <code>_185001-185912.nc</code>. An issue covers the years from its run script's <code>RUN_STARTDATE</code> to the year before the next issue's. A simulation with one issue gets all the files;</li>
+              <li><b>years:</b> a year counts once every variable has a file for it. The chip shows the years that count, e.g. <code>#002 1–170</code>, or the years the files cover while no year counts;</li>
+              <li><b>red chip:</b> something is wrong with the files for the issue's years. Either some variables have no files for years other variables have, or a variable has a year in more than one file of the same version. The chip's panel lists the years and variables.</li>
+            </ul></li>
+        </ul>
+        <p class="wf-note">cmip7-prep and cmor4cmip7 lay out their output differently. That doesn't matter for publication: esg-prep links both into the structure ESGF needs. The CMORization and publication workflow, and the esg-prep command, will be added here as they are settled.</p>
+        </details>
+      </div>
+
+      <div class="wf-phase">
+        <ul class="wf-steps">
+          <li id="wf-esgf">
+            <details class="wf-more">
+              <summary>Publish the data on ESGF <span class="wf-tag wf-label">label: esgf</span></summary>
+              <p>The ESGF column depends on the label <code class="wf-labelname">esgf</code>: it shows ✓ once the case's issue has it, after the next run of the progress script. Add the label when the data is published.</p>
+              <div class="wf-decide"><b>TODO:</b> what publishing involves.</div>
+            </details></li>
+        </ul>
+      </div>
+    </details>
+    <div id="simTables"></div>
+  </section>
+  </div>
+
+  <div class="tab-panel" id="tab-cost" hidden="">
+  <section class="card editor-card" id="expTimingCard">
+    <div class="editor-head">
+      <h2>Timings by experiment</h2>
+      <p class="editor-caption">The runs with a case issue, with the cost and throughput measured from their cases' timing files on each machine, each line naming its machine, <span class="machine-tag">Olivia</span> or <span class="machine-tag machine-betzy">Betzy</span>: the mean over their jobs, each weighted by the years it simulated. Click a run's job count to plot its SYPD and cost job by job. A run with no timing files on a machine yet shows its configuration's value in grey, and is costed with it.</p>
+    </div>
+    <div class="table-scroll">
+      <table class="data-table" id="expTimingTable">
+        <thead><tr>
+          <th>Run</th>
+          <th>Machine</th>
+          <th class="cfg-num cfg-machine-start">Cost / sim-yr</th>
+          <th class="cfg-num">SYPD</th>
+          <th class="cfg-num">Jobs</th>
+        </tr></thead>
+        <tbody id="expTimingTbody"></tbody>
+      </table>
+    </div>
+    <dialog id="timingDialog" class="timing-dialog" aria-labelledby="timingDialogTitle">
+      <div class="timing-dialog-head">
+        <h3 id="timingDialogTitle"></h3>
+        <button type="button" class="btn btn-ghost btn-sm" id="timingDialogClose" aria-label="Close">×</button>
+      </div>
+      <p class="editor-caption" id="timingDialogNote"></p>
+      <div id="timingDialogCharts"></div>
+    </dialog>
+  </section>
+
+  <section class="stats-grid" id="statsGrid" aria-label="Summary"></section>
+
+  <section id="timingNote" class="timing-note" hidden=""></section>
+
+  <section class="card" id="costTableCard">
+    <div class="editor-head">
+      <h2>Cost table</h2>
+      <p class="editor-caption">The full planned cost of each run, a table for each MIP at each resolution; progress is tracked on the Tracker page. The runs, their members and their years are the plan the page is built with, and the runs not in it for now are listed at the bottom. Core-hours are members × years × cost per simulated year, on the machine the run runs on: Betzy for a run whose timing files say so, Olivia otherwise. A run with timing files of its own is costed with them; any other run with its configuration's value, the mean over that configuration's runs that have timing files, or an earlier timing if none has. Days to run a member is how long one member takes on its own: its years divided by its SYPD.</p>
+      <p class="editor-caption">The four TB columns are the output each run will leave on NIRD once all its members and years are done, not what is there now: members × years × the GB per simulated year its cases have on NIRD so far, measured by the progress script. History is the model's history files, restarts the restart sets as kept, time series cmip7-prep's time series, which are to be deleted, and CMOR the CMORized files of both tools. A run with no output of its own takes its configuration's, in grey; hover a value for the GB per simulated year and its parts.</p>
+    </div>
+    <div id="costTables"></div>
+  </section>
+
+  <section class="card" id="mipCard">
+    <div class="editor-head">
+      <h2>Cost by MIP</h2>
+      <p class="editor-caption" id="mipCaption">Total compute cost (core-hr), grouped by the MIP each simulation belongs to — runs without a MIP tag are grouped into CMIP.</p>
+    </div>
+    <div id="mipBreakdown" class="cost-breakdown"></div>
+  </section>
+
+  <!-- Cost by priority is not shown: priority is 1 for DECK, 2 otherwise and 0 for off, so it repeats Cost by MIP. -->
+  <section class="card" id="priorityCard" hidden="">
+    <div class="editor-head">
+      <h2>Cost by priority</h2>
+      <p class="editor-caption" id="priorityCaption">Total compute cost (core-hr), grouped by each simulation's priority level.</p>
+    </div>
+    <div id="priorityBreakdown" class="cost-breakdown"></div>
+    <p class="cost-breakdown-note" id="priorityExcludedNote"></p>
+  </section>
+
+  </div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------------- the plan ----------------
+  // build_scheduler.py replaces the five lines below with the configurations from its COSTS
+  // table, the runs built from the spreadsheet, the cost unit, no progress, and where and
+  // when the spreadsheet was read, so the template holds none.
+  // It finds them by the DEFAULT_CONFIGS line and the configs line after them, so neither
+  // may be changed or written out in full anywhere above them.
+  let DEFAULT_CONFIGS = [];
+  let DEFAULT_SIMS = [];
+  let DEFAULT_COST_UNIT = "core-hr";
+  let DEFAULT_PROGRESS = null;
+  let DEFAULT_SHEET = null;
+
+  let configs = clone(DEFAULT_CONFIGS);
+  let sims = clone(DEFAULT_SIMS);
+  const costUnit = DEFAULT_COST_UNIT;
+  // The page takes no input: everyone sees the plan it was built with and what
+  // progress.json says. Clear the edits earlier versions of the page kept in the browser.
+  try { localStorage.removeItem("noresm3-cmip7-cost-plan:v2"); } catch (err){}
+
+  // The workflow every run goes through; the tracker has one column per step. Run follows
+  // the Status, and cmoratm and cmorocn the years cmip7-prep and cmor4cmip7 have done on
+  // NIRD. Every other step is done once each member of the run has a case issue with the
+  // step's label.
+  // The issues link to the repository progress.json was read from, NorESMhub's by default.
+  const ISSUES_REPO = "NorESMhub/noresm_cmip7_simulations";
+  const issuesUrl = () => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/issues`;
+  // The run scripts are under scripts/ on this branch; progress.json gives a case's path below it.
+  const RUNSCRIPTS_BRANCH = "CMIP7_Runscripts";
+  // How a case started, from the xmlchange calls in its run script: its RUN_TYPE, its
+  // RUN_REFCASE, the issue of that case if it has one, RUN_REFDATE and RUN_STARTDATE.
+  // A case continues its parent when both are cases of the same run and member; otherwise it
+  // branches from it.
+  const caseOfIssue = n => progressData && (progressData.cases || []).find(x => x.issue === n);
+  function parentCase(c){ return c.start && c.start.parent ? caseOfIssue(c.start.parent) : null; }
+  function continues(c){
+    const p = parentCase(c);
+    return !!(p && p.runName && p.runName === c.runName && p.variant === c.variant);
+  }
+  function caseStart(c){
+    const s = c.start;
+    if (!s || !s.type) return c.runScript ? "Start: not found in the run script" : "Start: from the run script, once it is on the CMIP7_Runscripts branch";
+    const how = s.type + (s.type !== "startup" && s.refdate ? ` at ${s.refdate}` : "")
+      + (s.startdate && (s.type !== "branch" || s.startdate !== s.refdate) ? `, starting ${s.startdate}` : "");
+    if (s.type === "startup" || !s.refcase) return `Starts from initial conditions (${how})`;
+    const p = parentCase(c);
+    if (continues(c)) return `Continues #${s.parent} (${how})`;
+    if (s.parent) return `Branches from #${s.parent}${p && p.runName ? `, ${p.runName}` : ""} (${how})\nRUN_REFCASE ${s.refcase}`;
+    return `Starts from ${s.refcase} (${how})`;
+  }
+  const runScriptUrl = path => `https://github.com/${(progressData && progressData.repo) || ISSUES_REPO}/blob/${RUNSCRIPTS_BRANCH}/scripts/${path}`;
+  // The CMORization issues in CMIP7_CMOR-Publish that name the case.
+  const CMOR_REPO = "NorESMhub/CMIP7_CMOR-Publish";
+  const cmorIssueUrl = n => `https://github.com/${CMOR_REPO}/issues/${n}`;
+  const cmorIssueText = ci => `${CMOR_REPO}#${ci.number}, ${ci.state}; cmor tag version ${ci.tagVersion || "not given"}`;
+  const WORKFLOW_STEPS = [
+    { key: "run",       short: "Run",        name: "Run: Status and Progress", phase: "Run", derived: true, cols: 2 },
+    { key: "cmoratm",   short: "cmip7prep",  name: "Atmosphere, land, sea ice and land ice CMORized with cmip7-prep", phase: "CMORize", auto: true, range: true },
+    { key: "cmorocn",   short: "cmor4cmip7", name: "Ocean and ocean biogeochemistry CMORized with cmor4cmip7", split: true, auto: true, range: true },
+    { key: "esgf",      short: "ESGF",       name: "Published on ESGF", phase: "Publish", label: "esgf" },
+  ];
+  const stepDone = (row, key) => key === "run" ? row.status === "completed"
+    : (autoSteps(row)[key] === true || (Array.isArray(row.steps)
+      && row.steps.includes(key)));
+  // progressData is progress.json as read; autoProgress is what it says for each run, keyed by
+  // run name: { yearsCompleted, modelDate, completed, cmor: { cmoratm, cmorocn: { from, to } }, steps }.
+  let progressData = null, autoProgress = null;
+  // A member's row in the simulation table carries its own progress; a run's comes from autoProgress.
+  const autoRun = row => row.memberOf ? row.memberProgress
+    : (autoProgress && autoProgress.runs && autoProgress.runs[row.name]) || null;
+  const autoSteps = row => (autoRun(row) && autoRun(row).steps) || {};
+  // A run whose case issue is open but whose model files have not reached NIRD yet.
+  const issueOpened = row => row.status === "pending" && Array.isArray(row.cases) && row.cases.length > 0;
+
+
+  function clone(x){ return JSON.parse(JSON.stringify(x)); }
+  function uid(prefix, n){ return prefix + n; }
+
+  // ---------------- DOM refs ----------------
+  const el = (id) => document.getElementById(id);
+  const statsGrid = el("statsGrid");
+  const timingNote = el("timingNote");
+  const mipCard = el("mipCard");
+  const mipCaption = el("mipCaption");
+  const mipBreakdownEl = el("mipBreakdown");
+  const priorityCard = el("priorityCard");
+  const priorityCaption = el("priorityCaption");
+  const priorityBreakdownEl = el("priorityBreakdown");
+  const priorityExcludedNote = el("priorityExcludedNote");
+  const simTables = el("simTables");
+  let simTbody = null; // the table body rows are being added to
+
+  // ---------------- cost ----------------
+  // Each run's members as jobs, each with the cost it has left, and the total. A completed
+  // run, or one with priority 0, has no jobs. An in-progress run's first membersRunning
+  // members have only their remaining years to go; its other members, like a pending run's,
+  // have all of them. A run on a configuration with no timing yet has no cost, so it is left
+  // out and listed in untimedRows.
+  function computeCosts(configs, sims){
+    const configById = new Map(configs.map(c => [c.id, c]));
+    const jobs = [];
+    const untimedRows = [];
+    sims.forEach(row => {
+      if (row.status === "completed" || normalizePriority(row.priority) === 0) return;
+      const cfg = configById.get(row.configId) || configs[0];
+      if (!cfg) return;
+      if (!hasTiming(cfg, row)){
+        if (ensembleCount(row) > 0) untimedRows.push(row);
+        return;
+      }
+      const years = Math.max(Number(row.years) || 0, 0);
+      const inProgress = row.status === "in-progress";
+      // Years done are clamped to the run's length, so they can't imply more progress than it has.
+      const yearsCompleted = inProgress ? Math.min(years, Math.max(0, Number(row.yearsCompleted) || 0)) : 0;
+      const progressFrac = years > 0 ? (yearsCompleted / years) : 0;
+      const costPerYear = Number(costOn(cfg, row)) || 0;
+      const ens = ensembleCount(row);
+      const running = inProgress ? runningCount(row) : 0;
+      for (let k = 0; k < ens; k++){
+        const frac = k < running ? progressFrac : 0;
+        jobs.push({ rowId: row.id, cost: years * (1 - frac) * costPerYear, rowPriority: normalizePriority(row.priority) });
+      }
+    });
+    const totalCost = jobs.reduce((s, j) => s + j.cost, 0);
+    return { jobs, totalCost, jobCount: jobs.length, untimedRows };
+  }
+
+  // Each configuration has a cost and throughput on each machine. A run is costed on the
+  // machine its cases run on, as their timing files say (row.machine), and on Olivia until
+  // then.
+  const MACHINES = [
+    { key: "olivia", label: "Olivia", cost: "costPerYear", sypd: "throughput" },
+    { key: "betzy", label: "Betzy", cost: "betzyCostPerYear", sypd: "betzyThroughput" },
+  ];
+  const machineOf = row => MACHINES.find(m => m.key === (row && row.machine)) || MACHINES[0];
+  // A run with timing files of its own on its machine is costed with them; any other run
+  // with its configuration's value there.
+  const ownTiming = (row, mc) => (row && row.measured && row.measured[mc.key]) || null;
+  const costOn = (cfg, row) => { const mc = machineOf(row), own = ownTiming(row, mc); return own ? own.cost : cfg ? cfg[mc.cost] : null; };
+  const sypdOn = (cfg, row) => { const mc = machineOf(row), own = ownTiming(row, mc); return own ? own.sypd : cfg ? cfg[mc.sypd] : null; };
+  // A run can be scheduled once its configuration has a positive throughput on the run's
+  // machine. Cost may still be blank; those runs schedule normally and add nothing to the
+  // cost totals.
+  function hasTiming(cfg, row){
+    return Number(sypdOn(cfg, row)) > 0;
+  }
+  // Output on NIRD in GB per simulated year, from the cases' storage in progress.json:
+  // history by component, restarts, cmip7-prep's time series, and the CMOR files by tool.
+  // A run with output of its own uses it; any other run its configuration's, over all that
+  // configuration's runs' cases.
+  const STORAGE_KINDS = [
+    { key: "hist", label: "History", parts: true, note: "model history files, by component" },
+    { key: "rest", label: "Restarts", note: "restart sets, as kept" },
+    { key: "timeseries", label: "Time series", note: "cmip7-prep's time series, to be deleted" },
+    { key: "cmor", label: "CMOR", parts: true, note: "CMORized files, by tool" },
+  ];
+  function storageRates(cases){
+    const rate = list => {
+      const got = list.filter(x => x && x.years > 0), years = got.reduce((s, x) => s + x.years, 0);
+      return years ? got.reduce((s, x) => s + x.gb, 0) / years : null;
+    };
+    const out = {};
+    STORAGE_KINDS.forEach(k => {
+      const got = cases.map(c => c.storage && c.storage[k.key]).filter(Boolean);
+      if (!got.length) return;
+      if (k.parts){
+        const parts = {};
+        new Set(got.flatMap(Object.keys)).forEach(p => { const r = rate(got.map(g => g[p])); if (r !== null) parts[p] = r; });
+        const rates = Object.values(parts);
+        if (rates.length) out[k.key] = { rate: rates.reduce((s, r) => s + r, 0), parts };
+      } else {
+        const r = rate(got);
+        if (r !== null) out[k.key] = { rate: r };
+      }
+    });
+    return out;
+  }
+  function storageOf(row){
+    const own = storageRates(row.cases || []);
+    const cfg = storageRates(sims.filter(r => r.configId === row.configId).flatMap(r => r.cases || []));
+    const out = {};
+    STORAGE_KINDS.forEach(k => {
+      if (own[k.key]) out[k.key] = { ...own[k.key], own: true };
+      else if (cfg[k.key]) out[k.key] = { ...cfg[k.key], own: false };
+    });
+    return out;
+  }
+  // A run's planned output in TB of each kind: members × years × GB per simulated year.
+  function plannedStorage(row){
+    const memberYears = isRowOff(row) ? 0 : ensembleCount(row) * Math.max(0, Number(row.years) || 0);
+    const rates = storageOf(row), tb = {};
+    STORAGE_KINDS.forEach(k => { tb[k.key] = rates[k.key] ? memberYears * rates[k.key].rate / 1000 : null; });
+    return { rates, tb };
+  }
+  const fmtTB = v => v >= 10 ? v.toFixed(0) : v >= 1 ? v.toFixed(1) : v.toFixed(2);
+  // A run's TB cell: its value, and on hover the rate it comes from and its parts.
+  function storageCell(it, k){
+    const v = it.tb[k.key];
+    if (it.off) return '<td class="n"><span class="ct-muted">–</span></td>';
+    if (v === null) return `<td class="n" title="No ${k.label.toLowerCase()} output on NIRD yet for this run or its configuration"><span class="ct-muted">–</span></td>`;
+    const r = it.rates[k.key];
+    const title = `${r.rate.toFixed(2)} GB per simulated year, measured from ${r.own ? "this run's cases" : "its configuration's runs"}`
+      + (r.parts ? "\n" + Object.entries(r.parts).map(([p, g]) => `${p}: ${g.toFixed(2)} GB`).join("\n") : "");
+    return `<td class="n${r.own ? "" : " ct-muted"}" title="${title.replace(/"/g, "&quot;")}">${fmtTB(v)}</td>`;
+  }
+  // A blank ensemble size is "not decided yet": it schedules one member and is flagged.
+  // An explicit 0 excludes the run.
+  function normalizeEnsemble(v){
+    if (v === undefined || v === null || String(v).trim() === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.round(n)) : null;
+  }
+  function ensembleCount(row){
+    const n = normalizeEnsemble(row.ensemble);
+    return n === null ? 1 : n;
+  }
+  // Everyone who owns one of the cases, each once. A case's owner can name several
+  // people, "alice, bob", when its issue has several assignees.
+  const owners = cases => [...new Set(cases.flatMap(c => (c.owner || "").split(", ").filter(Boolean)))].join(", ");
+
+  // Members of an in-progress run that are already going. Blank means all of them.
+  function runningCount(row){
+    const ens = ensembleCount(row);
+    const v = row.membersRunning;
+    if (v === undefined || v === null || String(v).trim() === "") return ens;
+    const n = Math.round(Number(v));
+    return Number.isFinite(n) ? Math.max(0, Math.min(ens, n)) : ens;
+  }
+
+  // ---------------- formatting helpers ----------------
+  function fmtCompact(n){
+    const abs = Math.abs(n);
+    if (abs >= 1e6) return (n/1e6).toFixed(2) + "M";
+    if (abs >= 1e3) return (n/1e3).toFixed(1) + "K";
+    return Math.round(n).toLocaleString();
+  }
+  const STATUS_LABELS = { pending: "Pending", "in-progress": "In progress", completed: "Completed" };
+  // Priority 0 is a deliberate, meaningful value ("this run won't happen"), not a missing one —
+  // so unlike most numeric fields here, a falsy `|| 1` fallback would wrongly promote 0 back to
+  // 1. Only an actually blank/invalid value defaults to 1; an explicit 0 is preserved.
+  function normalizePriority(v){
+    if (v === undefined || v === null || v === "") return 1;
+    const n = Number(v);
+    return Number.isFinite(n) ? Math.max(0, Math.round(n)) : 1;
+  }
+
+  // ---------------- rendering ----------------
+  function render(){
+    renderCostSummary();
+    renderTables();
+  }
+
+  // ---------------- cost table ----------------
+  // A table for each MIP at each resolution, as in the tracker, each with its own column
+  // headings and the same column widths, so the columns line up from one to the next.
+  const costTablesEl = el("costTables");
+  // Runs not in the plan for now (priority or ensemble 0) are in a table of their own at the
+  // bottom, closed until opened.
+  let showOffRuns = false;
+  // The columns' widths in %, from Simulation to CMOR TB.
+  const COST_COL_WIDTHS = [17, 6, 6, 8, 9, 6, 12, 8, 7, 7, 7, 7];
+  function renderCostTable(){
+    const fmtN = n => Math.round(n).toLocaleString("en-US");
+    // Core-hours in millions, or in thousands below a million: 58,480 is 58K, not 0.06M.
+    const fmtM = n => n >= 1e6 ? (n / 1e6).toFixed(2) + "M" : Math.round(n / 1e3).toLocaleString() + "K";
+    const dash = '<span class="ct-muted">–</span>';
+    const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+    const strip = (name, res) => res && name.endsWith(" " + res) ? name.slice(0, -res.length - 1) : name;
+    const NCOLS = COST_COL_WIDTHS.length;
+
+    const items = sims.map(r => {
+      const cfg = configs.find(c => c.id === r.configId) || configs[0];
+      const res = resolutionOf(r);
+      const off = isRowOff(r);
+      const members = ensembleCount(r);
+      const years = Math.max(0, Number(r.years) || 0);
+      const cpy = Number(costOn(cfg, r)) > 0 ? Number(costOn(cfg, r)) : null;
+      const sypd = hasTiming(cfg, r) ? Number(sypdOn(cfg, r)) : null;
+      const memberYears = off ? 0 : members * years;
+      return {
+        r, cfg, res, off, members, years, cpy, sypd, memberYears, ...plannedStorage(r),
+        name: strip(r.name, res),
+        mip: r.mip || "CMIP",
+        core: cpy !== null && !off ? memberYears * cpy : null,
+        days: sypd ? years / sypd : null,
+      };
+    });
+    const sum = (list, k) => list.reduce((s, it) => s + (it[k] || 0), 0);
+    // A group's TB cells: the sum over its runs with a value.
+    const storageSums = list => STORAGE_KINDS.map(k => {
+      const got = list.filter(it => it.tb[k.key] !== null);
+      return got.length ? `<td class="n" title="${got.length} of ${list.length} runs have a value">${fmtTB(got.reduce((s, it) => s + it.tb[k.key], 0))}</td>` : "<td></td>";
+    }).join("");
+
+    function rowHtml(it){
+      const ens = normalizeEnsemble(it.r.ensemble);
+      return `<tr${it.off ? ' class="ct-off"' : ""}>`
+        + `<td class="ct-name" title="${esc(it.name)}">${esc(it.name)}${machineOf(it.r).key !== MACHINES[0].key ? ` <span class="ct-muted" title="Costed on ${machineOf(it.r).label}, where its timing files say it runs">on ${machineOf(it.r).label}</span>` : ""}</td>`
+        + `<td class="n">${ens === null ? '<span class="ct-muted" title="Not set yet; counted as one">–</span>' : ens}</td>`
+        + `<td class="n">${fmtN(it.years)}</td>`
+        + `<td class="n">${it.off ? dash : fmtN(it.memberYears)}</td>`
+        + `<td class="n">${it.cpy !== null ? fmtN(it.cpy) : dash}</td>`
+        + `<td class="n">${it.sypd ? it.sypd.toFixed(0) : dash}</td>`
+        + `<td class="n">${it.core !== null ? fmtM(it.core) : (it.off ? dash : '<span class="ct-muted">needs timing</span>')}</td>`
+        + `<td class="n">${it.days !== null ? it.days.toFixed(1) : dash}</td>`
+        + STORAGE_KINDS.map(k => storageCell(it, k)).join("") + "</tr>";
+    }
+    // A total's core-hours: the sum over its runs with a cost, or "needs timing" when none of
+    // them has a cost yet, rather than a total of nothing. The table's heading says how many
+    // runs need timing, and so are left out.
+    const untimedCount = list => list.filter(it => !it.off && it.core === null).length;
+    const coreTotal = list => {
+      const costed = list.filter(it => it.core !== null), untimed = untimedCount(list);
+      if (!costed.length) return '<td class="n"><span class="ct-muted">needs timing</span></td>';
+      return `<td class="n"${untimed ? ` title="Without the ${runs(untimed)} that need timing"` : ""}>${fmtM(sum(costed, "core"))}</td>`;
+    };
+    // A total's days: how long all its members with a throughput take run one after another.
+    const daysTotal = list => {
+      const timed = list.filter(it => !it.off && it.sypd);
+      return timed.length
+        ? `<td class="n" title="Days of wall-clock time all ${timed.length === list.length ? "" : `${timed.length} timed `}runs' members take, run one after another">${fmtN(timed.reduce((s, it) => s + it.memberYears / it.sypd, 0))}</td>`
+        : "<td></td>";
+    };
+    const totalsRow = (label, list) => `<tr class="ct-total"><td colspan="3">${label}</td><td class="n">${fmtN(sum(list, "memberYears"))}</td>`
+      + `<td colspan="2"></td>${coreTotal(list)}${daysTotal(list)}` + storageSums(list) + "</tr>";
+    const columnHeads = '<tr class="ct-cols"><th>Simulation</th>'
+      + '<th class="n">Members</th><th class="n">Years each</th><th class="n">Member-years</th>'
+      + '<th class="n">Core-hr / sim-yr</th><th class="n">SYPD</th><th class="n">Core-hours</th><th class="n" title="Days of wall-clock time one member takes to run: its years divided by SYPD">Days to run a member</th>'
+      + STORAGE_KINDS.map((k, i) => `<th class="n${i === 0 ? " ct-storage-start" : ""}" title="${k.note}, in TB">${k.label} TB</th>`).join("") + "</tr>";
+    const colgroup = "<colgroup>" + COST_COL_WIDTHS.map(w => `<col style="width:${w}%">`).join("") + "</colgroup>";
+    const up = '<a class="sim-index-up" href="#cost-index" title="Back to the index of the tables">↑ index</a>';
+    const table = (id, title, info, body, withHeads = true) => `<div class="table-scroll" id="${id}"><table class="data-table cost-table">${colgroup}`
+      + `<thead><tr class="ct-title"><th colspan="${NCOLS}">${title}<span class="ct-groupinfo">${info}</span>${up}</th></tr>${withHeads ? columnHeads : ""}</thead>`
+      + `<tbody>${body}</tbody></table></div>`;
+    const runs = n => `${n} run${n === 1 ? "" : "s"}`;
+
+    // Resolutions none of whose runs have a timing yet are left out, with a note.
+    const offItems = items.filter(it => it.off);
+    const active = items.filter(it => !it.off);
+    const untimedRes = Array.from(new Set(active.map(it => it.res)))
+      .filter(res => active.every(it => it.res !== res || it.core === null));
+    const shown = active.filter(it => !untimedRes.includes(it.res));
+    const resList = Array.from(new Set(shown.map(it => it.res))).sort();
+    // The MIPs at each resolution, CMIP first and then by core-hours.
+    const groups = [];
+    resList.forEach(res => {
+      const mips = new Map();
+      shown.filter(it => it.res === res).forEach(it => { if (!mips.has(it.mip)) mips.set(it.mip, []); mips.get(it.mip).push(it); });
+      Array.from(mips.keys()).sort((a, b) => (a !== "CMIP") - (b !== "CMIP") || sum(mips.get(b), "core") - sum(mips.get(a), "core"))
+        .forEach(mip => groups.push({ res, mip, list: mips.get(mip), id: "cost-" + `${mip} ${res}`.toLowerCase().replace(/[^a-z0-9]+/g, "-") }));
+    });
+
+    // An index of the tables, a line for each resolution, each entry a link to its table.
+    let html = '<nav class="sim-index" id="cost-index" aria-label="Cost tables"><p class="sim-index-hint">Click any of the following to go to that table.</p>'
+      + resList.map(res => `<div class="sim-index-line"><span class="sim-index-res">${esc(res || "Other")}</span>`
+        + groups.filter(g => g.res === res).map(g => `<a href="#${g.id}" title="${esc(g.mip)} ${esc(res)} · ${runs(g.list.length)}">${esc(g.mip)}</a>`).join("") + "</div>").join("")
+      + '<div class="sim-index-line"><span class="sim-index-res">All</span><a href="#cost-all">Totals</a>'
+      + (offItems.length ? '<a href="#cost-off">Not in the plan</a>' : "") + "</div></nav>";
+    groups.forEach(g => {
+      const untimed = g.list.filter(it => it.core === null).length;
+      html += table(g.id, `${esc(g.mip)} ${esc(g.res)}`, `${runs(g.list.length)}${untimed ? ` · ${untimed} need timing` : ""}`,
+        g.list.map(rowHtml).join("") + totalsRow("Total", g.list));
+    });
+    const untimedShown = untimedCount(shown);
+    html += table("cost-all", "Totals", "the runs in the plan, by resolution"
+      + (untimedShown ? ` · ${runs(untimedShown)} need timing and are left out of the core-hours and days` : ""),
+      resList.map(res => totalsRow(esc(res), shown.filter(it => it.res === res))).join("") + totalsRow("All", shown));
+    untimedRes.forEach(res => {
+      html += `<p class="ct-note">${esc(res || "Other")} not shown: none of its ${runs(active.filter(it => it.res === res).length)} has a timing yet.</p>`;
+    });
+    if (offItems.length){
+      const mips = Array.from(new Set(offItems.map(it => it.mip))).join(", ");
+      html += table("cost-off", `<button type="button" class="ct-offtoggle" data-action="toggle-off" aria-expanded="${showOffRuns}">${showOffRuns ? "▾" : "▸"} Not in the plan for now</button>`,
+        `${runs(offItems.length)} (${esc(mips)})${showOffRuns ? "" : " · click to show"}`,
+        showOffRuns ? offItems.map(rowHtml).join("") : "", showOffRuns);
+    }
+    costTablesEl.innerHTML = html;
+  }
+
+  costTablesEl.addEventListener("click", e => {
+    // The index links scroll within the page, wherever it is served from.
+    const a = e.target.closest("a.sim-index-up, .sim-index a");
+    const target = a && document.getElementById(a.getAttribute("href").slice(1));
+    if (target){
+      e.preventDefault();
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    const b = e.target.closest('[data-action="toggle-off"]');
+    if (!b) return;
+    showOffRuns = !showOffRuns;
+    renderCostTable();
+    const again = costTablesEl.querySelector('[data-action="toggle-off"]');
+    if (again) again.focus();
+  });
+
+  function renderTimingNote(result){
+    const rows = result.untimedRows || [];
+    const unsetEns = sims.filter(r => r.status !== "completed" && normalizePriority(r.priority) !== 0 && normalizeEnsemble(r.ensemble) === null);
+    const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+    const ensMsg = unsetEns.length
+      ? `<b>${unsetEns.length} run${unsetEns.length === 1 ? " has" : "s have"} no ensemble size yet</b> and ${unsetEns.length === 1 ? "is" : "are"} counted with one member.`
+      : "";
+    if (!rows.length){
+      timingNote.hidden = !ensMsg;
+      timingNote.innerHTML = ensMsg;
+      return;
+    }
+    const byCfg = new Map();
+    rows.forEach(r => {
+      const cfg = configs.find(c => c.id === r.configId) || configs[0];
+      const name = cfg ? cfg.name : "?";
+      if (!byCfg.has(name)) byCfg.set(name, []);
+      byCfg.get(name).push(r.name);
+    });
+    const members = rows.reduce((s, r) => s + ensembleCount(r), 0);
+    const parts = Array.from(byCfg.entries())
+      .map(([cfg, names]) => `<b>${esc(cfg)}</b>: ${names.map(esc).join(", ")}`);
+    timingNote.hidden = false;
+    timingNote.innerHTML = `<b>${rows.length} run${rows.length === 1 ? "" : "s"} (${members} member${members === 1 ? "" : "s"}) need timing</b> and are left out of the cost totals until their configuration has a timing.<br>`
+      + parts.join(" · ")
+      + (ensMsg ? `<br><br>${ensMsg}` : "");
+  }
+
+  function renderTrackerStats(){
+    const box = el("trackerStats");
+    box.innerHTML = "";
+    // A set of tiles for each resolution, LM first. Every member is a run of its own, as in
+    // the simulation table.
+    const RES_ORDER = ["LM", "MM"];
+    const plan = sims.filter(r => !isRowOff(r));
+    const resolutions = [...new Set(plan.map(resolutionOf))]
+      .sort((a, b) => (RES_ORDER.indexOf(a) + 1 || 9) - (RES_ORDER.indexOf(b) + 1 || 9));
+    resolutions.forEach(res => {
+      const experiments = plan.filter(r => resolutionOf(r) === res);
+      const active = experiments.flatMap(memberViews);
+      const count = f => active.filter(f).length;
+      const heading = document.createElement("h3");
+      heading.className = "stat-heading";
+      heading.textContent = res || "Other";
+      box.appendChild(heading);
+      [
+        { label: "Experiments in the plan", value: experiments.length, sub: `${active.length} runs when counting each member` },
+        { label: "Waiting to start", value: count(issueOpened), sub: "GitHub issue open, no files on NIRD yet" },
+        { label: "In progress", value: count(r => r.status === "in-progress"), sub: "running now", hero: true },
+        { label: "Completed", value: count(r => r.status === "completed"), sub: "run finished" },
+        { label: "On ESGF", value: count(r => stepDone(r, "esgf")), sub: "published" },
+      ].forEach(t => {
+        const tile = document.createElement("div");
+        tile.className = "stat-tile" + (t.hero ? " hero" : "");
+        tile.innerHTML = `<div class="stat-label"></div><div class="stat-value tabular"></div><div class="stat-sub"></div>`;
+        tile.children[0].textContent = t.label;
+        tile.children[1].textContent = `${t.value}`;
+        tile.children[2].textContent = t.sub;
+        box.appendChild(tile);
+      });
+    });
+    const note = el("autoNote");
+    if (note){
+      const left = autoProgress && autoProgress.unmatched.length
+        ? ` Not shown: ${autoProgress.unmatched.join("; ")}.` : "";
+      // The line only lists the issues the tracker could not place, when there are any.
+      note.hidden = !left;
+      note.textContent = left.trim();
+    }
+  }
+
+  function renderStats(result){
+    const completedCount = sims.filter(r => r.status === "completed").length;
+    const inProgressCount = sims.filter(r => r.status === "in-progress").length;
+    const progressNote = (completedCount || inProgressCount)
+      ? ` · ${[completedCount ? `${completedCount} completed` : null, inProgressCount ? `${inProgressCount} in progress` : null].filter(Boolean).join(", ")}`
+      : "";
+
+    statsGrid.innerHTML = "";
+    const tiles = [
+      {
+        hero: true,
+        label: (completedCount || inProgressCount) ? `Compute cost remaining (${costUnit})` : `Total compute cost (${costUnit})`,
+        value: fmtCompact(result.totalCost),
+        sub: `across <span class="mono tabular">${result.jobCount}</span> simulation members${progressNote}`,
+      },
+      // The plan's output on NIRD of each kind, over the runs in the plan.
+      ...STORAGE_KINDS.map(k => {
+        const planned = sims.filter(r => !isRowOff(r)), tb = planned.map(r => plannedStorage(r).tb[k.key]);
+        const known = tb.filter(v => v !== null), missing = planned.length - known.length;
+        return {
+          label: `${k.label} (TB)`,
+          value: known.length ? fmtTB(known.reduce((s, v) => s + v, 0)) : "–",
+          sub: `${k.note}${missing ? `; <span class="mono tabular">${missing}</span> of ${planned.length} runs not measured yet` : ""}`,
+        };
+      }),
+    ];
+    tiles.forEach(t => {
+      const tile = document.createElement("div");
+      tile.className = "stat-tile" + (t.hero ? " hero" : "");
+      const label = document.createElement("div");
+      label.className = "stat-label"; label.textContent = t.label;
+      const value = document.createElement("div");
+      value.className = "stat-value tabular"; value.textContent = t.value;
+      const sub = document.createElement("div");
+      sub.className = "stat-sub"; sub.innerHTML = t.sub;
+      tile.appendChild(label); tile.appendChild(value); tile.appendChild(sub);
+      statsGrid.appendChild(tile);
+    });
+  }
+
+  // Groups the same `result.jobs` the cost stat tile sums — a completed run contributes
+  // nothing, an in-progress run only its remaining cost — so every group total, and their
+  // sum, always matches "Total/remaining compute cost" exactly.
+  // Groups by resolution and MIP. The resolution is read from the configuration name
+  // ("NorESM3 ESM MM" -> "MM"); a configuration without one groups under "".
+  function computeMipBreakdown(result){
+    const rowMap = jobRowLookup();
+    const groups = new Map();
+    result.jobs.forEach(job => {
+      const row = rowMap.get(job.rowId);
+      // A run with no MIP tag defaults into CMIP, the baseline/core experiment set,
+      // rather than its own "Ungrouped" bucket, so a hand-added run without a tag just
+      // reads as part of the core set instead of needing its own category.
+      const mip = (row && row.mip) ? row.mip : "CMIP";
+      const res = row ? resolutionOf(row) : "";
+      const key = res + "|" + mip;
+      const g = groups.get(key) || { mip, res, cost: 0, runCount: 0 };
+      g.cost += job.cost;
+      g.runCount += 1;
+      groups.set(key, g);
+    });
+    return { list: Array.from(groups.values()).sort((a, b) => b.cost - a.cost) };
+  }
+  // Colour of each resolution in Cost by MIP.
+  const RES_SERIES = { "LM": 1, "MM": 7 };
+  // A run's resolution is its own; a row without one takes it from its configuration's name.
+  function resolutionOf(row){
+    if (row && row.resolution) return row.resolution;
+    const cfg = configs.find(c => c.id === row.configId) || configs[0];
+    const m = cfg && /\b(LM|MM)\b/.exec(cfg.name || "");
+    return m ? m[0] : "";
+  }
+
+  // Shared row renderer for any "cost grouped by X" card — bars are scaled relative to the
+  // largest group in the list, so the biggest contributor always fills the full track width.
+  function renderCostRows(container, list, totalCost, labelOf){
+    container.innerHTML = "";
+    const maxCost = list.length ? Math.max.apply(null, list.map(g => g.cost)) : 0;
+    list.forEach(g => {
+      const label = labelOf(g);
+      const pctOfTotal = totalCost > 0 ? (g.cost / totalCost) * 100 : 0;
+      const barPct = maxCost > 0 ? (g.cost / maxCost) * 100 : 0;
+      const row = document.createElement("div");
+      row.className = "cost-row";
+      const name = document.createElement("span");
+      name.className = "cost-name"; name.textContent = label; name.title = label;
+      const track = document.createElement("div");
+      track.className = "cost-bar-track";
+      const fill = document.createElement("div");
+      fill.className = "cost-bar-fill"; fill.style.width = barPct.toFixed(1) + "%";
+      track.appendChild(fill);
+      const figures = document.createElement("span");
+      figures.className = "cost-figures";
+      const costB = document.createElement("b"); costB.textContent = fmtCompact(g.cost);
+      figures.appendChild(costB);
+      figures.appendChild(document.createTextNode(` · ${g.runCount} run${g.runCount === 1 ? "" : "s"} · ${pctOfTotal.toFixed(0)}%`));
+      row.appendChild(name); row.appendChild(track); row.appendChild(figures);
+      container.appendChild(row);
+    });
+  }
+
+  function currentCostLabel(){
+    const completedCount = sims.filter(r => r.status === "completed").length;
+    const inProgressCount = sims.filter(r => r.status === "in-progress").length;
+    return (completedCount || inProgressCount) ? "Compute cost remaining" : "Total compute cost";
+  }
+
+  function renderMipBreakdown(result){
+    const { list } = computeMipBreakdown(result);
+    // Resolutions of every run that would be conducted, timed or not, so a resolution
+    // whose runs all still need timing gets its own heading instead of vanishing.
+    const active = sims.filter(r => r.status !== "completed" && !isRowOff(r));
+    const resolutions = Array.from(new Set(active.map(resolutionOf))).sort();
+    if (resolutions.length > 1){
+      mipCard.hidden = false;
+      mipCaption.textContent = `${currentCostLabel()} (${costUnit}) for each resolution, grouped by the MIP each simulation belongs to; percentages are of that resolution's total.`;
+      mipBreakdownEl.innerHTML = "";
+      const untimedIds = new Set((result.untimedRows || []).map(r => r.id));
+      resolutions.forEach(res => {
+        const sub = list.filter(g => g.res === res);
+        const subtotal = sub.reduce((s, g) => s + g.cost, 0);
+        const untimed = active.filter(r => resolutionOf(r) === res && untimedIds.has(r.id)).length;
+        const group = document.createElement("div");
+        group.className = "cost-res-group";
+        if (RES_SERIES[res]) group.style.setProperty("--res-colour", `var(--series-${RES_SERIES[res]})`);
+        const head = document.createElement("div");
+        head.className = "cost-group-head";
+        const title = document.createElement("span");
+        title.className = "cost-group-title"; title.textContent = res || "Other";
+        const figs = document.createElement("span");
+        figs.className = "cost-figures";
+        const pct = result.totalCost > 0 ? (subtotal / result.totalCost) * 100 : 0;
+        figs.textContent = sub.length
+          ? `${fmtCompact(subtotal)} · ${pct.toFixed(0)}% of all${untimed ? ` · ${untimed} run${untimed === 1 ? "" : "s"} need timing` : ""}`
+          : `no timed runs yet · ${untimed} run${untimed === 1 ? "" : "s"} need timing`;
+        head.appendChild(title); head.appendChild(figs);
+        group.appendChild(head);
+        if (sub.length){
+          const rows = document.createElement("div");
+          rows.className = "cost-breakdown";
+          renderCostRows(rows, sub, subtotal, g => g.mip);
+          group.appendChild(rows);
+        }
+        mipBreakdownEl.appendChild(group);
+      });
+      return;
+    }
+    // Nothing to compare when every run falls into a single MIP (including an all-CMIP
+    // plan) — the card would just restate the single cost stat tile as one 100% row.
+    if (list.length <= 1){
+      mipCard.hidden = true;
+      mipBreakdownEl.innerHTML = "";
+      return;
+    }
+    mipCard.hidden = false;
+    mipCaption.textContent = `${currentCostLabel()} (${costUnit}), grouped by the MIP each simulation belongs to — runs without a MIP tag are grouped into CMIP.`;
+    renderCostRows(mipBreakdownEl, list, result.totalCost || 0, g => g.mip);
+  }
+
+  // A priority-0 row never reaches computeCosts' job-building loop, so it has no job to
+  // read a cost off of. Mirror that loop's cost formula for a single row here instead, so the
+  // note below can report what the excluded runs would have cost. A completed run still
+  // nominally costs $0 either way — "excluded" means compute avoided, not compute already spent.
+  function rowNominalCost(row){
+    if (row.status === "completed") return 0;
+    const cfg = configs.find(c => c.id === row.configId) || configs[0];
+    if (!cfg) return 0;
+    const years = Math.max(Number(row.years) || 0, 0);
+    const ens = ensembleCount(row);
+    if (ens === 0) return 0;
+    const inProgress = row.status === "in-progress";
+    const yearsCompleted = inProgress ? Math.min(years, Math.max(0, Number(row.yearsCompleted) || 0)) : 0;
+    const progressFrac = years > 0 ? (yearsCompleted / years) : 0;
+    return years * (1 - progressFrac) * (Number(costOn(cfg, row)) || 0) * ens;
+  }
+
+  // Priority 0 means "won't be conducted" (see Ensemble 0) — those runs never produce a job,
+  // so they're inherently absent from this cost breakdown, not a zero-cost row within it.
+  // They're still worth surfacing, so a separate note below the bars reports how many there
+  // are and what they would have cost had they been left in.
+  function computePriorityBreakdown(result){
+    const groups = new Map();
+    result.jobs.forEach(job => {
+      const p = job.rowPriority;
+      const g = groups.get(p) || { priority: p, cost: 0, runCount: 0 };
+      g.cost += job.cost;
+      g.runCount += 1;
+      groups.set(p, g);
+    });
+    const excludedRows = sims.filter(r => normalizePriority(r.priority) === 0);
+    const excludedCost = excludedRows.reduce((sum, r) => sum + rowNominalCost(r), 0);
+    return { list: Array.from(groups.values()).sort((a, b) => a.priority - b.priority), excludedCount: excludedRows.length, excludedCost };
+  }
+
+  const SHOW_PRIORITY_CARD = false;
+  function renderPriorityBreakdown(result){
+    if (!SHOW_PRIORITY_CARD){ priorityCard.hidden = true; return; }
+    const { list, excludedCount, excludedCost } = computePriorityBreakdown(result);
+    if (list.length <= 1 && !excludedCount){
+      priorityCard.hidden = true;
+      priorityBreakdownEl.innerHTML = "";
+      priorityExcludedNote.hidden = true;
+      return;
+    }
+    priorityCard.hidden = false;
+    priorityCaption.textContent = `${currentCostLabel()} (${costUnit}), grouped by each simulation's priority level.`;
+    renderCostRows(priorityBreakdownEl, list, result.totalCost || 0, g => "Priority " + g.priority);
+    if (excludedCount){
+      priorityExcludedNote.hidden = false;
+      priorityExcludedNote.textContent = `+ ${excludedCount} run${excludedCount === 1 ? "" : "s"} switched off with Priority 0 — left out of the totals, would cost ${fmtCompact(excludedCost)} ${costUnit} if run.`;
+    } else {
+      priorityExcludedNote.hidden = true;
+    }
+  }
+
+  function jobRowLookup(){
+    const map = new Map();
+    sims.forEach(r => map.set(r.id, r));
+    return map;
+  }
+  // Ensemble 0 and Priority 0 both mean "this run won't happen" — same visual treatment,
+  // same exclusion from the cost — just two different ways a user might express it.
+  function isRowOff(row){
+    return ensembleCount(row) === 0 || normalizePriority(row.priority) === 0;
+  }
+
+  // A CMORize cell's panel opens under its years, one at a time, and closes on a click
+  // elsewhere or Escape.
+  // One case's chip in a CMORize cell, "#002 1–170", and the panel it opens: what is wrong
+  // with its files, if anything, its years, its output directory, its issue's CMOR data
+  // version and the version directories its files are in. A chip is red when no year has
+  // every realm because a cmip7-prep step failed or is still running, or when the script
+  // found something wrong with cmor4cmip7's files. A cmip7-prep chip is dashed while no year
+  // has every realm for another reason.
+  function cmorCaseBox(row, step, { member, c, info }, byVariant){
+    const tool = step.key === "cmoratm" ? "cmip7prep" : "cmor4cmip7";
+    const problems = info.problems || [];
+    const unfinished = tool === "cmip7prep" && !info.years.length;
+    const failed = unfinished && (info.unfinished || []).some(s => s.failed.length);
+    const box = document.createElement("details");
+    box.className = "cmor-box" + (problems.length || failed ? " bad" : "");
+    const summary = document.createElement("summary");
+    const chip = document.createElement("span");
+    chip.className = "step-range" + (unfinished && !failed ? " partial" : "");
+    chip.textContent = `#${String(c.issue).padStart(3, "0")} ${yearSpans(info.years.length ? info.years : info.files)}`;
+    summary.appendChild(chip);
+    box.appendChild(summary);
+
+    const pop = document.createElement("div");
+    pop.className = "cmor-pop";
+    const add = (tag, cls, text) => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      pop.appendChild(e);
+      return e;
+    };
+    const list = (head, lines) => {
+      add("div", "cp-head", head);
+      const ul = add("ul");
+      lines.forEach(text => {
+        const li = document.createElement("li");
+        li.textContent = text;
+        ul.appendChild(li);
+      });
+    };
+    const versions = Object.entries(info.versions);
+    add("h4", null, `#${c.issue}, ${row.name}${byVariant ? " " + member.variant : ""}: ${tool}`);
+    if (problems.length){
+      add("div", "cp-head bad", "Problems");
+      const ul = add("ul", "bad");
+      problems.forEach(p => { const li = document.createElement("li"); li.textContent = p; ul.appendChild(li); });
+    }
+    const caseYears = c.shownTo === Infinity ? `from ${c.from}` : `${c.from}–${c.shownTo}`;
+    const what = step.key === "cmoratm" ? "realm" : "variable";
+    list("Years", [
+      `The case runs years ${caseYears}${c.to === Infinity ? " so far" : ""}.`,
+      info.years.length ? `CMORized: ${yearSpans(info.years)}`
+        : `No year has every ${what} yet; the files cover ${yearSpans(info.files)}.`,
+    ]);
+    list("Output directory", [c.output[tool] || "None found yet."]);
+    // cmip7-prep's steps not finished, set by set, without the "cmor-" every step starts with.
+    if (info.unfinished && info.unfinished.length){
+      const steps = keys => keys.map(k => k.replace(/^cmor-/, "")).join(", ");
+      list("Steps not finished", info.unfinished.flatMap(s => [
+        ...(s.failed.length ? [`${s.first}–${s.last}: failed or still running: ${steps(s.failed)}. `
+          + `Their logs are in logs/${s.first}-${s.last}/ in the output directory.`] : []),
+        ...(s.notRun.length ? [`${s.first}–${s.last}: not run: ${steps(s.notRun)}.`] : []),
+      ]));
+    }
+    add("div", "cp-head", "CMORization issue");
+    const issues = add("ul");
+    if (!c.cmorIssues.length) issues.appendChild(Object.assign(document.createElement("li"),
+      { textContent: `None in ${CMOR_REPO} names the case yet.` }));
+    c.cmorIssues.forEach(ci => {
+      const li = document.createElement("li");
+      const a = Object.assign(document.createElement("a"),
+        { href: cmorIssueUrl(ci.number), target: "_blank", rel: "noopener", textContent: `${CMOR_REPO}#${ci.number}` });
+      li.append(a, `, ${ci.state}; cmor tag version ${ci.tagVersion || "not given"}`);
+      issues.appendChild(li);
+    });
+    list("Version directories of its files", versions.length
+      ? versions.map(([v, ys]) => `${v}, years ${yearSpans(ys)}`) : ["None found yet."]);
+    box.appendChild(pop);
+    return box;
+  }
+
+  function placeCmorPop(box){
+    const pop = box.querySelector(".cmor-pop"), r = box.querySelector("summary").getBoundingClientRect();
+    const w = pop.offsetWidth, h = pop.offsetHeight;
+    pop.style.left = Math.max(8, Math.min(r.left + r.width / 2 - w / 2, window.innerWidth - w - 8)) + "px";
+    const below = r.bottom + 4, above = r.top - h - 4;
+    pop.style.top = (below + h > window.innerHeight - 8 && above > 8 ? above : below) + "px";
+  }
+  const closeCmorPops = except => document.querySelectorAll("details.cmor-box[open]")
+    .forEach(b => { if (b !== except) b.open = false; });
+  document.addEventListener("toggle", e => {
+    const box = e.target;
+    if (!(box instanceof HTMLDetailsElement) || !box.classList.contains("cmor-box") || !box.open) return;
+    closeCmorPops(box);
+    placeCmorPop(box);
+  }, true);
+  document.addEventListener("click", e => { if (!e.target.closest("details.cmor-box")) closeCmorPops(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeCmorPops(); });
+  const placeOpenCmorPops = () => document.querySelectorAll("details.cmor-box[open]").forEach(placeCmorPop);
+  window.addEventListener("scroll", placeOpenCmorPops, { capture: true, passive: true });
+  window.addEventListener("resize", placeOpenCmorPops);
+
+  // ---------------- tables ----------------
+  function renderTables(){
+    renderExpTimings();
+    renderSimTable();
+  }
+
+  // ---------------- timings by experiment ----------------
+  // The runs with a case issue, by resolution, with their own measured timing on each
+  // machine or their configuration's value as an estimate.
+  const expTimingTbody = el("expTimingTbody");
+  const fmtRate = (v, digits) => v == null || !Number.isFinite(Number(v)) ? "–" : Number(v).toLocaleString("en-US", { maximumFractionDigits: digits, minimumFractionDigits: digits });
+  function expTimingRows(){
+    const byRes = new Map();
+    sims.filter(r => Array.isArray(r.cases) && r.cases.length).forEach(r => {
+      const res = resolutionOf(r) || "Other";
+      if (!byRes.has(res)) byRes.set(res, []);
+      byRes.get(res).push(r);
+    });
+    return [...byRes.keys()].sort((a, b) => (a === "Other") - (b === "Other") || a.localeCompare(b))
+      .map(res => ({ res, rows: byRes.get(res) }));
+  }
+  function renderExpTimings(){
+    expTimingTbody.innerHTML = "";
+    const groups = expTimingRows();
+    const NCOLS = 5;
+    if (!groups.length){
+      expTimingTbody.innerHTML = `<tr><td colspan="${NCOLS}" class="estimate">No run has a case issue yet.</td></tr>`;
+      return;
+    }
+    groups.forEach(({ res, rows }) => {
+      const head = document.createElement("tr");
+      head.className = "cfg-res";
+      if (RES_SERIES[res]) head.style.setProperty("--res-colour", `var(--series-${RES_SERIES[res]})`);
+      head.innerHTML = `<th colspan="${NCOLS}">${res}</th>`;
+      expTimingTbody.appendChild(head);
+      rows.forEach(r => {
+        const cfg = configs.find(c => c.id === r.configId) || configs[0];
+        // One line for each machine the run has timing files on; a run with none yet gets
+        // one line on its machine, with its configuration's value.
+        const measured = MACHINES.filter(mc => ownTiming(r, mc));
+        (measured.length ? measured : [machineOf(r)]).forEach((mc, k) => {
+          const own = ownTiming(r, mc);
+          const tr = document.createElement("tr");
+          const name = document.createElement("td");
+          name.className = "col-name";
+          name.textContent = k === 0 ? r.name : "";
+          tr.appendChild(name);
+          const machine = document.createElement("td");
+          machine.innerHTML = `<span class="machine-tag machine-${mc.key}">${mc.label}</span>`;
+          tr.appendChild(machine);
+          const cells = own
+            ? [fmtRate(own.cost, 0), fmtRate(own.sypd, 2), String(own.jobs)]
+            : [fmtRate(cfg && cfg[mc.cost], 0), fmtRate(cfg && cfg[mc.sypd], 2), ""];
+          cells.forEach((text, i) => {
+            const td = document.createElement("td");
+            td.className = "cfg-num" + (i === 0 ? " cfg-machine-start" : "") + (i < 2 ? (own ? ` measured machine-${mc.key}` : " estimate") : "");
+            if (i === 2 && own && own.runs.length) td.appendChild(sparkButton(r, mc, own));
+            else td.textContent = text;
+            if (i < 2) td.title = own
+              ? `${r.name} on ${mc.label}: ${own.jobs} job${own.jobs === 1 ? "" : "s"} of ${own.cases} case${own.cases === 1 ? "" : "s"}, ${own.years} simulated years`
+              : `No timing files of this run on ${mc.label} yet; the value of ${cfg ? cfg.name : "its configuration"}`;
+            tr.appendChild(td);
+          });
+          expTimingTbody.appendChild(tr);
+        });
+      });
+    });
+  }
+
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  function svgEl(tag, attrs){
+    const n = document.createElementNS(SVG_NS, tag);
+    Object.entries(attrs || {}).forEach(([k, v]) => n.setAttribute(k, v));
+    return n;
+  }
+  // The marker for a job: a circle on Olivia, a diamond on Betzy, so the machine does not
+  // rest on colour alone.
+  function jobMarker(machine, x, y){
+    return machine === "betzy"
+      ? svgEl("path", { d: `M${x} ${y - 6}L${x + 6} ${y}L${x} ${y + 6}L${x - 6} ${y}Z`, class: "job betzy" })
+      : svgEl("circle", { cx: x, cy: y, r: 5, class: "job olivia" });
+  }
+  // The Jobs cell of a measured run: its job count and a sparkline of its SYPD, which opens
+  // the run's timing charts.
+  function sparkButton(row, mc, own){
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "spark-btn";
+    btn.title = `Plot the SYPD and cost of each of ${row.name}'s jobs on ${mc.label}`;
+    btn.appendChild(document.createTextNode(String(own.jobs)));
+    const values = own.runs.map(j => Number(j[2]));
+    const w = 48, h = 16, lo = Math.min(...values), hi = Math.max(...values);
+    const svg = svgEl("svg", { width: w, height: h, viewBox: `0 0 ${w} ${h}`, "aria-hidden": "true" });
+    const px = i => values.length === 1 ? w / 2 : 2 + i / (values.length - 1) * (w - 4);
+    const py = v => hi === lo ? h / 2 : h - 2 - (v - lo) / (hi - lo) * (h - 4);
+    svg.appendChild(values.length === 1
+      ? svgEl("circle", { cx: w / 2, cy: h / 2, r: 2, fill: `var(--${mc.key})` })
+      : svgEl("polyline", { points: values.map((v, i) => `${px(i)},${py(v)}`).join(" "), class: `spark ${mc.key}` }));
+    btn.appendChild(svg);
+    btn.addEventListener("click", () => openTimingDialog(row, mc, own));
+    return btn;
+  }
+
+  const timingDialog = el("timingDialog");
+  el("timingDialogClose").addEventListener("click", () => timingDialog.close());
+  timingDialog.addEventListener("click", e => { if (e.target === timingDialog) timingDialog.close(); });
+  function openTimingDialog(row, mc, own){
+    el("timingDialogTitle").textContent = `${row.name} on ${mc.label}`;
+    el("timingDialogNote").textContent = `${own.jobs} job${own.jobs === 1 ? "" : "s"} of ${own.cases} case${own.cases === 1 ? "" : "s"}, `
+      + `${own.years} simulated years, by the date each job ended. The dashed line is the mean, each job weighted by the years it simulated.`;
+    const charts = el("timingDialogCharts");
+    charts.innerHTML = "";
+    if (typeof timingDialog.showModal === "function") timingDialog.showModal(); else timingDialog.setAttribute("open", "");
+    charts.appendChild(jobChart(own, mc, 2, "Simulated years per day", own.sypd, 2));
+    charts.appendChild(jobChart(own, mc, 1, `Cost per simulated year (${costUnit})`, own.cost, 0));
+  }
+  // One measure of a run's jobs over time: a 2px line through each job, a dashed mean, and a
+  // tooltip on each job.
+  function jobChart(own, mc, index, title, mean, digits){
+    const wrap = document.createElement("div");
+    wrap.className = "tchart";
+    const h4 = document.createElement("h4");
+    h4.textContent = title;
+    wrap.appendChild(h4);
+    const jobs = own.runs.map(j => ({ t: new Date(j[0].replace(" ", "T")).getTime(), v: Number(j[index]), j }));
+    const values = jobs.map(p => p.v).concat(mean);
+    let lo = Math.min(...values), hi = Math.max(...values);
+    const pad = (hi - lo) * 0.15 || Math.abs(hi) * 0.05 || 1;
+    lo -= pad; hi += pad;
+    const t0 = Math.min(...jobs.map(p => p.t)), t1 = Math.max(...jobs.map(p => p.t));
+    const width = Math.max(wrap.clientWidth || 640, 320), height = 150;
+    const left = 52, right = 44, top = 8, bottom = 22;
+    const x = t => t1 === t0 ? left + (width - left - right) / 2 : left + (t - t0) / (t1 - t0) * (width - left - right);
+    const y = v => top + (hi - v) / (hi - lo) * (height - top - bottom);
+    const svg = svgEl("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-label": `${title} of each job` });
+    const step = (() => { const raw = (hi - lo) / 4, mag = Math.pow(10, Math.floor(Math.log10(raw))); return [1, 2, 2.5, 5, 10].map(f => f * mag).find(s => raw <= s); })();
+    for (let v = Math.ceil(lo / step) * step; v <= hi; v += step){
+      svg.appendChild(svgEl("line", { x1: left, x2: width - right, y1: y(v), y2: y(v), class: "grid" }));
+      const t = svgEl("text", { x: left - 6, y: y(v) + 4, "text-anchor": "end", class: "axis-label" });
+      t.textContent = fmtRate(v, step < 1 ? 1 : 0);
+      svg.appendChild(t);
+    }
+    const fmtDay = ms => new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+    [[t0, "start"], [t1, "end"]].filter((d, i) => i === 0 || t1 !== t0).forEach(([t, anchor]) => {
+      const lab = svgEl("text", { x: x(t), y: height - 6, "text-anchor": t1 === t0 ? "middle" : anchor, class: "axis-label" });
+      lab.textContent = fmtDay(t);
+      svg.appendChild(lab);
+    });
+    svg.appendChild(svgEl("line", { x1: left, x2: width - right, y1: y(mean), y2: y(mean), class: "mean" }));
+    const meanLabel = svgEl("text", { x: width - right + 4, y: y(mean) + 4, class: "mean-label" });
+    meanLabel.textContent = "mean";
+    svg.appendChild(meanLabel);
+    if (jobs.length > 1) svg.appendChild(svgEl("polyline", { points: jobs.map(p => `${x(p.t)},${y(p.v)}`).join(" "), class: `series ${mc.key}` }));
+    const tip = document.createElement("div");
+    tip.className = "exp-timing-tip"; tip.hidden = true;
+    jobs.forEach(p => {
+      svg.appendChild(jobMarker(mc.key, x(p.t), y(p.v)));
+      const hit = svgEl("circle", { cx: x(p.t), cy: y(p.v), r: 10, class: "hit" });
+      hit.addEventListener("mouseenter", () => {
+        tip.innerHTML = `Job ending ${p.j[0]}<br>${fmtRate(p.j[2], 2)} SYPD · ${fmtRate(p.j[1], 0)} ${costUnit} / sim-yr · ${fmtRate(p.j[3], 1)} years`;
+        tip.hidden = false;
+        const scale = (svg.getBoundingClientRect().width || width) / width;
+        tip.style.left = Math.min(width * scale - 250, Math.max(0, x(p.t) * scale + 10)) + "px";
+        tip.style.top = (y(p.v) * scale + 24) + "px";
+      });
+      hit.addEventListener("mouseleave", () => { tip.hidden = true; });
+      svg.appendChild(hit);
+    });
+    wrap.appendChild(svg);
+    wrap.appendChild(tip);
+    return wrap;
+  }
+
+  // Display order: CMIP first, then each MIP in alphabetical order, each with its LM group
+  // above its MM group, then the runs that are off. Within a group, coupled runs come
+  // before atmosphere-only ones, and the sheet's order is kept otherwise, so a parent sits
+  // above the runs that branch from it.
+  function simDisplayGroups(){
+    const groups = new Map();
+    const RES_RANK = { LM: 0, MM: 1 };
+    const resKey = row => { const r = resolutionOf(row); return r in RES_RANK ? `${RES_RANK[r]}${r}` : `9${r || ""}`; };
+    sims.forEach((row, i) => {
+      const mip = isRowOff(row) ? "￿" : (row.mip === "CMIP" ? "" : (row.mip || "Other"));
+      const key = mip === "￿" ? mip : `${mip}\u0000${resKey(row)}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push({ row, i });
+    });
+    return [...groups.keys()].sort().map(key => {
+      const [mip, res] = key.split("\u0000");
+      return {
+        label: key === "￿" ? "Not in the plan for now" : `${mip === "" ? "CMIP" : mip} ${res.slice(1)}`.trim(),
+        mip: key === "￿" ? "Not in the plan" : mip === "" ? "CMIP" : mip,
+        res: key === "￿" ? "" : res.slice(1),
+        off: key === "￿",
+        rows: groups.get(key).sort((a, b) => (a.row.amip === "Yes") - (b.row.amip === "Yes") || a.i - b.i).map(x => x.row),
+      };
+    });
+  }
+
+  // The column headings, repeated in each group's bar after the group's name; the table has
+  // no heading of its own.
+  function simColumnHeads(){
+    return `<th class="sim-col" title="The experiment the run branches from, from the spreadsheet's &quot;branches from&quot; column">Parent</th>`
+      + `<th class="sim-col">Owner</th>`
+      + `<th class="sim-col" title="The run's GitHub issues in NorESMhub/noresm_cmip7_simulations, one per case; hover for the case name">Issues</th>`
+      + `<th class="sim-col n">Years</th>`
+      + WORKFLOW_STEPS.map(s => s.derived
+          // The run itself: its Status and its Progress, read from NIRD.
+          ? `<th class="step-h step-wide${s.phase ? " phase-start" : ""}" title="The run's status"><a href="#wf-${s.key}">Status</a></th>`
+            + `<th class="step-h step-wide" title="Years done">Progress</th>`
+          : `<th class="step-h${s.phase ? " phase-start" : s.split ? " split-start" : ""}" title="${s.name}${s.label ? ` (label: ${s.label})` : ""}"><a href="#wf-${s.key}">${s.short}</a></th>`).join("");
+  }
+
+  // Simulation, Parent, Owner, Issues, Years, then the step columns: Status, Progress,
+  // cmip7prep, cmor4cmip7, ESGF.
+  const SIM_COL_WIDTHS = [14, 10, 7, 13, 5, 13, 14, 10, 10, 4];
+
+  // The tracker shows only the runs that have a case issue, i.e. those waiting to start, in
+  // progress or completed, until the button above the tables is pressed to show every run.
+  let showAllSims = false;
+  const simShown = view => showAllSims || ["in-progress", "completed"].includes(view.status) || issueOpened(view);
+
+  function renderSimTable(){
+    simTables.innerHTML = "";
+    // Each group's runs, each run as the member rows that are shown.
+    const groups = simDisplayGroups()
+      .map(g => ({ ...g, runs: g.rows.map(r => memberViews(r).filter(simShown)).filter(vs => vs.length) }))
+      .filter(g => g.runs.length);
+    const groupId = g => "sims-" + g.label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const toggle = document.createElement("button");
+    toggle.type = "button"; toggle.className = "btn btn-ghost sim-toggle";
+    toggle.textContent = showAllSims ? "Show only the runs that have started" : "Show all runs";
+    toggle.onclick = () => { showAllSims = !showAllSims; renderSimTable(); };
+    const showing = document.createElement("p"); showing.className = "sim-index-hint";
+    showing.textContent = showAllSims ? "Showing every run in the plan." : "Showing the runs that are waiting to start, in progress or completed.";
+    showing.appendChild(toggle);
+    simTables.appendChild(showing);
+    if (!groups.length) return;
+    // An index of the tables, a line for each resolution, each entry a link to its table.
+    const index = document.createElement("nav");
+    index.className = "sim-index"; index.id = "sim-index"; index.setAttribute("aria-label", "Simulation tables");
+    const hint = document.createElement("p"); hint.className = "sim-index-hint";
+    hint.textContent = "Click any of the following to go to that table.";
+    index.appendChild(hint);
+    [...new Set(groups.map(g => g.res))].forEach(res => {
+      const line = document.createElement("div"); line.className = "sim-index-line";
+      const head = document.createElement("span"); head.className = "sim-index-res";
+      head.textContent = res || "Other";
+      line.appendChild(head);
+      groups.filter(g => g.res === res).forEach(g => {
+        const a = document.createElement("a");
+        a.href = "#" + groupId(g);
+        const runs = g.runs.reduce((n, vs) => n + vs.length, 0);
+        a.textContent = g.mip; a.title = `${g.label} · ${runs} run${runs === 1 ? "" : "s"}`;
+        line.appendChild(a);
+      });
+      index.appendChild(line);
+    });
+    simTables.appendChild(index);
+    // The links scroll within the page, wherever it is served from.
+    simTables.onclick = e => {
+      const a = e.target.closest("a.sim-index-up, .sim-index a");
+      const target = a && document.getElementById(a.getAttribute("href").slice(1));
+      if (!target) return;
+      e.preventDefault();
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+    groups.forEach(group => {
+      const head = document.createElement("tr");
+      head.className = "sim-group" + (group.off ? " sim-group-off" : "");
+      const runs = group.runs.reduce((n, vs) => n + vs.length, 0);
+      const name = document.createElement("th");
+      name.className = "sim-group-name";
+      name.textContent = `${group.label} · ${runs} run${runs === 1 ? "" : "s"}`;
+      // A link back up to the index.
+      const up = document.createElement("a");
+      up.className = "sim-index-up"; up.href = "#sim-index"; up.textContent = "↑ index"; up.title = "Back to the index of the tables";
+      name.appendChild(up);
+      head.appendChild(name);
+      head.insertAdjacentHTML("beforeend", simColumnHeads());
+      const wrap = document.createElement("div"); wrap.className = "table-scroll"; wrap.id = groupId(group);
+      const table = document.createElement("table"); table.className = "data-table sim-table";
+      // The same column widths in every table, so the columns line up from one to the next.
+      table.insertAdjacentHTML("afterbegin", "<colgroup>" + SIM_COL_WIDTHS.map(w => `<col style="width:${w}%">`).join("") + "</colgroup>");
+      const thead = document.createElement("thead");
+      simTbody = document.createElement("tbody");
+      thead.appendChild(head); table.appendChild(thead); table.appendChild(simTbody);
+      wrap.appendChild(table); simTables.appendChild(wrap);
+      // Every other run in a group is lightly shaded, so a run's member rows read as one block.
+      group.runs.forEach((views, n) => {
+        views.forEach((v, i) => {
+          renderSimRow(v, views.length < 2 ? "member-single" : i === 0 ? "member-first" : i === views.length - 1 ? "member-last" : "member-mid");
+          if (n % 2 === 0) simTbody.lastElementChild.classList.add("run-shade");
+        });
+      });
+    });
+  }
+
+  // A run with more than one member gets a row for each, named by its variant, from
+  // "1pctCO2 LM r1i1p1f1" to "r3i1p1f1", each with its own cases and progress. The planned
+  // members are r1i1p1f1 up to the ensemble size; a member whose issue gives another variant
+  // gets a row of its own too.
+  function memberViews(row){
+    const n = ensembleCount(row);
+    if (n < 2) return [row];
+    const run = autoRun(row);
+    const byVariant = new Map((run ? run.members : []).map(m => [m.variant, m]));
+    const variants = [...new Set(Array.from({ length: n }, (_, i) => `r${i + 1}i1p1f1`).concat([...byVariant.keys()]))]
+      .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    return variants.map(variant => {
+      const m = byVariant.get(variant);
+      const cases = m ? (row.cases || []).filter(c => c.variant === variant) : [];
+      const p = cases.length ? runProgress({ ...row, ensemble: 1, cases }) : null;
+      const status = p && p.completed ? "completed" : p && p.yearsCompleted > 0 ? "in-progress" : "pending";
+      return {
+        ...row, memberOf: row, memberProgress: p, variant, hasIssue: !!m,
+        name: `${row.name} ${variant}`, ensemble: 1, membersRunning: 1, cases,
+        owner: owners(cases), status,
+        yearsCompleted: status === "completed" ? Number(row.years) || 0
+          : p ? Math.max(0, Math.min(Number(row.years) || 0, p.yearsCompleted || 0)) : 0,
+      };
+    });
+  }
+
+  function renderSimRow(row, memberClass){
+    {
+      const tr = document.createElement("tr");
+      if (memberClass) tr.classList.add("member-row", memberClass);
+
+      if (row.status == null) row.status = "pending";
+      if (row.yearsCompleted == null) row.yearsCompleted = 0;
+
+      const tdName = document.createElement("td"); tdName.className = "col-name";
+      const nameWrap = document.createElement("div"); nameWrap.className = "sim-name-wrap";
+      const statusBadge = document.createElement("span"); statusBadge.className = "status-badge";
+      // The table is read-only: the plan and the progress both come from nird_progress.py.
+      const nameInput = document.createElement("span");
+      nameInput.className = "sim-name"; nameInput.textContent = row.name;
+      nameWrap.appendChild(statusBadge); nameWrap.appendChild(nameInput);
+      tdName.appendChild(nameWrap);
+
+      if (!Array.isArray(row.dependsOn)) row.dependsOn = row.dependsOn ? [row.dependsOn] : [];
+
+      // The parent case named in the run scripts of the run's cases, as one chip with its
+      // experiment and issue, e.g. "piControl #002". Without one, the experiment the
+      // spreadsheet gives, e.g. piControl for historical.
+      const tdParent = document.createElement("td"); tdParent.className = "col-parent";
+      const parentExperiment = row.dependsOn.map(id => sims.find(s => s.id === id)).filter(Boolean)
+        .map(p => p.experiment || p.name).join(", ");
+      const branching = (row.cases || []).filter(c => c.start && c.start.parent && !continues(c));
+      [...new Map(branching.map(c => [c.start.parent, c])).values()].forEach(c => {
+        const pc = parentCase(c);
+        const run = pc && sims.find(r => r.name === pc.runName);
+        const a = document.createElement("a"); a.className = "case-chip parent-chip";
+        a.href = `${issuesUrl()}/${c.start.parent}`; a.target = "_blank"; a.rel = "noopener";
+        a.textContent = `${(run && run.experiment) || parentExperiment} #${String(c.start.parent).padStart(3, "0")}`.trim();
+        a.title = `#${c.issue} ${caseStart(c).replace(/^B/, "b")}`;
+        tdParent.appendChild(a);
+      });
+      if (!branching.length) tdParent.textContent = parentExperiment || "–";
+
+      const tdYears = document.createElement("td"); tdYears.className = "n";
+      tdYears.textContent = row.years;
+
+      if (isRowOff(row)) tr.classList.add("row-disabled");
+
+      const tdStatus = document.createElement("td");
+      const statusWrap = document.createElement("div"); statusWrap.className = "status-cell";
+      // Status and Progress show what progress.json says; nothing here is edited by hand.
+      const statusText = document.createElement("span"); statusText.className = "status-text";
+      const statusPct = document.createElement("span"); statusPct.className = "status-pct";
+      function computedPct(){
+        const yrs = Math.max(0, Number(row.years) || 0);
+        const done = Math.min(yrs, Math.max(0, Number(row.yearsCompleted) || 0));
+        return yrs > 0 ? (done / yrs) * 100 : 0;
+      }
+      // Progress column: a bar, "N of M · P% · at <model date>", and the members going.
+      const tdProgress = document.createElement("td");
+      const progWrap = document.createElement("div"); progWrap.className = "progress-cell";
+      const progBar = document.createElement("div"); progBar.className = "progress-bar";
+      const progFill = document.createElement("div"); progFill.className = "progress-fill";
+      progBar.appendChild(progFill);
+      const progText = document.createElement("span"); progText.className = "progress-text";
+      const progWarn = document.createElement("span"); progWarn.className = "progress-warn"; progWarn.hidden = true;
+      progWrap.appendChild(progBar); progWrap.appendChild(progText); progWrap.appendChild(progWarn);
+      tdProgress.appendChild(progWrap);
+
+      // One cell per workflow step: the run step is the Status and Progress cells; a range
+      // step shows the years progress.json reports; a labelled step shows a tick once every
+      // member's issue has its label, and how many members have it until then.
+      const stepCells = WORKFLOW_STEPS.map(step => {
+        if (step.derived){
+          if (step.phase) tdStatus.classList.add("phase-start");
+          return [tdStatus, tdProgress];
+        }
+        const td = document.createElement("td");
+        td.className = "step-c" + (step.phase ? " phase-start" : step.split ? " split-start" : "");
+        td.title = `${row.name}: ${step.name}`;
+        if (step.range){
+          const p = autoRun(row);
+          const members = p && p.members ? p.members : [];
+          if (autoSteps(row)[step.key] === true) td.classList.add("auto-done");
+          // A chip for each case with output: its issue and the years it has CMORized; clicking
+          // it opens what the script found.
+          const parts = members.flatMap(x => x.byCase.map(c => ({ member: x, c, info: c[step.key] })))
+            .filter(o => o.info.files.length);
+          if (!parts.length){
+            const m = document.createElement("span");
+            m.className = "step-mark"; m.textContent = "·";
+            td.title += ": nothing CMORized yet";
+            td.appendChild(m);
+            return td;
+          }
+          const wrap = document.createElement("span");
+          wrap.className = "step-ranges";
+          parts.forEach(o => wrap.appendChild(cmorCaseBox(row, step, o, members.length > 1)));
+          td.appendChild(wrap);
+          td.title = `${row.name}: ${step.name}. Click a case's years for where its output is and its version directories.`;
+          return td;
+        }
+        const m = document.createElement("span");
+        const planned = ensembleCount(row);
+        const n = (autoRun(row) && autoRun(row).labelled && autoRun(row).labelled[step.key]) || 0;
+        if (stepDone(row, step.key)){
+          td.classList.add("auto-done");
+          m.className = "step-mark done"; m.textContent = "✓";
+          td.title += step.label ? `: labelled ${step.label}` : "";
+        } else if (n > 0){
+          m.className = "step-mark running"; m.textContent = `${n}/${planned}`;
+          td.title += `: ${n} of ${planned} members labelled ${step.label}`;
+        } else {
+          m.className = "step-mark"; m.textContent = "·";
+          if (step.label) td.title += `: add the label ${step.label} to the case's issue when this is done`;
+        }
+        td.appendChild(m); return td;
+      });
+
+      function updateStatusVisuals(){
+        const inProgress = row.status === "in-progress";
+        statusText.textContent = issueOpened(row) ? "Waiting"
+          : STATUS_LABELS[row.status] || row.status;
+        statusPct.hidden = !inProgress;
+        statusPct.textContent = inProgress ? computedPct().toFixed(0) + "%" : "";
+        statusPct.style.setProperty("--p", inProgress ? computedPct().toFixed(1) : 0);
+        statusPct.title = inProgress ? `${row.yearsCompleted} of ${row.years} years done` : "";
+        statusText.className = "status-text" + (issueOpened(row) ? " is-waiting" : inProgress ? " is-inprogress"
+          : row.status === "completed" ? " is-completed" : "");
+        statusText.title = issueOpened(row) ? "This run has a GitHub issue, but NIRD has no model files for it yet"
+          : inProgress ? `${row.yearsCompleted} of ${row.years} years done; ${runningCount(row)} of ${ensembleCount(row)} member${ensembleCount(row) === 1 ? "" : "s"} running` : "";
+        const pct = row.status === "completed" ? 100 : inProgress ? computedPct() : 0;
+        progFill.style.width = pct + "%";
+        // A run nobody has started on has nothing to show.
+        progBar.hidden = row.status === "pending" && !issueOpened(row);
+        progBar.classList.toggle("is-done", row.status === "completed");
+        progText.textContent = row.status === "completed" ? "Done"
+          : inProgress ? `${row.yearsCompleted} of ${row.years}`
+          : issueOpened(row) ? "No files on NIRD yet"
+          : "";
+        const auto = autoRun(row);
+        if (auto && auto.modelDate && row.status !== "completed") progText.textContent += ` · at ${auto.modelDate}`;
+        if (inProgress && ensembleCount(row) > 1) progText.textContent += ` · ${runningCount(row)} of ${ensembleCount(row)} members going`;
+        // Each member's own progress; the run's years done are their mean.
+        progText.title = auto && auto.members ? "Read from NIRD:\n" + auto.members.map(m =>
+          `${m.variant}: ${m.completed ? "completed" : m.modelDate ? `${m.years} years, at ${m.modelDate}` : "no files yet"}`).join("\n") : "";
+        // Members whose cases have no RUN_STARTDATE are counted from the spreadsheet's start year.
+        const fromSheet = (auto && auto.startFromSheet) || [];
+        progWarn.hidden = !fromSheet.length || row.status === "completed";
+        progWarn.textContent = fromSheet.length
+          ? `⚠ Counted from the spreadsheet's start year, ${row.startYear}` + (ensembleCount(row) > 1 ? `, for ${fromSheet.join(", ")}` : "") : "";
+        progWarn.title = fromSheet.length
+          ? "None of the run scripts of these members' cases set RUN_STARTDATE, so the years done are counted from the spreadsheet's start year. "
+            + "Push the run scripts to the CMIP7_Runscripts branch to count from RUN_STARTDATE." : "";
+        tr.classList.toggle("row-completed", row.status === "completed");
+        tr.classList.toggle("row-inprogress", row.status === "in-progress");
+        tr.classList.toggle("row-opened", issueOpened(row));
+        if (row.status === "completed"){ statusBadge.hidden = false; statusBadge.textContent = "✓"; statusBadge.className = "status-badge badge-completed"; statusBadge.title = "Completed — no cost remaining"; }
+        else { statusBadge.hidden = true; }
+      }
+      statusWrap.appendChild(statusText);
+      statusWrap.appendChild(statusPct);
+      tdStatus.appendChild(statusWrap);
+      updateStatusVisuals();
+
+      // Owner and cases come from the case issues, through progress.json; each case links to its issue.
+      const tdOwner = document.createElement("td"); tdOwner.className = "col-owner";
+      tdOwner.textContent = row.owner || "";
+      const tdCases = document.createElement("td"); tdCases.className = "col-cases";
+      const reached = c => c.modelDate ? `at ${c.modelDate}` : "no files on NIRD yet";
+      // With more than one member, each chip also names its member (r2 for r2i1p1f1).
+      const manyMembers = new Set((row.cases || []).map(c => c.variant)).size > 1;
+      (row.cases || []).forEach(c => {
+        const chip = document.createElement("a"); chip.className = "case-chip";
+        chip.href = `${issuesUrl()}/${c.issue}`; chip.target = "_blank"; chip.rel = "noopener";
+        chip.textContent = "#" + String(c.issue).padStart(3, "0") + (manyMembers ? " " + c.variant.split("i")[0] : "");
+        chip.title = `${c.case}\n${c.variant} · ${c.version} · ${reached(c)} · ${c.owner}`
+          + "\n" + caseStart(c);
+        // An issue and its run script stay together on one line.
+        const pair = document.createElement("span"); pair.className = "case-pair";
+        // A case that continues another of the row's cases goes under it, one step further in.
+        let depth = 0;
+        for (let p = c; continues(p) && (row.cases || []).includes(parentCase(p)); p = parentCase(p)) depth++;
+        if (depth){
+          pair.style.paddingLeft = `${(depth - 1) * 12}px`;
+          const arrow = document.createElement("span"); arrow.className = "case-arrow";
+          arrow.textContent = "↳"; arrow.title = `#${c.issue} ${caseStart(c).replace(/^C/, "c")}`;
+          pair.appendChild(arrow);
+        }
+        pair.appendChild(chip);
+        // A red "gap" chip after a case whose cam.i files skip some years.
+        if ((c.missingYears || []).length){
+          const spans = c.missingYears.map(([a, b]) => a === b ? `${a}` : `${a}–${b}`).join(", ");
+          const gap = document.createElement("span"); gap.className = "gap-chip";
+          gap.textContent = "gap";
+          gap.title = `#${c.issue} has no cam.i file for ${spans}, between its first and last cam.i files.`;
+          pair.appendChild(gap);
+        }
+        // The case's run script, found on the branch by its issue number.
+        if (c.runScript){
+          const sh = document.createElement("a"); sh.className = "script-chip";
+          sh.href = runScriptUrl(c.runScript); sh.target = "_blank"; sh.rel = "noopener";
+          sh.textContent = "sh"; sh.title = `Run script for #${c.issue}: scripts/${c.runScript}\n${caseStart(c)}`;
+          pair.appendChild(sh);
+        }
+        // Its CMORization issues in CMIP7_CMOR-Publish, found by the case name in them.
+        (c.cmorIssues || []).forEach(ci => {
+          const a = document.createElement("a"); a.className = "script-chip cmor-chip";
+          a.href = cmorIssueUrl(ci.number); a.target = "_blank"; a.rel = "noopener";
+          a.textContent = "cmor"; a.title = `CMORization issue for #${c.issue}: ${cmorIssueText(ci)}`;
+          pair.appendChild(a);
+        });
+        // Bold red warnings, each on its own line under the case's chips. The first is for the
+        // case whose RUN_STARTDATE starts its member, when that year is not the spreadsheet's
+        // start year; the years done count from RUN_STARTDATE.
+        const auto = autoRun(row);
+        const mismatch = ((auto && auto.startMismatch) || []).find(s => s.issue === c.issue);
+        if (mismatch){
+          const st = document.createElement("span"); st.className = "warn-chip";
+          st.textContent = "⚠ start date error";
+          st.title = `RUN_STARTDATE in #${c.issue}'s run script: ${mismatch.startdate} (year ${Number(mismatch.startdate.slice(0, 4))})`
+            + `\nStart year in the spreadsheet for ${row.experiment || row.name}: ${mismatch.sheetStart}`
+            + `\nThe years done of ${mismatch.variant} are counted from ${mismatch.startdate}. Correct whichever is wrong.`;
+          pair.appendChild(st);
+        }
+        // The second is for a case whose run script is missing or sets no RUN_STARTDATE.
+        if (!c.runScript || !(c.start && c.start.startdate)){
+          const warn = document.createElement("span"); warn.className = "warn-chip";
+          warn.textContent = c.runScript ? "⚠ no RUN_STARTDATE" : "⚠ run script missing";
+          warn.title = (c.runScript
+            ? `#${c.issue}'s run script, scripts/${c.runScript}, could not be read, or it sets no RUN_STARTDATE with xmlchange.`
+            : `#${c.issue} has no run script on the ${RUNSCRIPTS_BRANCH} branch, or more than one script there starts with its issue number. `
+              + `Push it to scripts/<MIP>/<experiment>/, named after the issue, e.g. 011.piControl.LM.beta28.r1i1p1f1.20261102.sh.`)
+            + "\nThe run script is needed to show how the case started, and to count its years done from RUN_STARTDATE."
+            + "\nIf GitHub could not be read when the progress was last updated, every case shows this warning.";
+          pair.appendChild(warn);
+        }
+        tdCases.appendChild(pair);
+      });
+      // The name's hover gives a member's variant and the cases' names.
+      const nameHover = (row.memberOf ? [row.hasIssue ? `Member ${row.variant}` : `Member ${row.variant}: planned, no case issue yet`] : [])
+        .concat((row.cases || []).map(c => `${c.case} (${reached(c)})`));
+      if (nameHover.length) nameInput.title = nameHover.join("\n");
+      tr.appendChild(tdName); tr.appendChild(tdParent); tr.appendChild(tdOwner); tr.appendChild(tdCases); tr.appendChild(tdYears);
+      stepCells.flat().forEach(td => tr.appendChild(td));
+      simTbody.appendChild(tr);
+    }
+  }
+
+  // The cost tables, the tracker's tiles, the cost tiles and the cost by MIP.
+  function renderCostSummary(){
+    const result = computeCosts(configs, sims);
+    renderCostTable();
+    renderTrackerStats();
+    renderTimingNote(result);
+    renderStats(result);
+    renderMipBreakdown(result);
+    renderPriorityBreakdown(result);
+  }
+
+  // ---------------- tabs ----------------
+  const TABS = ["tracker", "cost"];
+  // The workflow is a section of the tracker: #workflow, or #wf-<step> for one step,
+  // opens it on the tracker and scrolls to it.
+  const isWorkflow = id => id === "workflow" || id.startsWith("wf-");
+  function showWorkflow(id){
+    const details = el("workflow");
+    details.open = true;
+    document.querySelectorAll(".wf-steps > li.wf-hit").forEach(li => li.classList.remove("wf-hit"));
+    const target = (id !== "workflow" && el(id)) || details;
+    // A step inside a closed disclosure is shown by opening it, and any around it.
+    for (let d = target.closest("details"); d; d = d.parentElement && d.parentElement.closest("details")) d.open = true;
+    if (target.tagName === "DETAILS") target.open = true;
+    if (target !== details) target.classList.add("wf-hit");
+    target.scrollIntoView({ block: "start" });
+  }
+  function showTab(wanted){
+    const want = wanted || (location.hash || "").replace("#", "");
+    const tab = TABS.includes(want) ? want : "tracker";
+    TABS.forEach(name => { el("tab-" + name).hidden = name !== tab; });
+    document.querySelectorAll(".tab-nav a").forEach(a => {
+      if (a.dataset.tab === tab) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+    if (isWorkflow(want)) showWorkflow(want);
+  }
+  window.addEventListener("hashchange", () => {
+    const want = (location.hash || "").replace("#", "");
+    showTab();
+    if (!isWorkflow(want)) window.scrollTo(0, 0);
+  });
+  // Links within the page are handled here, so they work even where the page can't change its URL.
+  document.addEventListener("click", e => {
+    const a = e.target.closest && e.target.closest('a[href^="#"]');
+    const id = a && a.getAttribute("href").slice(1);
+    if (!id || !(TABS.includes(id) || isWorkflow(id))) return;
+    e.preventDefault();
+    showTab(id);
+    if (!isWorkflow(id)) window.scrollTo(0, 0);
+    try { history.replaceState(null, "", "#" + id); } catch (err) { /* the URL can't change here */ }
+  });
+  showTab();
+
+  // ---------------- progress from NIRD ----------------
+  // workflow/nird_progress.py writes progress.json next to the page on NIRD: one entry per
+  // case issue, with its labels, the latest model date in its files and the sets of years
+  // cmip7-prep has done. A case belongs to the run whose experiment is one of its labels, at
+  // its resolution, and to the member its variant label (r1i1p1f1) names: cases of one
+  // member are one simulation continued in new cases. A member's years done and CMORized
+  // count from its start: the earliest RUN_STARTDATE in its cases' run scripts, or the
+  // spreadsheet's start year while none of its run scripts can be read.
+  const VARIANT = /^r\d+i\d+p\d+f\d+$/;
+  // A date YYYY-MM-DD as a model year with its fraction, e.g. 1850.5 for 1850-07-01.
+  function fractionalYear(date){
+    const [y, mo, d] = String(date).split("-").map(Number);
+    return Number.isFinite(y) ? y + ((mo || 1) - 1) / 12 + ((d || 1) - 1) / 365 : null;
+  }
+
+  function memberProgress(variant, cases, sheetStart, length){
+    const m = { variant, years: 0 };
+    // The member's start, from the case whose run script has the earliest RUN_STARTDATE.
+    const first = cases.filter(c => c.start && fractionalYear(c.start.startdate) !== null)
+      .sort((a, b) => fractionalYear(a.start.startdate) - fractionalYear(b.start.startdate))[0];
+    const startAt = first ? fractionalYear(first.start.startdate) : sheetStart;
+    const start = Math.floor(startAt);
+    m.start = start;
+    m.startFromSheet = !first;
+    if (first && start !== sheetStart){
+      m.startMismatch = { issue: first.issue, startdate: first.start.startdate, sheetStart };
+    }
+    const dates = cases.map(c => c.modelDate).filter(Boolean).sort();
+    if (dates.length){
+      m.modelDate = dates[dates.length - 1];
+      m.years = Math.max(0, Math.round((fractionalYear(m.modelDate) - startAt) * 100) / 100);
+      // A member that has run longer than the run's years counts as the run's years.
+      if (length > 0) m.years = Math.min(m.years, length);
+    }
+    m.completed = cases.some(c => c.completed);
+    m.labels = [...new Set(cases.flatMap(c => c.labels || []))];
+    if (m.completed) m.years = length;
+    // The years each tool has CMORized, from the member's start year to the first one missing.
+    // A cmip7-prep set of years counts once it has finished every cmor- step that any of the
+    // member's sets has run: finished, or failed with a log. So a set where one realm failed
+    // does not count, even when that realm failed in every set. cmor4cmip7's years are the
+    // ones every variable has a file for.
+    const span = years => { let y = start; while (years.has(y)) y++; return y > start ? { from: start, to: y - 1 } : null; };
+    m.cmor = {};
+    const sets = cases.flatMap(c => c.cmor || []);
+    const expected = [...new Set(sets.flatMap(s => [...(s.steps || []), ...(s.failed || [])]))];
+    const atm = new Set();
+    if (expected.length) sets.forEach(s => {
+      if (expected.every(k => (s.steps || []).includes(k))) for (let y = s.first; y <= s.last; y++) atm.add(y);
+    });
+    const ocn = new Set();
+    cases.forEach(c => (c.cmor4cmip7 || []).forEach(([a, b]) => { for (let y = a; y <= b; y++) ocn.add(y); }));
+    m.cmor.cmoratm = span(atm);
+    m.cmor.cmorocn = span(ocn);
+    // cmip7-prep writes each case to its own directory, so its years are also kept case by
+    // case: piControl's #2 can be done while #11 is not.
+    m.prepByCase = cases.map(c => {
+      const years = new Set();
+      if (expected.length) (c.cmor || []).forEach(s => {
+        if (expected.every(k => (s.steps || []).includes(k))) for (let y = s.first; y <= s.last; y++) years.add(y);
+      });
+      return { issue: c.issue, years: [...years] };
+    });
+    m.outputs = cases.filter(c => c.cmorOutput).map(c => ({ issue: c.issue, ...c.cmorOutput }));
+    // The version directories each tool's files are in, year by year.
+    const byYear = { cmip7prep: {}, cmor4cmip7: {} };
+    cases.forEach(c => Object.entries(c.cmorVersions || {}).forEach(([tool, vs]) =>
+      Object.entries(vs).forEach(([v, ranges]) => ranges.forEach(([a, b]) => {
+        for (let y = a; y <= b; y++) (byYear[tool][y] = byYear[tool][y] || new Set()).add(v);
+      }))));
+    m.versions = {};
+    Object.entries(byYear).forEach(([tool, years]) => {
+      const vs = {};
+      Object.entries(years).forEach(([y, set]) => set.forEach(v => (vs[v] = vs[v] || []).push(Number(y))));
+      m.versions[tool] = vs;
+    });
+    // Case by case: the years of the run each case covers, from its start year to the year
+    // before the next case's, and for each tool the years it has CMORized and the version
+    // directories its files for those years are in. cmip7-prep writes each case to its own
+    // directory; cmor4cmip7 writes the whole simulation, so its files are shared out by the
+    // cases' years.
+    const firstYear = c => c.start && c.start.startdate ? Number(c.start.startdate.slice(0, 4)) : start;
+    const ordered = [...cases].sort((a, b) => firstYear(a) - firstYear(b) || a.issue - b.issue);
+    const sorted = ys => [...new Set(ys)].sort((a, b) => a - b);
+    const versionYears = (vs, keep) => {
+      const out = {};
+      Object.entries(vs || {}).forEach(([v, ranges]) => ranges.forEach(([a, b]) => {
+        for (let y = a; y <= b; y++) if (keep(y)) (out[v] = out[v] || []).push(y);
+      }));
+      Object.keys(out).forEach(v => (out[v] = sorted(out[v])));
+      return out;
+    };
+    m.byCase = ordered.map((c, i) => {
+      const from = firstYear(c);
+      const next = ordered[i + 1];
+      const to = next ? firstYear(next) - 1 : Infinity;
+      const inCase = y => y >= from && y <= to;
+      let shownTo = to;
+      if (!next && c.modelDate){
+        const [y, mo, d] = c.modelDate.split("-").map(Number);
+        shownTo = mo === 1 && d === 1 ? y - 1 : y;
+      }
+      const prepComplete = [], prepAny = [];
+      (c.cmor || []).forEach(s => {
+        const ok = expected.length && expected.every(k => (s.steps || []).includes(k));
+        for (let y = s.first; y <= s.last; y++){ prepAny.push(y); if (ok) prepComplete.push(y); }
+      });
+      const prepVersions = versionYears((c.cmorVersions || {}).cmip7prep, () => true);
+      const ocnVersions = versionYears(Object.fromEntries(Object.entries(m.versions.cmor4cmip7)
+        .map(([v, ys]) => [v, ys.map(y => [y, y])])), inCase);
+      // What the script found wrong with cmor4cmip7's files, for this case's years.
+      const found = c.cmor4cmip7Problems || {};
+      const caseYears = g => g.years.flatMap(([a, b]) => Array.from({ length: b - a + 1 }, (_, k) => a + k)).filter(inCase);
+      const names = vs => `${vs.length} variable${vs.length > 1 ? "s" : ""}: ${vs.join(", ")}`;
+      const ocnProblems = [
+        ...(found.missing || []).map(g => [g, caseYears(g)]).filter(([, ys]) => ys.length)
+          .map(([g, ys]) => `No files for ${yearSpans(ys)}, which other variables have, for ${names(g.variables)}.`),
+        ...(found.overlaps || []).map(g => [g, caseYears(g)]).filter(([, ys]) => ys.length)
+          .map(([g, ys]) => `${ys.length > 1 ? "Years" : "Year"} ${yearSpans(ys)} ${ys.length > 1 ? "are" : "is"} in more than one file${g.version ? " in " + g.version : ""}, for ${names(g.variables)}.`),
+      ];
+      return {
+        issue: c.issue, from, to, shownTo, output: c.cmorOutput || {},
+        cmorIssues: c.cmorIssues || [],
+        cmoratm: {
+          years: sorted(prepComplete),
+          files: sorted(prepAny.concat(Object.values(prepVersions).flat())),
+          versions: prepVersions,
+          // The sets of years with a step not finished: one with a log but not finished has
+          // failed or is still running; one with no log has not run for that set.
+          unfinished: (c.cmor || []).map(s => ({
+            first: s.first, last: s.last, failed: s.failed || [],
+            notRun: expected.filter(k => !(s.steps || []).includes(k) && !(s.failed || []).includes(k)),
+          })).filter(s => s.failed.length || s.notRun.length),
+        },
+        cmorocn: {
+          years: sorted([...ocn].filter(inCase)),
+          files: sorted(Object.values(ocnVersions).flat()),
+          versions: ocnVersions,
+          problems: ocnProblems,
+        },
+      };
+    });
+    return m;
+  }
+
+  // "1–50, 61" for a list of years.
+  function yearSpans(years){
+    const out = [];
+    [...years].sort((a, b) => a - b).forEach(y => {
+      const last = out[out.length - 1];
+      if (last && y === last[1] + 1) last[1] = y; else out.push([y, y]);
+    });
+    return out.map(([a, b]) => a === b ? `${a}` : `${a}–${b}`).join(", ");
+  }
+
+  // A run's progress: its members', and for the run as a whole the mean years done, the
+  // years every member has CMORized, and whether every planned member has finished.
+  function runProgress(row){
+    const start = Number(row.startYear) || 1, length = Number(row.years) || 0;
+    const byVariant = {};
+    row.cases.forEach(c => (byVariant[c.variant] = byVariant[c.variant] || []).push(c));
+    const members = Object.keys(byVariant).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
+      .map(v => memberProgress(v, byVariant[v], start, length));
+    const p = { members, steps: {} };
+    const mismatches = members.filter(m => m.startMismatch);
+    if (mismatches.length) p.startMismatch = mismatches.map(m => ({ variant: m.variant, ...m.startMismatch }));
+    // The members with model files, not yet completed, whose years done count from the spreadsheet.
+    const fromSheet = members.filter(m => m.startFromSheet && m.modelDate && !m.completed);
+    if (fromSheet.length) p.startFromSheet = fromSheet.map(m => m.variant);
+    if (members.some(m => m.modelDate || m.completed)){
+      p.yearsCompleted = Math.round(members.reduce((s, m) => s + m.years, 0) / members.length * 100) / 100;
+    }
+    if (members.length === 1) p.modelDate = members[0].modelDate;
+    const planned = ensembleCount(row);
+    // A labelled step is done once every planned member has a case issue with its label.
+    p.labelled = {};
+    WORKFLOW_STEPS.filter(s => s.label).forEach(s => {
+      const n = members.filter(m => m.labels.includes(s.label)).length;
+      p.labelled[s.key] = n;
+      if (n >= planned) p.steps[s.key] = true;
+    });
+    p.completed = members.filter(m => m.completed).length >= planned;
+    // A tool's years for the run are the ones every member has done; its step is done once
+    // they cover every member's years and every planned member has an issue.
+    p.cmor = {};
+    ["cmoratm", "cmorocn"].forEach(key => {
+      if (!members.every(m => m.cmor[key])) return;
+      const r = { from: Math.min(...members.map(m => m.start)), to: Math.min(...members.map(m => m.cmor[key].to)) };
+      p.cmor[key] = r;
+      if (members.length >= planned && members.every(m => m.cmor[key].to - m.start + 1 >= (length || Infinity))) p.steps[key] = true;
+    });
+    return p;
+  }
+
+  // A configuration's cost and throughput on each machine come from the timing files of its
+  // runs' cases there, the mean over all their jobs with each job weighted by the years it
+  // simulated. A machine where none of its cases has run keeps the value the page was built
+  // with.
+  // The mean of several per-machine timings (cases' or runs'), each job weighted by the
+  // years it simulated.
+  function combineTimings(list){
+    const years = list.reduce((s, t) => s + t.years, 0);
+    return {
+      cost: Math.round(list.reduce((s, t) => s + t.cost * t.years, 0) / years * 100) / 100,
+      sypd: Math.round(years / list.reduce((s, t) => s + t.years / t.sypd, 0) * 100) / 100,
+      years: Math.round(years * 10) / 10, cases: list.length,
+      jobs: list.reduce((s, t) => s + (t.jobs || 0), 0),
+      runs: list.flatMap(t => t.runs || []).sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+    };
+  }
+  const usableTiming = t => t && MACHINES.some(x => x.key === t.machine) && t.years > 0 && t.sypd > 0 && Number.isFinite(t.cost);
+
+  function applyMeasuredTiming(){
+    // Each run's own timing on each machine, from its cases.
+    sims.forEach(row => {
+      delete row.measured;
+      const byMachine = {};
+      (row.cases || []).forEach(c => (Array.isArray(c.timing) ? c.timing : []).filter(usableTiming)
+        .forEach(t => (byMachine[t.machine] = byMachine[t.machine] || []).push(t)));
+      Object.entries(byMachine).forEach(([key, list]) => { (row.measured = row.measured || {})[key] = combineTimings(list); });
+    });
+    configs.forEach(cfg => {
+      Object.entries(cfg.measured || {}).forEach(([key, m]) => {
+        const mc = MACHINES.find(x => x.key === key);
+        cfg[mc.cost] = m.built.cost;
+        cfg[mc.sypd] = m.built.sypd;
+      });
+      delete cfg.measured;
+    });
+    const groups = new Map();
+    sims.forEach(row => (row.cases || []).forEach(c => (Array.isArray(c.timing) ? c.timing : []).forEach(t => {
+      const mc = MACHINES.find(x => x.key === t.machine);
+      if (!mc || !(t.years > 0) || !(t.sypd > 0) || !Number.isFinite(t.cost)) return;
+      const key = row.configId + " " + mc.key;
+      if (!groups.has(key)) groups.set(key, { id: row.configId, mc, list: [] });
+      groups.get(key).list.push(t);
+    })));
+    groups.forEach(({ id, mc, list }) => {
+      const cfg = configs.find(c => c.id === id);
+      if (!cfg) return;
+      const m = combineTimings(list);
+      (cfg.measured = cfg.measured || {})[mc.key] = {
+        built: { cost: cfg[mc.cost], sypd: cfg[mc.sypd] }, cases: m.cases, years: m.years, jobs: m.jobs,
+      };
+      cfg[mc.cost] = m.cost;
+      cfg[mc.sypd] = m.sypd;
+    });
+  }
+
+  function applyAutoProgress(data){
+    if (!data || typeof data !== "object" || !Array.isArray(data.cases)) return;
+    progressData = data;
+    const unmatched = (data.skipped || []).map(s => `#${s.issue}, ${s.reason}`);
+    sims.forEach(r => { delete r.cases; delete r.owner; delete r.machine; });
+    data.cases.forEach(c => {
+      const row = sims.find(r => r.resolution === c.resolution && (c.labels || []).includes(r.experiment));
+      c.variant = (c.labels || []).find(l => VARIANT.test(l));
+      if (!row) unmatched.push(`#${c.issue}, no label names an experiment in the plan at ${c.resolution}`);
+      else if (!c.variant) unmatched.push(`#${c.issue}, the issue needs a variant label, e.g. r1i1p1f1`);
+      else { c.runName = row.name; (row.cases = row.cases || []).push(c); }
+    });
+    const runs = {};
+    sims.forEach(row => {
+      if (!row.cases) return;
+      row.owner = owners(row.cases);
+      // The run is on the machine its latest case's latest job ran on.
+      const latest = row.cases.filter(c => c.machine).sort((a, b) => a.issue - b.issue).pop();
+      if (latest) row.machine = latest.machine;
+      runs[row.name] = runProgress(row);
+    });
+    applyMeasuredTiming();
+    autoProgress = { updated: data.updated, runs, unmatched };
+    Object.entries(runs).forEach(([name, p]) => {
+      const row = sims.find(r => r.name === name);
+      if (!row || !p) return;
+      if (p.completed === true) row.status = "completed";
+      if (Number.isFinite(p.yearsCompleted)){
+        row.yearsCompleted = Math.max(0, Math.min(Number(row.years) || 0, p.yearsCompleted));
+        if (row.status === "pending" && p.yearsCompleted > 0) row.status = "in-progress";
+      }
+      // Members with an issue are the ones going; the rest of the ensemble waits.
+      if (row.status === "in-progress") row.membersRunning = p.members.length;
+    });
+  }
+
+  // The line at the top of the tracker: when nird_progress.py last wrote the progress shown,
+  // or why no progress is shown.
+  function showProgressStatus(html, bad){
+    const p = el("progressStatus");
+    p.innerHTML = html;
+    p.classList.toggle("is-error", !!bad);
+  }
+  const updatedOn = data => `<b>${String(data.updated || "an unknown time").replace(/[<>&]/g, "")}</b>`;
+
+  // The line under it: when the spreadsheet the plan was built from was read, or the file it
+  // was read from instead, which only a test run uses.
+  (() => {
+    const p = el("sheetStatus"), s = DEFAULT_SHEET;
+    if (!s){ p.hidden = true; return; }
+    const clean = v => String(v).replace(/[<>&"]/g, "");
+    const sheet = `<a href="${clean(s.url)}" target="_blank" rel="noopener">NorESM3 CMIP7 experiments spreadsheet</a>`;
+    p.innerHTML = s.file
+      ? `⚠ Plan built from <b>${clean(s.file)}</b>, a copy of the ${sheet}, at <b>${clean(s.read)}</b>.`
+      : `Plan built from the ${sheet} as read at <b>${clean(s.read)}</b>.`;
+    p.classList.toggle("is-error", !!s.file);
+  })();
+
+  applyAutoProgress(DEFAULT_PROGRESS);
+  render();
+  if (/^https?:$/.test(location.protocol)){
+    showProgressStatus("Reading the progress from NIRD…");
+    fetch("progress.json", { cache: "no-store" })
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then(data => {
+        if (!data || !Array.isArray(data.cases)) throw new Error("not a progress file");
+        applyAutoProgress(data); render();
+        showProgressStatus(`Last updated ${updatedOn(data)}.`);
+      })
+      .catch(err => showProgressStatus(`⚠ The progress could not be read (${String(err.message).replace(/[<>&]/g, "")})`
+        + (DEFAULT_PROGRESS ? `; showing the progress last updated ${updatedOn(DEFAULT_PROGRESS)}.` : ", so no run's progress is shown."), true));
+  } else {
+    showProgressStatus(DEFAULT_PROGRESS
+      ? `Last updated ${updatedOn(DEFAULT_PROGRESS)}.`
+      : "⚠ This page was opened as a local file, so no progress is shown.", !DEFAULT_PROGRESS);
+  }
+})();
+</script></body></html>
