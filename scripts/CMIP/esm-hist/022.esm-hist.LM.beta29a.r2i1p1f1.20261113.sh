@@ -143,7 +143,7 @@ cd "${casepath}"
 ./xmlchange RUN_REFDIR=/cluster/work/projects/nn9560k/tjiputra/archive/${refcase}/rest/${refyear}-01-01-00000/
 ./xmlchange STOP_OPTION=nyears
 ./xmlchange STOP_N=10
-./xmlchange REST_N=10
+./xmlchange REST_N=5
 ./xmlchange REST_OPTION=nyears
 ./xmlchange RESUBMIT=16 # if you want to run 20 days in 10 days chunks this should be 1.
 ./xmlchange --subgroup case.run JOB_WALLCLOCK_TIME=18:40:00
@@ -151,6 +151,11 @@ cd "${casepath}"
 ./xmlchange --subgroup case.st_archive JOB_WALLCLOCK_TIME=01:30:00
 # For a long run set this to 06:20:00
 ./xmlchange --subgroup case.compress JOB_WALLCLOCK_TIME=04:20:00
+
+# Activate correct atmospheric N2O concentrations in HAMOCC (only done in ensemble member 2 of esm-hist)
+./xmlchange HAMOCC_N2O_HIST=TRUE
+
+
 ./case.setup
 
 # Changes to user_nl_* files go here . these settings will be default in beta26
@@ -174,4 +179,4 @@ fi
 # Here should come: ./case.build and ./case.submit
 cd "${casepath}"
 ./case.build
-#./case.submit
+./case.submit
